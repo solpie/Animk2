@@ -202,8 +202,8 @@
 	            _this.bar.alpha = .9;
 	        });
 	        _this.addChild(_this.bar);
-	        _this.mask1 = new PIXI.Graphics().drawRect(0, 0, 1, 1);
-	        _this.mask2 = new PIXI.Graphics().drawRect(0, 0, 1, 1);
+	        _this.mask1 = new PIXI.Graphics().drawRect(0, 0, 1100, 1000);
+	        _this.mask2 = new PIXI.Graphics().drawRect(0, 0, 1000, 1000);
 	        _this.addChild(_this.mask2);
 	        _this.resize(width, height);
 	        return _this;
@@ -295,6 +295,7 @@
 	        var _this = _super.call(this) || this;
 	        parent.addChild(_this);
 	        var hs = new Scroller_1.Scroller('h', 600, 0, 100);
+	        hs.x = 200 + 15;
 	        _this.addChild(hs);
 	        _this.hScroller = hs;
 	        return _this;
@@ -313,6 +314,13 @@
 	    function Tracker() {
 	        var _this = _super.call(this) || this;
 	        _this.timestampBar = new TimestampBar(_this);
+	        _this.timestampBar.hScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
+	            console.log('scroll', v);
+	            for (var i = 0; i < _this.stackerArr.length; i++) {
+	                var s = _this.stackerArr[i];
+	                s.scroll(v);
+	            }
+	        });
 	        _this.stackerCtn = new PIXI.Container();
 	        _this.stackerCtn.y = _this.timestampBar.height;
 	        _this.addChild(_this.stackerCtn);
@@ -356,17 +364,40 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var Clip = (function (_super) {
+	    __extends(Clip, _super);
+	    function Clip() {
+	        var _this = _super.call(this) || this;
+	        _this.start = 1;
+	        _this.addChild(new PIXI.Graphics().beginFill(0xffff00).drawRect(0, 0, 300, 40));
+	        return _this;
+	    }
+	    return Clip;
+	}(PIXI.Container));
 	var Stacker = (function (_super) {
 	    __extends(Stacker, _super);
 	    function Stacker(name) {
 	        var _this = _super.call(this) || this;
+	        _this.scrollX = 0;
 	        _this.bg = new PIXI.Graphics().beginFill(0x343434).drawRect(0, 0, 500, 60);
 	        _this.addChild(_this.bg);
 	        var nt = new PIXI.Text(name);
 	        _this.nameText = nt;
 	        _this.addChild(_this.nameText);
+	        _this.clipCtn = new PIXI.Container();
+	        _this.clipCtn.x = 230;
+	        _this.addChild(_this.clipCtn);
+	        var clip = new Clip();
+	        _this.clip = clip;
+	        _this.clipCtn.addChild(clip);
+	        _this.scroll(0);
 	        return _this;
 	    }
+	    Stacker.prototype.scroll = function (v) {
+	        console.log('scroll', v);
+	        this.scrollX = v;
+	        this.clip.x = -this.scrollX + this.clip.start * 40;
+	    };
 	    return Stacker;
 	}(PIXI.Container));
 	exports.Stacker = Stacker;
@@ -840,26 +871,26 @@
 	        }, function (e) {
 	            if (_this.dir == 'v') {
 	                if (_this.lastMousePosY > -1) {
-	                    _this.thumb.y += e.data.originalEvent.clientY - _this.lastMousePosY;
+	                    _this.thumb.y += e.my - _this.lastMousePosY;
 	                    if (_this.thumb.y < 0)
 	                        _this.thumb.y = 0;
 	                    else if (_this.thumb.y + _this.thumb.height > _this.max)
 	                        _this.thumb.y = _this.max - _this.thumb.height;
 	                    else {
-	                        _this.lastMousePosY = e.data.originalEvent.clientY;
+	                        _this.lastMousePosY = e.my;
 	                        _this.evt.emit(const_1.ScrollEvent.CHANGED, _this.value);
 	                    }
 	                }
 	            }
 	            else if (_this.dir == 'h') {
 	                if (_this.lastMousePosX > -1) {
-	                    _this.thumb.x += e.data.originalEvent.clientY - _this.lastMousePosX;
+	                    _this.thumb.x += e.mx - _this.lastMousePosX;
 	                    if (_this.thumb.x < 0)
 	                        _this.thumb.x = 0;
 	                    else if (_this.thumb.x + _this.thumb.width > _this.max)
 	                        _this.thumb.x = _this.max - _this.thumb.width;
 	                    else {
-	                        _this.lastMousePosX = e.data.originalEvent.clientX;
+	                        _this.lastMousePosX = e.mx;
 	                        _this.evt.emit(const_1.ScrollEvent.CHANGED, _this.value);
 	                    }
 	                }

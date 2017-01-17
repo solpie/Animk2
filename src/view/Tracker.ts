@@ -2,11 +2,12 @@ import { ScrollEvent } from './const';
 import { Scroller } from './components/Scroller';
 import { Stacker } from './Stacker';
 class TimestampBar extends PIXI.Container {
-    hScroller:Scroller
+    hScroller: Scroller
     constructor(parent: PIXI.Container) {
         super()
         parent.addChild(this)
-        let hs = new Scroller('h',600,0,100)
+        let hs = new Scroller('h', 600, 0, 100)
+        hs.x = 200 + 15
         this.addChild(hs)
         this.hScroller = hs
     }
@@ -23,6 +24,14 @@ export class Tracker extends PIXI.Container {
     constructor() {
         super()
         this.timestampBar = new TimestampBar(this)
+        this.timestampBar.hScroller.evt.on(ScrollEvent.CHANGED, (v) => {
+                    console.log('scroll' ,v);
+
+            for (var i = 0; i < this.stackerArr.length; i++) {
+                var s: Stacker = this.stackerArr[i];
+                s.scroll(v)
+            }
+        })
 
         this.stackerCtn = new PIXI.Container()
         this.stackerCtn.y = this.timestampBar.height
@@ -36,6 +45,8 @@ export class Tracker extends PIXI.Container {
 
         })
         this.addChild(this.vScroller)
+
+
     }
 
     newStacker() {
@@ -56,6 +67,6 @@ export class Tracker extends PIXI.Container {
     }
 
     resize(width, height) {
-        this.vScroller.setMax(height-this.timestampBar.height)
+        this.vScroller.setMax(height - this.timestampBar.height)
     }
 }

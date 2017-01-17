@@ -49,31 +49,28 @@ export class Scroller extends PIXI.Container {
         }, (e) => {
             if (this.dir == 'v') {
                 if (this.lastMousePosY > -1) {
-                    this.thumb.y += e.data.originalEvent.clientY - this.lastMousePosY
+                    this.thumb.y += e.my- this.lastMousePosY
                     if (this.thumb.y < 0)
                         this.thumb.y = 0
                     else if (this.thumb.y + this.thumb.height > this.max)
                         this.thumb.y = this.max - this.thumb.height
                     else {
-                        this.lastMousePosY = e.data.originalEvent.clientY
+                        this.lastMousePosY = e.my
                         // remote.getCurrentWebContents().sendInputEvent({type: 'mouseMove', x: 10, y: 10})
                         this.evt.emit(ScrollEvent.CHANGED, this.value)
                     }
 
-                    // if (this.child2) {
-                    //     this.child2.y = this.bar.y + this.bar.height
-                    // }
                 }
             }
             else if (this.dir == 'h') {
                 if (this.lastMousePosX > -1) {
-                    this.thumb.x += e.data.originalEvent.clientY - this.lastMousePosX
+                    this.thumb.x += e.mx - this.lastMousePosX
                     if (this.thumb.x < 0)
                         this.thumb.x = 0
                     else if (this.thumb.x + this.thumb.width > this.max)
                         this.thumb.x = this.max - this.thumb.width
                     else {
-                        this.lastMousePosX = e.data.originalEvent.clientX
+                        this.lastMousePosX = e.mx
                         this.evt.emit(ScrollEvent.CHANGED, this.value)
                     }
                 }

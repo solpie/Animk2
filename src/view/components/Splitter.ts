@@ -1,7 +1,7 @@
 import { ScrollEvent } from '../const';
 import { EventDispatcher } from '../../utils/EventDispatcher';
 import { PIXI_MOUSE_EVENT, setupDrag } from '../../utils/PixiEx';
-import { dirname } from 'path';
+// import { dirname } from 'path';
 export class Splitter extends PIXI.Container {
     bar: PIXI.Sprite
     child1: any;
@@ -54,9 +54,10 @@ export class Splitter extends PIXI.Container {
             this.bar.alpha = .9
         })
         this.addChild(this.bar)
-        this.mask1 = new PIXI.Graphics().drawRect(0, 0, 1, 1)
+        this.mask1 = new PIXI.Graphics().drawRect(0, 0, 1100, 1000)
         // this.mask1.interactive = true
-        this.mask2 = new PIXI.Graphics().drawRect(0, 0, 1, 1)
+        this.mask2 = new PIXI.Graphics().drawRect(0, 0, 1000, 1000)
+        
         // this.mask2.interactive = true
         // this.addChild(this.mask1)
         this.addChild(this.mask2)
