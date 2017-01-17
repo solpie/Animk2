@@ -6,6 +6,10 @@ export const ViewConst = {
     STAGE_HEIGHT: 1080
 };
 
+export const ScrollEvent = {
+    CHANGED:'changed'
+};
+
 export const ViewEvent = {
     PLAYER_EDIT: 'edit player',
 };

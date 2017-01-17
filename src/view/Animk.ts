@@ -1,3 +1,4 @@
+import { ScrollEvent } from './const';
 import { Tracker } from './Tracker';
 import { Splitter } from './components/Splitter';
 export class Animk {
@@ -17,6 +18,9 @@ export class Animk {
         this.tracker = tk
         vs.setChild(tk)
 
+        this.vSplitter.evt.on(ScrollEvent.CHANGED, (vs: Splitter) => {
+            this.tracker.resize(this.tracker.width, vs.child2Space)
+        })
         this.test()
     }
 
@@ -24,5 +28,9 @@ export class Animk {
         for (var i = 0; i < 5; i++) {
             this.tracker.newStacker()
         }
+        this.tracker.vScroller.setMax(350)
+        this.tracker.vScroller.evt.on(ScrollEvent.CHANGED, (v) => {
+            console.log('scroll changed', v);
+        })
     }
 }

@@ -1,3 +1,4 @@
+import { EventDispatcher } from './EventDispatcher';
 import { loadImg } from "./JsFunc";
 export function imgToTex(img): PIXI.Texture {
     return new PIXI.Texture(new PIXI.BaseTexture(img))
@@ -219,13 +220,18 @@ export let PIXI_MOUSE_EVENT = {
 export let setupDrag = (obj, onDown, onMove, onUp) => {
     obj.interactive = true
     obj.on(PIXI_MOUSE_EVENT.down, (e) => {
+        e.mx = e.data.originalEvent.clientX
+        e.my = e.data.originalEvent.clientY
         onDown(e)
     })
     obj.on(PIXI_MOUSE_EVENT.move, (e) => {
+        e.mx = e.data.originalEvent.clientX
+        e.my = e.data.originalEvent.clientY
         onMove(e)
     })
     obj.on(PIXI_MOUSE_EVENT.up, (e) => {
+        e.mx = e.data.originalEvent.clientX
+        e.my = e.data.originalEvent.clientY
         onUp(e)
     })
-
 }
