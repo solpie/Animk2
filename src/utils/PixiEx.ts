@@ -20,7 +20,7 @@ function makeSprite(parameters): PIXI.Sprite {
 export function loadRes(url: string, callback, isCrossOrigin?: boolean) {
     if (isCrossOrigin) {
         let req = new XMLHttpRequest();
-        req.open('GET', proxy(url), true);
+        req.open('GET', url, true);
         req.onload = function (res) {
             loadImg(req.responseText, callback);
         };
@@ -210,6 +210,22 @@ export let setPivot = (obj, x, y) => {
     obj.y += y
 }
 export let PIXI_MOUSE_EVENT = {
-    mousedown: 'mousedown',
+    down: 'mousedown',
+    move: 'mousemove',
+    up: 'mouseup',
     click: 'click',
+}
+
+export let setupDrag = (obj, onDown, onMove, onUp) => {
+    obj.interactive = true
+    obj.on(PIXI_MOUSE_EVENT.down, (e) => {
+        onDown(e)
+    })
+    obj.on(PIXI_MOUSE_EVENT.move, (e) => {
+        onMove(e)
+    })
+    obj.on(PIXI_MOUSE_EVENT.up, (e) => {
+        onUp(e)
+    })
+
 }

@@ -114,6 +114,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	var Tracker_1 = __webpack_require__(7);
 	var Splitter_1 = __webpack_require__(6);
 	var Animk = (function () {
 	    function Animk(stage) {
@@ -122,9 +123,16 @@
 	        stage.addChild(vs);
 	        var c1 = new PIXI.Graphics().beginFill(0xff0000).drawRect(0, 0, 400, 200);
 	        vs.setChild(c1);
-	        var c2 = new PIXI.Graphics().beginFill(0xffff00).drawRect(0, 0, 400, 200);
-	        vs.setChild(c2);
+	        var tk = new Tracker_1.Tracker();
+	        this.tracker = tk;
+	        vs.setChild(tk);
+	        this.test();
 	    }
+	    Animk.prototype.test = function () {
+	        for (var i = 0; i < 5; i++) {
+	            this.tracker.newStacker();
+	        }
+	    };
 	    return Animk;
 	}());
 	exports.Animk = Animk;
@@ -132,7 +140,7 @@
 
 /***/ },
 /* 6 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -140,13 +148,41 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var PixiEx_1 = __webpack_require__(9);
 	var Splitter = (function (_super) {
 	    __extends(Splitter, _super);
 	    function Splitter(dir, width, height) {
 	        var _this = _super.call(this) || this;
 	        _this.barSpace = 8;
+	        _this.lastMousePosX = -1;
+	        _this.lastMousePosY = -1;
 	        _this.dir = dir;
 	        _this.bar = new PIXI.Sprite();
+	        PixiEx_1.setupDrag(_this.bar, function (e) {
+	            _this.lastMousePosY = e.data.originalEvent.clientY;
+	            _this.lastMousePosX = e.data.originalEvent.clientX;
+	            _this.bar.alpha = .8;
+	        }, function (e) {
+	            if (_this.dir == 'v') {
+	                if (_this.lastMousePosY > -1) {
+	                    _this.bar.y += e.data.originalEvent.clientY - _this.lastMousePosY;
+	                    _this.lastMousePosY = e.data.originalEvent.clientY;
+	                    if (_this.child2) {
+	                        _this.child2.y = _this.bar.y + _this.bar.height;
+	                    }
+	                }
+	            }
+	            else if (_this.dir == 'h') {
+	                if (_this.lastMousePosX > -1) {
+	                    _this.bar.x += e.data.originalEvent.clientY - _this.lastMousePosX;
+	                    _this.lastMousePosX = e.data.originalEvent.clientX;
+	                }
+	            }
+	        }, function (e) {
+	            _this.lastMousePosX = -1;
+	            _this.lastMousePosY = -1;
+	            _this.bar.alpha = 1;
+	        });
 	        _this.addChild(_this.bar);
 	        if (dir == 'v') {
 	            _this.child1Space = height / 2;
@@ -166,6 +202,7 @@
 	    }
 	    Splitter.prototype.setChild = function (child) {
 	        this.addChild(child);
+	        this.addChild(this.bar);
 	        if (!this.child1) {
 	            this.child1 = child;
 	        }
@@ -182,6 +219,497 @@
 	    return Splitter;
 	}(PIXI.Container));
 	exports.Splitter = Splitter;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var Stacker_1 = __webpack_require__(8);
+	var TimestampBar = (function (_super) {
+	    __extends(TimestampBar, _super);
+	    function TimestampBar(parent) {
+	        var _this = _super.call(this) || this;
+	        parent.addChild(_this);
+	        return _this;
+	    }
+	    Object.defineProperty(TimestampBar.prototype, "height", {
+	        get: function () {
+	            return 45;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    return TimestampBar;
+	}(PIXI.Container));
+	var Tracker = (function (_super) {
+	    __extends(Tracker, _super);
+	    function Tracker() {
+	        var _this = _super.call(this) || this;
+	        _this.timestampBar = new TimestampBar(_this);
+	        _this.stackerArr = [];
+	        return _this;
+	    }
+	    Tracker.prototype.newStacker = function () {
+	        var s = new Stacker_1.Stacker('track#' + (this.stackerArr.length + 1));
+	        this.addChild(s);
+	        this.stackerArr.push(s);
+	        this._updateVPos();
+	    };
+	    Tracker.prototype._updateVPos = function () {
+	        for (var i = 0; i < this.stackerArr.length; i++) {
+	            var s = this.stackerArr[i];
+	            s.y = this.timestampBar.height + (s.height + 1) * i;
+	        }
+	    };
+	    return Tracker;
+	}(PIXI.Container));
+	exports.Tracker = Tracker;
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var Stacker = (function (_super) {
+	    __extends(Stacker, _super);
+	    function Stacker(name) {
+	        var _this = _super.call(this) || this;
+	        _this.bg = new PIXI.Graphics().beginFill(0x343434).drawRect(0, 0, 500, 60);
+	        _this.addChild(_this.bg);
+	        var nt = new PIXI.Text(name);
+	        _this.nameText = nt;
+	        _this.addChild(_this.nameText);
+	        return _this;
+	    }
+	    return Stacker;
+	}(PIXI.Container));
+	exports.Stacker = Stacker;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var JsFunc_1 = __webpack_require__(10);
+	function imgToTex(img) {
+	    return new PIXI.Texture(new PIXI.BaseTexture(img));
+	}
+	exports.imgToTex = imgToTex;
+	function makeSprite(parameters) {
+	    var url = parameters.url;
+	    var isCrossOrigin = parameters.isCrossOrigin;
+	    var callback = parameters.callback;
+	    var s = new PIXI.Sprite();
+	    loadRes(url, function (img) {
+	        s.texture = imgToTex(img);
+	        if (callback)
+	            callback(s);
+	    }, isCrossOrigin);
+	    return s;
+	}
+	function loadRes(url, callback, isCrossOrigin) {
+	    if (isCrossOrigin) {
+	        var req_1 = new XMLHttpRequest();
+	        req_1.open('GET', url, true);
+	        req_1.onload = function (res) {
+	            JsFunc_1.loadImg(req_1.responseText, callback);
+	        };
+	        req_1.send();
+	    }
+	    else {
+	        JsFunc_1.loadImg(url, callback);
+	    }
+	}
+	exports.loadRes = loadRes;
+	var _nullTex = imgToTex(null);
+	function makeTilingSprite(options) {
+	    var width = options.width;
+	    var height = options.height;
+	    var url = options.url;
+	    var callback = options.callback;
+	    var isCrossOrigin = options.isCrossOrigin;
+	    loadRes(url, function (img) {
+	        t.texture = imgToTex(img);
+	        if (callback)
+	            callback(t);
+	    }, isCrossOrigin);
+	    var t = new PIXI.extras.TilingSprite(_nullTex, width, height);
+	    return t;
+	}
+	function newBitmap(options) {
+	    var isTiling = options.isTiling;
+	    var s;
+	    if (isTiling) {
+	        s = makeTilingSprite(options);
+	    }
+	    else {
+	        s = makeSprite(options);
+	    }
+	    s.x = options.x ? options.x : 0;
+	    s.y = options.y ? options.y : 0;
+	    return s;
+	}
+	exports.newBitmap = newBitmap;
+	var BitmapText = (function (_super) {
+	    __extends(BitmapText, _super);
+	    function BitmapText(options) {
+	        var _this = _super.call(this) || this;
+	        _this.mapSprite = {};
+	        var text = options.text;
+	        _this.animations = options.animations;
+	        _this.frames = options.frames;
+	        _this.digis = {};
+	        _this._digiCtn = new PIXI.Container;
+	        _this.addChild(_this._digiCtn);
+	        _this.text = text;
+	        if (options.texture) {
+	            _this._tex = options.texture;
+	            _this.updateTex();
+	        }
+	        else if (options.img) {
+	            loadRes(options.img, function (img) {
+	                _this._tex = imgToTex(img);
+	                _this.updateTex();
+	            });
+	        }
+	        return _this;
+	    }
+	    BitmapText.prototype.updateTex = function () {
+	        for (var k in this.digis) {
+	            var digi = this.digis[k];
+	            digi['sp'].texture = this._tex;
+	        }
+	    };
+	    Object.defineProperty(BitmapText.prototype, "text", {
+	        set: function (v) {
+	            var digiIdx = 0;
+	            var num = v.charAt(digiIdx);
+	            while (num != '') {
+	                var idx = this.animations[num];
+	                if (idx > -1) {
+	                    var frame = this.frames[idx];
+	                    var ofsX = frame[0];
+	                    var ofsY = frame[1];
+	                    if (!this._frameWidth)
+	                        this._frameWidth = frame[2];
+	                    if (!this._frameHeight)
+	                        this._frameHeight = frame[3];
+	                    if (!this.digis[digiIdx]) {
+	                        this.digis[digiIdx] = this._makeFrame(this._frameWidth, this._frameHeight);
+	                    }
+	                    var digiFrame = this.digis[digiIdx];
+	                    digiFrame.x = digiIdx * this._frameWidth;
+	                    digiFrame['idx'] = digiIdx;
+	                    digiFrame['sp'].x = -ofsX;
+	                    digiFrame['sp'].y = -ofsY;
+	                    digiIdx += 1;
+	                    num = v.charAt(digiIdx);
+	                }
+	            }
+	            this._digiWidth = (digiIdx - 1) * this._frameWidth;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(BitmapText.prototype, "align", {
+	        set: function (align) {
+	            console.log('align right', this._digiWidth);
+	            if (align == 'left') {
+	                this._digiCtn.x = 0;
+	            }
+	            else if (align == 'center') {
+	                this._digiCtn.x = -this._digiWidth * .5;
+	            }
+	            else if (align == 'right') {
+	                this._digiCtn.x = -this._digiWidth;
+	            }
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    BitmapText.prototype._makeFrame = function (width, height) {
+	        var ctn = new PIXI.Container;
+	        this._digiCtn.addChild(ctn);
+	        var msk = new PIXI.Graphics;
+	        msk.beginFill(0xff0000)
+	            .drawRect(0, 0, width, height)
+	            .endFill();
+	        ctn.addChild(msk);
+	        var s = new PIXI.Sprite(this._tex);
+	        ctn.addChild(s);
+	        s.mask = msk;
+	        ctn['sp'] = s;
+	        return ctn;
+	    };
+	    return BitmapText;
+	}(PIXI.Container));
+	exports.BitmapText = BitmapText;
+	exports.newWhiteMask = function (url) {
+	    var sp = newBitmap({
+	        url: url, callback: function () {
+	            var filter = new PIXI.filters.ColorMatrixFilter();
+	            filter.brightness(100);
+	            sp.filters = [filter];
+	            sp.cacheAsBitmap = true;
+	        }
+	    });
+	    return sp;
+	};
+	exports.makeColorRatio = function (colorArr, ratioArr) {
+	    var a = [];
+	    for (var i = 0; i < colorArr.length; i++) {
+	        var col = colorArr[i];
+	        for (var j = 0; j < ratioArr[i]; j++) {
+	            a.push(col);
+	        }
+	    }
+	    return a;
+	};
+	var TextEx = (function (_super) {
+	    __extends(TextEx, _super);
+	    function TextEx() {
+	        return _super !== null && _super.apply(this, arguments) || this;
+	    }
+	    Object.defineProperty(TextEx.prototype, "text", {
+	        set: function (t) {
+	            this._text = t;
+	            if (this.align == 'center') {
+	            }
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    return TextEx;
+	}(PIXI.Text));
+	exports.setPivot = function (obj, x, y) {
+	    obj.pivot = new PIXI.Point(x, y);
+	    obj.x += x;
+	    obj.y += y;
+	};
+	exports.PIXI_MOUSE_EVENT = {
+	    down: 'mousedown',
+	    move: 'mousemove',
+	    up: 'mouseup',
+	    click: 'click',
+	};
+	exports.setupDrag = function (obj, onDown, onMove, onUp) {
+	    obj.interactive = true;
+	    obj.on(exports.PIXI_MOUSE_EVENT.down, function (e) {
+	        onDown(e);
+	    });
+	    obj.on(exports.PIXI_MOUSE_EVENT.move, function (e) {
+	        onMove(e);
+	    });
+	    obj.on(exports.PIXI_MOUSE_EVENT.up, function (e) {
+	        onUp(e);
+	    });
+	};
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+	"use strict";
+	function ascendingProp(prop) {
+	    return function (a, b) {
+	        return a[prop] - b[prop];
+	    };
+	}
+	exports.ascendingProp = ascendingProp;
+	function descendingProp(prop) {
+	    return function (a, b) {
+	        return b[prop] - a[prop];
+	    };
+	}
+	exports.descendingProp = descendingProp;
+	function mapToSortArray(map, prop, sortFunc) {
+	    var arr = [];
+	    for (var k in map) {
+	        arr.push(map[k]);
+	    }
+	    arr.sort(sortFunc(prop));
+	    return arr;
+	}
+	exports.mapToSortArray = mapToSortArray;
+	function mapToArr(map, clone) {
+	    var a = [];
+	    for (var k in map) {
+	        a.push(map[k]);
+	    }
+	    if (clone)
+	        a = JSON.parse(JSON.stringify(a));
+	    return a;
+	}
+	exports.mapToArr = mapToArr;
+	function arrCountSame(arrA, arrB) {
+	    var n = 0;
+	    for (var i = 0; i < arrB.length; i++) {
+	        var obj = arrB[i];
+	        if (arrA.indexOf(obj) > -1) {
+	            n++;
+	        }
+	    }
+	    return n;
+	}
+	exports.arrCountSame = arrCountSame;
+	function arrUniqueFilter(el, i, a) {
+	    return i == a.indexOf(el);
+	}
+	exports.arrUniqueFilter = arrUniqueFilter;
+	function loadImg(path1, callback) {
+	    var img = new Image();
+	    img.onload = function () {
+	        callback(img);
+	    };
+	    img.src = path1;
+	}
+	exports.loadImg = loadImg;
+	function loadImgArr(pathArr, callback) {
+	    var count = pathArr.length;
+	    var imgCollection;
+	    var isArr;
+	    function onLoadImg() {
+	        count--;
+	        if (count === 0) {
+	            count = -1;
+	            callback(imgCollection);
+	        }
+	    }
+	    if (count && pathArr[0].hasOwnProperty('name') && pathArr[0].hasOwnProperty('url')) {
+	        isArr = false;
+	        imgCollection = {};
+	    }
+	    else {
+	        isArr = true;
+	        imgCollection = [];
+	    }
+	    var img;
+	    var url;
+	    for (var i = 0; i < pathArr.length; i++) {
+	        var p = pathArr[i];
+	        img = new Image();
+	        if (isArr) {
+	            imgCollection.push(img);
+	            url = p;
+	        }
+	        else {
+	            imgCollection[p.name] = img;
+	            url = p.url;
+	        }
+	        img.onload = onLoadImg;
+	        img.src = url;
+	    }
+	}
+	exports.loadImgArr = loadImgArr;
+	function combineArr(arr, num) {
+	    var r = [];
+	    (function f(t, a, n) {
+	        if (n == 0) {
+	            return r.push(t);
+	        }
+	        for (var i = 0, l = a.length; i <= l - n; i++) {
+	            f(t.concat(a[i]), a.slice(i + 1), n - 1);
+	        }
+	    })([], arr, num);
+	    return r;
+	}
+	exports.combineArr = combineArr;
+	function formatSecond(sec, minStr, secStr) {
+	    if (minStr === void 0) { minStr = ":"; }
+	    if (secStr === void 0) { secStr = ""; }
+	    var min = Math.floor(sec / 60);
+	    var s = sec % 60;
+	    var strMin = min + "";
+	    var strSec = s + "";
+	    if (min < 10)
+	        strMin = "0" + strMin;
+	    if (s < 10)
+	        strSec = "0" + strSec;
+	    return strMin + minStr + strSec + secStr;
+	}
+	exports.formatSecond = formatSecond;
+	function getLength(str) {
+	    var realLength = 0, len = str.length, charCode = -1;
+	    for (var i = 0; i < len; i++) {
+	        charCode = str.charCodeAt(i);
+	        if (charCode >= 0 && charCode <= 128)
+	            realLength += 1;
+	        else
+	            realLength += 2;
+	    }
+	    return realLength;
+	}
+	exports.getLength = getLength;
+	function cnWrap(str, len, limit) {
+	    if (limit === void 0) { limit = 0; }
+	    var str_line_length = 0;
+	    var str_len = str.length;
+	    var str_cut = new String();
+	    var str_out = '';
+	    var total_len = 0;
+	    for (var i = 0; i < str_len; i++) {
+	        if (limit != 0 && total_len > limit)
+	            break;
+	        var a = str.charAt(i);
+	        str_line_length++;
+	        total_len++;
+	        if (escape(a).length > 4) {
+	            str_line_length++;
+	            total_len++;
+	        }
+	        str_cut = str_cut.concat(a);
+	        if (str_line_length >= len) {
+	            str_out += str_cut.concat('\n');
+	            str_cut = new String();
+	            str_line_length = 0;
+	        }
+	    }
+	    str_out += str_cut;
+	    return str_out;
+	}
+	exports.cnWrap = cnWrap;
+	exports.getUrlFilename = function (url) {
+	    var a = url.split('/');
+	    var filename = a[a.length - 1];
+	    return filename;
+	};
+	exports.DateFormat = function (date, fmt) {
+	    var o = {
+	        "M+": date.getMonth() + 1,
+	        "d+": date.getDate(),
+	        "h+": date.getHours(),
+	        "m+": date.getMinutes(),
+	        "s+": date.getSeconds(),
+	        "q+": Math.floor((date.getMonth() + 3) / 3),
+	        "S": date.getMilliseconds()
+	    };
+	    if (/(y+)/.test(fmt))
+	        fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+	    for (var k in o)
+	        if (new RegExp("(" + k + ")").test(fmt))
+	            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+	    return fmt;
+	};
 
 
 /***/ }

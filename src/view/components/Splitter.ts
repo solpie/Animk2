@@ -1,3 +1,4 @@
+import { PIXI_MOUSE_EVENT, setupDrag } from '../../utils/PixiEx';
 import { dirname } from 'path';
 export class Splitter extends PIXI.Container {
     bar: PIXI.Sprite
@@ -6,10 +7,37 @@ export class Splitter extends PIXI.Container {
     dir
     child1Space
     barSpace = 8
+    lastMousePosX = -1
+    lastMousePosY = -1
     constructor(dir, width, height) {
         super()
         this.dir = dir
         this.bar = new PIXI.Sprite()
+        setupDrag(this.bar, (e) => {
+            this.lastMousePosY = e.data.originalEvent.clientY
+            this.lastMousePosX = e.data.originalEvent.clientX
+            this.bar.alpha = .8
+        }, (e) => {
+            if (this.dir == 'v') {
+                if (this.lastMousePosY > -1) {
+                    this.bar.y += e.data.originalEvent.clientY - this.lastMousePosY
+                    this.lastMousePosY = e.data.originalEvent.clientY
+                    if (this.child2) {
+                        this.child2.y = this.bar.y + this.bar.height
+                    }
+                }
+            }
+            else if (this.dir == 'h') {
+                if (this.lastMousePosX > -1) {
+                    this.bar.x += e.data.originalEvent.clientY - this.lastMousePosX
+                    this.lastMousePosX = e.data.originalEvent.clientX
+                }
+            }
+        }, (e) => {
+            this.lastMousePosX = -1
+            this.lastMousePosY = -1
+            this.bar.alpha = 1
+        })
         this.addChild(this.bar)
         if (dir == 'v') {
             // this.bar.
@@ -30,6 +58,7 @@ export class Splitter extends PIXI.Container {
 
     setChild(child: PIXI.DisplayObject) {
         this.addChild(child)
+        this.addChild(this.bar)
         if (!this.child1) {
             this.child1 = child
         }
@@ -42,7 +71,5 @@ export class Splitter extends PIXI.Container {
                 child.x = this.child1Space + this.barSpace
             }
         }
-
-
     }
 }
