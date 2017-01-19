@@ -1,4 +1,5 @@
-import { ScrollEvent } from '../const';
+import { animk } from '../Animk';
+import { ScrollEvent, ViewEvent } from '../const';
 import { EventDispatcher } from '../../utils/EventDispatcher';
 import { PIXI_MOUSE_EVENT, setupDrag } from '../../utils/PixiEx';
 // import { dirname } from 'path';
@@ -9,7 +10,7 @@ export class Splitter extends PIXI.Container {
     dir
     child1Space
     child2Space
-    barSpace = 8
+    barSpace = 40
     lastMousePosX = -1
     lastMousePosY = -1
     evt: EventDispatcher = new EventDispatcher
@@ -26,7 +27,7 @@ export class Splitter extends PIXI.Container {
 
         this.dir = dir
         this.bar = new PIXI.Sprite()
-        this.bar.alpha =.9
+        this.bar.alpha = .9
         setupDrag(this.bar, (e) => {
             this.lastMousePosY = e.data.originalEvent.clientY
             this.lastMousePosX = e.data.originalEvent.clientX
@@ -35,7 +36,7 @@ export class Splitter extends PIXI.Container {
             if (this.dir == 'v') {
                 if (this.lastMousePosY > -1) {
                     // this.bar.y += e.data.originalEvent.clientY - this.lastMousePosY
-                    this._setBarY(this.bar.y + e.my - this.lastMousePosY)
+                    this.setBarY(this.bar.y + e.my - this.lastMousePosY)
                     this.lastMousePosY = e.data.originalEvent.clientY
                     if (this.child2) {
                         this.evt.emit(ScrollEvent.CHANGED, this)
@@ -53,17 +54,25 @@ export class Splitter extends PIXI.Container {
             this.lastMousePosY = -1
             this.bar.alpha = .9
         })
+
+        animk.on(ViewEvent.MOUSE_UP, () => {
+            this.lastMousePosX = -1
+            this.lastMousePosY = -1
+            this.bar.alpha = .9
+        })
+
+        
         this.addChild(this.bar)
         this.mask1 = new PIXI.Graphics().drawRect(0, 0, 1100, 1000)
         // this.mask1.interactive = true
         this.mask2 = new PIXI.Graphics().drawRect(0, 0, 1000, 1000)
-        
+
         // this.mask2.interactive = true
         // this.addChild(this.mask1)
         this.addChild(this.mask2)
         this.resize(width, height)
     }
-    _setBarY(by) {
+    setBarY(by) {
         this.bar.y = by
         this.child1Space = by
         this.child2Space = this.height - by - this.barSpace
@@ -91,7 +100,7 @@ export class Splitter extends PIXI.Container {
         else if (!this.child2) {
             this.child2 = child
             this.addChild(child)
-            
+
             // child.mask = this.mask2
             if (this.dir == 'v') {
                 child.y = this.child1Space + this.barSpace
@@ -107,7 +116,7 @@ export class Splitter extends PIXI.Container {
     resize(width, height) {
         if (this.dir == 'v') {
             // this.bar.
-            this._setBarY(height / 2)
+            this.setBarY(height / 2)
             if (!this.bar.children.length)
                 this.bar.addChild(new PIXI.Graphics()
                     .beginFill(0x2e2e2e)

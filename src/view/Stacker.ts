@@ -1,3 +1,4 @@
+import { PIXI_RECT } from '../utils/PixiEx';
 class Clip extends PIXI.Container {
     start = 1
     constructor() {
@@ -10,27 +11,32 @@ export class Stacker extends PIXI.Container {
     bg
     scrollX = 0
     clip: Clip
-    clipCtn:PIXI.Container
+    clipCtn: PIXI.Container
     constructor(name: string) {
         super()
         this.bg = new PIXI.Graphics().beginFill(0x343434).drawRect(0, 0, 500, 60)
         this.addChild(this.bg)
-        
-        let nt = new PIXI.Text(name)
-        this.nameText = nt
-        this.addChild(this.nameText)
 
-        this.clipCtn = new PIXI.Container()        
+
+
+        this.clipCtn = new PIXI.Container()
         this.clipCtn.x = 230
         this.addChild(this.clipCtn)
         let clip = new Clip()
         this.clip = clip
         this.clipCtn.addChild(clip)
+
+        this.addChild(PIXI_RECT(0x343434, 0, 0, 200, 60))
+
+        let nt = new PIXI.Text(name)
+        this.nameText = nt
+        this.addChild(this.nameText)
+
         this.scroll(0)
     }
 
     scroll(v) {
-        console.log('scroll' ,v);
+        console.log('scroll', v);
         this.scrollX = v
         this.clip.x = -this.scrollX + this.clip.start * 40
     }

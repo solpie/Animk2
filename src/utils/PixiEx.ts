@@ -235,3 +235,6 @@ export let setupDrag = (obj, onDown, onMove, onUp) => {
         onUp(e)
     })
 }
+export let PIXI_RECT = (col, x, y, w, h) => {
+    return new PIXI.Graphics().beginFill(col).drawRect(x, y, w, h)
+}

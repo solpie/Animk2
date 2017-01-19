@@ -1,5 +1,5 @@
 require(`script!./../libs/pixi.min.js`);
-import { Animk } from './Animk';
+import { animk } from './Animk';
 import { ViewConst } from './const';
 console.log('running!')
 let main = () => {
@@ -17,4 +17,5 @@ let main = () => {
     renderer.renderStage();
     return renderer.stage;
 }
-new Animk(main())
+
+animk.init(main())

@@ -2,30 +2,34 @@ import { ScrollEvent } from './const';
 import { Scroller } from './components/Scroller';
 import { Stacker } from './Stacker';
 class TimestampBar extends PIXI.Container {
-    hScroller: Scroller
     constructor(parent: PIXI.Container) {
         super()
         parent.addChild(this)
-        let hs = new Scroller('h', 600, 0, 100)
-        hs.x = 200 + 15
-        this.addChild(hs)
-        this.hScroller = hs
     }
 
     get height() {
-        return 45
+        return 15
     }
 }
 export class Tracker extends PIXI.Container {
     timestampBar: TimestampBar
     stackerArr: Array<Stacker>
     vScroller: Scroller
+    hScroller: Scroller
+
     stackerCtn: PIXI.Container
     constructor() {
         super()
-        this.timestampBar = new TimestampBar(this)
-        this.timestampBar.hScroller.evt.on(ScrollEvent.CHANGED, (v) => {
-                    console.log('scroll' ,v);
+        // this.timestampBar = new TimestampBar(this)
+
+
+        let hs = new Scroller('h', 600, 0, 100)
+        hs.x = 200 + 15
+        // hs.y = - 15
+        this.addChild(hs)
+        this.hScroller = hs
+        this.hScroller.evt.on(ScrollEvent.CHANGED, (v) => {
+            console.log('scroll', v);
 
             for (var i = 0; i < this.stackerArr.length; i++) {
                 var s: Stacker = this.stackerArr[i];
@@ -34,19 +38,17 @@ export class Tracker extends PIXI.Container {
         })
 
         this.stackerCtn = new PIXI.Container()
-        this.stackerCtn.y = this.timestampBar.height
+        this.stackerCtn.y = this.hScroller.height
         this.addChild(this.stackerCtn)
         this.stackerArr = []
 
         this.vScroller = new Scroller('v', 300, 0, 100)
         this.vScroller.x = 200
-        this.vScroller.y = this.timestampBar.height
+        this.vScroller.y = this.hScroller.height
         this.vScroller.evt.on(ScrollEvent.CHANGED, (v) => {
 
         })
         this.addChild(this.vScroller)
-
-
     }
 
     newStacker() {
@@ -67,6 +69,7 @@ export class Tracker extends PIXI.Container {
     }
 
     resize(width, height) {
-        this.vScroller.setMax(height - this.timestampBar.height)
+        this.vScroller.setMax(height - this.hScroller.height)
+        this.hScroller.setMax(width - 200 - 15)
     }
 }

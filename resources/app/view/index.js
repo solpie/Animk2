@@ -61,7 +61,7 @@
 	    renderer.renderStage();
 	    return renderer.stage;
 	};
-	new Animk_1.Animk(main());
+	Animk_1.animk.init(main());
 
 
 /***/ },
@@ -80,6 +80,10 @@
 	    CHANGED: 'changed'
 	};
 	exports.ViewEvent = {
+	    MOUSE_UP: 'onmouseup',
+	    PLAYER_EDIT: 'edit player',
+	};
+	exports.COLOR = {
 	    PLAYER_EDIT: 'edit player',
 	};
 
@@ -117,13 +121,23 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var EventDispatcher_1 = __webpack_require__(12);
 	var const_1 = __webpack_require__(1);
 	var Tracker_1 = __webpack_require__(7);
 	var Splitter_1 = __webpack_require__(6);
-	var Animk = (function () {
-	    function Animk(stage) {
+	var Animk = (function (_super) {
+	    __extends(Animk, _super);
+	    function Animk() {
+	        return _super !== null && _super.apply(this, arguments) || this;
+	    }
+	    Animk.prototype.init = function (stage) {
 	        var _this = this;
-	        var vs = new Splitter_1.Splitter('v', 1600, 800);
+	        var vs = new Splitter_1.Splitter('v', 1600, 1000);
 	        this.vSplitter = vs;
 	        stage.addChild(vs);
 	        var c1 = new PIXI.Graphics().beginFill(0xff0000).drawRect(0, 0, 400, 200);
@@ -131,11 +145,21 @@
 	        var tk = new Tracker_1.Tracker();
 	        this.tracker = tk;
 	        vs.setChild(tk);
+	        vs.setBarY(720);
 	        this.vSplitter.evt.on(const_1.ScrollEvent.CHANGED, function (vs) {
-	            _this.tracker.resize(_this.tracker.width, vs.child2Space);
+	            _this.tracker.resize(vs.width, vs.child2Space);
 	        });
+	        this.initMouse();
 	        this.test();
-	    }
+	    };
+	    Animk.prototype.initMouse = function () {
+	        var _this = this;
+	        document.onmouseup = function (e) {
+	            e['mx'] = e.clientX;
+	            e['my'] = e.clientY;
+	            _this.emit(const_1.ViewEvent.MOUSE_UP, e);
+	        };
+	    };
 	    Animk.prototype.test = function () {
 	        for (var i = 0; i < 5; i++) {
 	            this.tracker.newStacker();
@@ -146,8 +170,9 @@
 	        });
 	    };
 	    return Animk;
-	}());
+	}(EventDispatcher_1.EventDispatcher));
 	exports.Animk = Animk;
+	exports.animk = new Animk();
 
 
 /***/ },
@@ -160,6 +185,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var Animk_1 = __webpack_require__(5);
 	var const_1 = __webpack_require__(1);
 	var EventDispatcher_1 = __webpack_require__(12);
 	var PixiEx_1 = __webpack_require__(9);
@@ -167,7 +193,7 @@
 	    __extends(Splitter, _super);
 	    function Splitter(dir, width, height) {
 	        var _this = _super.call(this) || this;
-	        _this.barSpace = 8;
+	        _this.barSpace = 40;
 	        _this.lastMousePosX = -1;
 	        _this.lastMousePosY = -1;
 	        _this.evt = new EventDispatcher_1.EventDispatcher;
@@ -183,7 +209,7 @@
 	        }, function (e) {
 	            if (_this.dir == 'v') {
 	                if (_this.lastMousePosY > -1) {
-	                    _this._setBarY(_this.bar.y + e.my - _this.lastMousePosY);
+	                    _this.setBarY(_this.bar.y + e.my - _this.lastMousePosY);
 	                    _this.lastMousePosY = e.data.originalEvent.clientY;
 	                    if (_this.child2) {
 	                        _this.evt.emit(const_1.ScrollEvent.CHANGED, _this);
@@ -197,6 +223,11 @@
 	                }
 	            }
 	        }, function (e) {
+	            _this.lastMousePosX = -1;
+	            _this.lastMousePosY = -1;
+	            _this.bar.alpha = .9;
+	        });
+	        Animk_1.animk.on(const_1.ViewEvent.MOUSE_UP, function () {
 	            _this.lastMousePosX = -1;
 	            _this.lastMousePosY = -1;
 	            _this.bar.alpha = .9;
@@ -218,7 +249,7 @@
 	        enumerable: true,
 	        configurable: true
 	    });
-	    Splitter.prototype._setBarY = function (by) {
+	    Splitter.prototype.setBarY = function (by) {
 	        this.bar.y = by;
 	        this.child1Space = by;
 	        this.child2Space = this.height - by - this.barSpace;
@@ -253,7 +284,7 @@
 	    };
 	    Splitter.prototype.resize = function (width, height) {
 	        if (this.dir == 'v') {
-	            this._setBarY(height / 2);
+	            this.setBarY(height / 2);
 	            if (!this.bar.children.length)
 	                this.bar.addChild(new PIXI.Graphics()
 	                    .beginFill(0x2e2e2e)
@@ -294,15 +325,11 @@
 	    function TimestampBar(parent) {
 	        var _this = _super.call(this) || this;
 	        parent.addChild(_this);
-	        var hs = new Scroller_1.Scroller('h', 600, 0, 100);
-	        hs.x = 200 + 15;
-	        _this.addChild(hs);
-	        _this.hScroller = hs;
 	        return _this;
 	    }
 	    Object.defineProperty(TimestampBar.prototype, "height", {
 	        get: function () {
-	            return 45;
+	            return 15;
 	        },
 	        enumerable: true,
 	        configurable: true
@@ -313,8 +340,11 @@
 	    __extends(Tracker, _super);
 	    function Tracker() {
 	        var _this = _super.call(this) || this;
-	        _this.timestampBar = new TimestampBar(_this);
-	        _this.timestampBar.hScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
+	        var hs = new Scroller_1.Scroller('h', 600, 0, 100);
+	        hs.x = 200 + 15;
+	        _this.addChild(hs);
+	        _this.hScroller = hs;
+	        _this.hScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
 	            console.log('scroll', v);
 	            for (var i = 0; i < _this.stackerArr.length; i++) {
 	                var s = _this.stackerArr[i];
@@ -322,12 +352,12 @@
 	            }
 	        });
 	        _this.stackerCtn = new PIXI.Container();
-	        _this.stackerCtn.y = _this.timestampBar.height;
+	        _this.stackerCtn.y = _this.hScroller.height;
 	        _this.addChild(_this.stackerCtn);
 	        _this.stackerArr = [];
 	        _this.vScroller = new Scroller_1.Scroller('v', 300, 0, 100);
 	        _this.vScroller.x = 200;
-	        _this.vScroller.y = _this.timestampBar.height;
+	        _this.vScroller.y = _this.hScroller.height;
 	        _this.vScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
 	        });
 	        _this.addChild(_this.vScroller);
@@ -347,7 +377,8 @@
 	        }
 	    };
 	    Tracker.prototype.resize = function (width, height) {
-	        this.vScroller.setMax(height - this.timestampBar.height);
+	        this.vScroller.setMax(height - this.hScroller.height);
+	        this.hScroller.setMax(width - 200 - 15);
 	    };
 	    return Tracker;
 	}(PIXI.Container));
@@ -356,7 +387,7 @@
 
 /***/ },
 /* 8 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -364,6 +395,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var PixiEx_1 = __webpack_require__(9);
 	var Clip = (function (_super) {
 	    __extends(Clip, _super);
 	    function Clip() {
@@ -381,15 +413,16 @@
 	        _this.scrollX = 0;
 	        _this.bg = new PIXI.Graphics().beginFill(0x343434).drawRect(0, 0, 500, 60);
 	        _this.addChild(_this.bg);
-	        var nt = new PIXI.Text(name);
-	        _this.nameText = nt;
-	        _this.addChild(_this.nameText);
 	        _this.clipCtn = new PIXI.Container();
 	        _this.clipCtn.x = 230;
 	        _this.addChild(_this.clipCtn);
 	        var clip = new Clip();
 	        _this.clip = clip;
 	        _this.clipCtn.addChild(clip);
+	        _this.addChild(PixiEx_1.PIXI_RECT(0x343434, 0, 0, 200, 60));
+	        var nt = new PIXI.Text(name);
+	        _this.nameText = nt;
+	        _this.addChild(_this.nameText);
 	        _this.scroll(0);
 	        return _this;
 	    }
@@ -633,6 +666,9 @@
 	        onUp(e);
 	    });
 	};
+	exports.PIXI_RECT = function (col, x, y, w, h) {
+	    return new PIXI.Graphics().beginFill(col).drawRect(x, y, w, h);
+	};
 
 
 /***/ },
@@ -832,6 +868,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var Animk_1 = __webpack_require__(5);
 	var const_1 = __webpack_require__(1);
 	var EventDispatcher_1 = __webpack_require__(12);
 	var PixiEx_1 = __webpack_require__(9);
@@ -896,6 +933,11 @@
 	                }
 	            }
 	        }, function (e) {
+	            _this.lastMousePosX = -1;
+	            _this.lastMousePosY = -1;
+	            _this.thumb.alpha = 1;
+	        });
+	        Animk_1.animk.on(const_1.ViewEvent.MOUSE_UP, function () {
 	            _this.lastMousePosX = -1;
 	            _this.lastMousePosY = -1;
 	            _this.thumb.alpha = 1;

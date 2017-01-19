@@ -11,5 +11,10 @@ export const ScrollEvent = {
 };
 
 export const ViewEvent = {
+    MOUSE_UP: 'onmouseup',
+    PLAYER_EDIT: 'edit player',
+};
+
+export const COLOR = {
     PLAYER_EDIT: 'edit player',
 };

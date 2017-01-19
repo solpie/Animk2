@@ -10,7 +10,6 @@ var win
 var isDev;
 isDev = /[\\/]projects[\\/]/.test(process.execPath);
 // isDev = false;
-var conf = { width: 1600, height: 900 };
 
 function onReady() {
     console.log('onReady');
@@ -19,8 +18,8 @@ function onReady() {
 
 function openWin(serverConf) {
     win = new BrowserWindow({
-        width: 1600,
-        height: 1000,
+        width: 1700,
+        height: 1024,
         // width: 500, height: 540,
         frame: true,
         autoHideMenuBar: false,

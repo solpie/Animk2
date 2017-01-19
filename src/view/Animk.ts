@@ -1,11 +1,13 @@
-import { ScrollEvent } from './const';
+import { EventDispatcher } from '../utils/EventDispatcher';
+import { ScrollEvent, ViewEvent } from './const';
 import { Tracker } from './Tracker';
 import { Splitter } from './components/Splitter';
-export class Animk {
+export class Animk extends EventDispatcher{
     vSplitter: Splitter
     tracker: Tracker
-    constructor(stage: PIXI.Container) {
-        let vs = new Splitter('v', 1600, 800)
+
+    init(stage: PIXI.Container) {
+        let vs = new Splitter('v', 1600, 1000)
         this.vSplitter = vs
         stage.addChild(vs)
 
@@ -17,11 +19,23 @@ export class Animk {
         let tk = new Tracker()
         this.tracker = tk
         vs.setChild(tk)
+        vs.setBarY(720)
 
         this.vSplitter.evt.on(ScrollEvent.CHANGED, (vs: Splitter) => {
-            this.tracker.resize(this.tracker.width, vs.child2Space)
+            this.tracker.resize(vs.width, vs.child2Space)
         })
+        this.initMouse()
+
+
         this.test()
+    }
+
+    initMouse() {
+        document.onmouseup = (e) => {
+            e['mx'] = e.clientX
+            e['my'] = e.clientY
+            this.emit(ViewEvent.MOUSE_UP,e)
+        }
     }
 
     test() {
@@ -34,3 +48,5 @@ export class Animk {
         })
     }
 }
+
+export let animk = new Animk()
