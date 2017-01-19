@@ -18,9 +18,8 @@ export class Stacker extends PIXI.Container {
         this.addChild(this.bg)
 
 
-
         this.clipCtn = new PIXI.Container()
-        this.clipCtn.x = 230
+        this.clipCtn.x = 215
         this.addChild(this.clipCtn)
         let clip = new Clip()
         this.clip = clip

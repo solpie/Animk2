@@ -1,3 +1,4 @@
+import { TimestampBar } from '../Tracker';
 import { animk } from '../Animk';
 import { ScrollEvent, ViewEvent } from '../const';
 import { EventDispatcher } from '../../utils/EventDispatcher';
@@ -110,7 +111,6 @@ export class Splitter extends PIXI.Container {
             }
         }
         this.addChild(this.bar)
-
     }
 
     resize(width, height) {
@@ -133,6 +133,6 @@ export class Splitter extends PIXI.Container {
                     .beginFill(0x2e2e2e)
                     .drawRect(0, 0, this.barSpace, height))
         }
-
+    
     }
 }

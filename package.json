@@ -1,27 +1,28 @@
 {
-  "name": "animk2",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "server": "webpack --watch --progress --profile --colors --display-error-details --display-cached --config webpack.server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/solpie/Animk2.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/solpie/Animk2/issues"
-  },
-  "homepage": "https://github.com/solpie/Animk2#readme",
-  "devDependencies": {
-    "html-loader": "^0.4.4",
-    "script-loader": "^0.7.0",
-    "source-map-loader": "^0.1.6",
-    "ts-loader": "^1.3.3",
-    "webpack-node-externals": "^1.5.4"
-  }
+    "name": "animk2",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "app": "electron resources/app",
+        "server": "webpack --watch --progress --profile --colors --display-error-details --display-cached --config webpack.server.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/solpie/Animk2.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/solpie/Animk2/issues"
+    },
+    "homepage": "https://github.com/solpie/Animk2#readme",
+    "devDependencies": {
+        "html-loader": "^0.4.4",
+        "script-loader": "^0.7.0",
+        "source-map-loader": "^0.1.6",
+        "ts-loader": "^1.3.3",
+        "webpack-node-externals": "^1.5.4"
+    }
 }
