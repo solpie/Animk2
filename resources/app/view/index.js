@@ -142,6 +142,7 @@
 	        };
 	    };
 	    Animk.prototype.test = function () {
+	        this.projInfo.curComp.newTrack('D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png');
 	        this.tracker.vScroller.setMax(350);
 	        this.tracker.vScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
 	            console.log('scroll changed', v);
@@ -883,9 +884,38 @@
 	    function Clip() {
 	        var _this = _super.call(this) || this;
 	        _this.start = 1;
-	        _this.addChild(new PIXI.Graphics().beginFill(0xffff00).drawRect(0, 0, 300, 15));
+	        _this.header = new PIXI.Graphics()
+	            .beginFill(0x2f2f2f).drawRect(0, 0, 1, 15)
+	            .beginFill(0x343434).drawRect(0, 0, 1, 1)
+	            .beginFill(0x383838).drawRect(0, 0, 1, 2);
+	        _this.addChild(_this.header);
+	        _this.header.interactive = true;
+	        _this.header.buttonMode = true;
+	        var lastX, dtX;
+	        PixiEx_1.setupDrag(_this.header, function (e) {
+	            lastX = e.mx;
+	        }, function (e) {
+	            if (lastX != null) {
+	                dtX = e.mx - lastX;
+	                var fw = Animk_1.animk.projInfo.frameWidth();
+	                var cx;
+	                if (dtX > fw || dtX < -fw) {
+	                    cx = Math.floor(dtX / fw) * fw;
+	                    lastX = e.mx;
+	                    _this.x += cx;
+	                }
+	            }
+	        }, function () {
+	            lastX = null;
+	        });
+	        Animk_1.animk.on(const_1.ViewEvent.MOUSE_UP, function () {
+	            lastX = null;
+	        });
 	        return _this;
 	    }
+	    Clip.prototype.resize = function () {
+	        this.header.width = this.width;
+	    };
 	    return Clip;
 	}(PIXI.Container));
 	var Stacker = (function (_super) {
@@ -919,6 +949,7 @@
 	            s.width = fw;
 	            s.height = fw;
 	            _this.clip.addChild(s);
+	            _this.clip.resize();
 	        });
 	    };
 	    Stacker.prototype.load = function (filePath) {
@@ -1174,6 +1205,9 @@
 	        _this.newComp(1280, 720, 30);
 	        return _this;
 	    }
+	    ProjectInfo.prototype.frameWidth = function () {
+	        return this.curComp.frameWidth;
+	    };
 	    ProjectInfo.prototype.newComp = function (width, height, framerate) {
 	        var compInfo = new CompInfo_1.CompInfo(width, height, framerate);
 	        this.curComp = compInfo;

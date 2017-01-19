@@ -10,6 +10,9 @@ export class ProjectInfo extends EventDispatcher {
         super()
         this.newComp(1280, 720, 30)
     }
+    frameWidth() {
+        return this.curComp.frameWidth
+    }
     newComp(width, height, framerate): CompInfo {
         var compInfo: CompInfo = new CompInfo(width, height, framerate);
         this.curComp = compInfo;

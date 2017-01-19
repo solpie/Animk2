@@ -1,13 +1,44 @@
 import { animk } from './Animk';
 import { FrameInfo } from './model/FrameInfo';
-import { TrackInfoEvent } from './const';
+import { TrackInfoEvent, ViewEvent } from './const';
 import { TrackInfo } from './model/TrackInfo';
-import { newBitmap, PIXI_RECT } from '../utils/PixiEx';
+import { newBitmap, PIXI_RECT, setupDrag } from '../utils/PixiEx';
 class Clip extends PIXI.Container {
     start = 1
+    header: PIXI.Graphics
     constructor() {
         super()
-        this.addChild(new PIXI.Graphics().beginFill(0xffff00).drawRect(0, 0, 300, 15))
+        this.header = new PIXI.Graphics()
+            .beginFill(0x2f2f2f).drawRect(0, 0, 1, 15)
+            .beginFill(0x343434).drawRect(0, 0, 1, 1)
+            .beginFill(0x383838).drawRect(0, 0, 1, 2)
+        this.addChild(this.header)
+        this.header.interactive = true
+        this.header.buttonMode = true
+
+        var lastX, dtX
+        setupDrag(this.header, (e) => {
+            lastX = e.mx
+        }, (e) => {
+            if (lastX != null) {
+                dtX = e.mx - lastX
+                let fw = animk.projInfo.frameWidth()
+                var cx
+                if (dtX > fw || dtX < -fw) {
+                    cx = Math.floor(dtX / fw) * fw
+                    lastX = e.mx
+                    this.x += cx
+                }
+            }
+        }, () => {
+            lastX = null
+        })
+        animk.on(ViewEvent.MOUSE_UP, () => {
+            lastX = null
+        })
+    }
+    resize() {
+        this.header.width = this.width
     }
 }
 export class Stacker extends PIXI.Container {
@@ -51,11 +82,13 @@ export class Stacker extends PIXI.Container {
             s.width = fw
             s.height = fw
             this.clip.addChild(s)
+            this.clip.resize()
+
         })
     }
+
     load(filePath) {
         console.log('load img', filePath);
-
     }
 
     scroll(v) {

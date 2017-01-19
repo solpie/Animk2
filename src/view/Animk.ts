@@ -45,6 +45,7 @@ export class Animk extends EventDispatcher {
         // for (var i = 0; i < 1; i++) {
         //     this.tracker.newStacker()
         // }
+        this.projInfo.curComp.newTrack('D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png')
         this.tracker.vScroller.setMax(350)
         this.tracker.vScroller.evt.on(ScrollEvent.CHANGED, (v) => {
             console.log('scroll changed', v);
