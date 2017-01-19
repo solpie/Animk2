@@ -28,7 +28,7 @@ export class CompInfo extends EventDispatcher {
     _frameTimer: FrameTimer;
     _compData: CompositionData;
     _cursorPos: number = 1;
-    _maxPos: number;
+    _maxPos: number = 0;
 
     constructor(width, height, framerate) {
         super();
@@ -47,6 +47,7 @@ export class CompInfo extends EventDispatcher {
     onFrameTimerTick() {
         this.forward();
     }
+
     forward() {
         if (this._cursorPos >= this._maxPos)
             this.setCursor(1);
@@ -54,11 +55,17 @@ export class CompInfo extends EventDispatcher {
             this.setCursor(this._cursorPos + 1);
     }
 
+    backward() {
+        if (this._cursorPos > 1) {
+            this.setCursor(this._cursorPos - 1);
+        }
+    }
+
     setCursor(framePos) {
         this._cursorPos = framePos;
         this.emit(CompInfoEvent.UPDATE_CURSOR, this._cursorPos);
     }
-    
+
     getCursor() {
         return this._cursorPos
     }
@@ -80,12 +87,16 @@ export class CompInfo extends EventDispatcher {
         let a = basename.split('.')
         const fs = require('fs')
         let fileArr = []
+
+        var fileCount = 0
         let walk = (start) => {
             var f = path.join(dir, start + '.' + a[1])
             fs.exists(f, (exists) => {
                 if (exists) {
                     fileArr.push(f)
                     tInfo.pushFrame(f)
+                    fileCount++
+                    this.updateMaxPos(fileCount)
                     walk(start + 1)
                 }
                 else {
@@ -94,6 +105,8 @@ export class CompInfo extends EventDispatcher {
                         walkDir(dir, (f) => {
                             fileArr.push(f)
                             tInfo.pushFrame(f)
+                            fileCount++
+                            this.updateMaxPos(fileCount)
                         })
                     }
                     console.log('fileArr', fileArr);
@@ -111,5 +124,12 @@ export class CompInfo extends EventDispatcher {
         // trackData.path = path;
         // trackData.start = 1;
         // this.newTrackByTrackData(trackData);
+    }
+
+    updateMaxPos(v) {
+        if (v > this._maxPos)
+            this._maxPos = v
+        console.log('maxPos', this._maxPos);
+
     }
 }

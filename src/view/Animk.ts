@@ -4,15 +4,15 @@ import { EventDispatcher } from '../utils/EventDispatcher';
 import { ScrollEvent, InputEvent } from './const';
 import { Splitter } from './components/Splitter';
 export class Animk extends EventDispatcher {
-    projInfo:ProjectInfo
+    projInfo: ProjectInfo
     vSplitter: Splitter
     tracker: LayerTracker
-    frameWidth = 40
+    // frameWidth = 40
     init(stage: PIXI.Container) {
         this.projInfo = new ProjectInfo()
         let vs = new Splitter('v', 1600, 1000)
         this.vSplitter = vs
-     
+
         stage.addChild(vs)
 
         let c1 = new PIXI.Graphics().beginFill(0xff0000).drawRect(0, 0, 400, 200)
@@ -30,9 +30,22 @@ export class Animk extends EventDispatcher {
         })
 
         this.initMouse()
+        this.initEvent()
         this.test()
     }
-
+    initEvent() {
+        // this.projInfo.curComp.removeAll()
+        this.on(InputEvent.KEY_UP, (e) => {
+            let k = e.key
+            if (k == 'f') {
+                console.log('forward');
+                this.projInfo.curComp.forward()
+            }
+            else if (k == 'd')
+                this.projInfo.curComp.backward()
+        })
+        // this.projInfo.curComp.on()
+    }
     initMouse() {
         document.onmouseup = (e) => {
             e['mx'] = e.clientX
@@ -40,7 +53,6 @@ export class Animk extends EventDispatcher {
             this.emit(InputEvent.MOUSE_UP, e)
         }
         window.onkeyup = (e) => {
-            console.log('keyup',e);
             this.emit(InputEvent.KEY_UP, e)
         }
     }

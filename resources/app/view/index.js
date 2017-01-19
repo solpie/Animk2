@@ -110,9 +110,7 @@
 	var Animk = (function (_super) {
 	    __extends(Animk, _super);
 	    function Animk() {
-	        var _this = _super !== null && _super.apply(this, arguments) || this;
-	        _this.frameWidth = 40;
-	        return _this;
+	        return _super !== null && _super.apply(this, arguments) || this;
 	    }
 	    Animk.prototype.init = function (stage) {
 	        var _this = this;
@@ -131,7 +129,20 @@
 	            _this.tracker.resize(vs.width, vs.child2Space);
 	        });
 	        this.initMouse();
+	        this.initEvent();
 	        this.test();
+	    };
+	    Animk.prototype.initEvent = function () {
+	        var _this = this;
+	        this.on(const_1.InputEvent.KEY_UP, function (e) {
+	            var k = e.key;
+	            if (k == 'f') {
+	                console.log('forward');
+	                _this.projInfo.curComp.forward();
+	            }
+	            else if (k == 'd')
+	                _this.projInfo.curComp.backward();
+	        });
 	    };
 	    Animk.prototype.initMouse = function () {
 	        var _this = this;
@@ -141,7 +152,6 @@
 	            _this.emit(const_1.InputEvent.MOUSE_UP, e);
 	        };
 	        window.onkeyup = function (e) {
-	            console.log('keyup', e);
 	            _this.emit(const_1.InputEvent.KEY_UP, e);
 	        };
 	    };
@@ -298,6 +308,7 @@
 	        _this.framerate = 24;
 	        _this.frameWidth = 40;
 	        _this._cursorPos = 1;
+	        _this._maxPos = 0;
 	        _this._compData = new CompositionData;
 	        _this.width = width;
 	        _this.height = height;
@@ -318,6 +329,11 @@
 	        else
 	            this.setCursor(this._cursorPos + 1);
 	    };
+	    CompInfo.prototype.backward = function () {
+	        if (this._cursorPos > 1) {
+	            this.setCursor(this._cursorPos - 1);
+	        }
+	    };
 	    CompInfo.prototype.setCursor = function (framePos) {
 	        this._cursorPos = framePos;
 	        this.emit(const_1.CompInfoEvent.UPDATE_CURSOR, this._cursorPos);
@@ -329,6 +345,7 @@
 	        this._compData.name = v;
 	    };
 	    CompInfo.prototype.newTrack = function (filename) {
+	        var _this = this;
 	        var tInfo = new TrackInfo_1.TrackInfo();
 	        this.trackInfoArr.push(tInfo);
 	        tInfo.name('track#' + this.trackInfoArr.length);
@@ -340,12 +357,15 @@
 	        var a = basename.split('.');
 	        var fs = __webpack_require__(9);
 	        var fileArr = [];
+	        var fileCount = 0;
 	        var walk = function (start) {
 	            var f = path.join(dir, start + '.' + a[1]);
 	            fs.exists(f, function (exists) {
 	                if (exists) {
 	                    fileArr.push(f);
 	                    tInfo.pushFrame(f);
+	                    fileCount++;
+	                    _this.updateMaxPos(fileCount);
 	                    walk(start + 1);
 	                }
 	                else {
@@ -353,6 +373,8 @@
 	                        NodeFunc_1.walkDir(dir, function (f) {
 	                            fileArr.push(f);
 	                            tInfo.pushFrame(f);
+	                            fileCount++;
+	                            _this.updateMaxPos(fileCount);
 	                        });
 	                    }
 	                    console.log('fileArr', fileArr);
@@ -360,6 +382,11 @@
 	            });
 	        };
 	        walk(Number(a[0]));
+	    };
+	    CompInfo.prototype.updateMaxPos = function (v) {
+	        if (v > this._maxPos)
+	            this._maxPos = v;
+	        console.log('maxPos', this._maxPos);
 	    };
 	    return CompInfo;
 	}(EventDispatcher_1.EventDispatcher));
@@ -1425,17 +1452,17 @@
 	        _this.gTick.mask = _this.gMask;
 	        _this.gCursor = new PIXI.Graphics()
 	            .lineStyle(2, 0xff0000)
-	            .moveTo(0, 0)
+	            .moveTo(0, 55)
 	            .lineTo(0, 500);
 	        _this.addChild(_this.gCursor);
 	        _this.resize(1600, _this.height);
 	        Animk_1.animk.on(const_1.InputEvent.MOUSE_UP, function (e) {
 	            var a = e.mx - _this.x - _this.gTick.x;
 	            var thisPos = _this.toGlobal(new PIXI.Point(_this.x, _this.y));
+	            var fw = Animk_1.animk.projInfo.frameWidth();
 	            if (e.my > thisPos.y && e.my < thisPos.y + _this.height) {
 	                if (a > 0) {
-	                    _this.cursorPos = Math.floor((a) / Animk_1.animk.frameWidth) * Animk_1.animk.frameWidth;
-	                    _this.gCursor.x = _this.gTick.x + _this.cursorPos;
+	                    Animk_1.animk.projInfo.curComp.setCursor(Math.floor((a) / fw));
 	                }
 	            }
 	        });
@@ -1453,8 +1480,17 @@
 	                Animk_1.animk.projInfo.curComp.newTrack(ret[0]);
 	        });
 	        _this.addChild(newTrackBtn);
+	        _this.initEvent();
 	        return _this;
 	    }
+	    TimestampBar.prototype.initEvent = function () {
+	        var _this = this;
+	        Animk_1.animk.projInfo.curComp.on(const_1.CompInfoEvent.UPDATE_CURSOR, function (frame) {
+	            var fw = Animk_1.animk.projInfo.frameWidth();
+	            _this.cursorPos = frame * fw;
+	            _this.gCursor.x = _this.gTick.x + _this.cursorPos;
+	        });
+	    };
 	    TimestampBar.prototype.resize = function (width, height) {
 	        this.textCtn.removeChildren();
 	        this.gMask.clear();

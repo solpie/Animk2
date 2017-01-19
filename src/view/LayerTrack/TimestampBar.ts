@@ -1,4 +1,5 @@
-import { InputEvent } from '../const';
+import { cmd } from '../model/Command';
+import { CompInfoEvent, InputEvent } from '../const';
 import { animk } from '../Animk';
 import { PIXI_MOUSE_EVENT } from '../../utils/PixiEx';
 import { Button } from '../components/Button';
@@ -24,7 +25,7 @@ export class TimestampBar extends PIXI.Sprite {
 
         this.gCursor = new PIXI.Graphics()
             .lineStyle(2, 0xff0000)
-            .moveTo(0, 0)
+            .moveTo(0, 55)
             .lineTo(0, 500)
         this.addChild(this.gCursor)
 
@@ -33,14 +34,17 @@ export class TimestampBar extends PIXI.Sprite {
         animk.on(InputEvent.MOUSE_UP, (e) => {
             let a = e.mx - this.x - this.gTick.x
             let thisPos = this.toGlobal(new PIXI.Point(this.x, this.y))
+            let fw = animk.projInfo.frameWidth()
             if (e.my > thisPos.y && e.my < thisPos.y + this.height) {
                 if (a > 0) {
-                    this.cursorPos = Math.floor((a) / animk.frameWidth) * animk.frameWidth
-                    this.gCursor.x = this.gTick.x + this.cursorPos
+                    animk.projInfo.curComp.setCursor(Math.floor((a) / fw))
+                    // this.cursorPos = Math.floor((a) / fw) * fw
+                    // this.gCursor.x = this.gTick.x + this.cursorPos
                 }
             }
-
         })
+
+
 
         let newTrackBtn = new Button({ text: "new" })
         newTrackBtn.x = -100
@@ -57,8 +61,15 @@ export class TimestampBar extends PIXI.Sprite {
             // cmd.emit(CommandId.NewTrack, ret)
         })
         this.addChild(newTrackBtn)
+        this.initEvent()
     }
-
+    initEvent() {
+        animk.projInfo.curComp.on(CompInfoEvent.UPDATE_CURSOR, (frame) => {
+            let fw = animk.projInfo.frameWidth()
+            this.cursorPos = frame * fw
+            this.gCursor.x = this.gTick.x + this.cursorPos
+        })
+    }
     resize(width, height) {
         // console.log('resize timestampBar', width);
         this.textCtn.removeChildren()
