@@ -1,7 +1,10 @@
+import { TrackInfo } from './model/TrackInfo';
+import { cmd, CommandId } from './model/Command';
+import { Button } from './components/Button';
 import { animk } from './Animk';
 import { PIXI_MOUSE_EVENT } from '../utils/PixiEx';
 import { runInThisContext } from 'vm';
-import { ScrollEvent, ViewEvent } from './const';
+import { CompInfoEvent, ScrollEvent, ViewEvent } from './const';
 import { Scroller } from './components/Scroller';
 import { Stacker } from './Stacker';
 export class TimestampBar extends PIXI.Sprite {
@@ -27,14 +30,35 @@ export class TimestampBar extends PIXI.Sprite {
         this.resize(1600, this.height)
 
         animk.on(ViewEvent.MOUSE_UP, (e) => {
-            console.log('mouse up');
-            this.gCursor.x = Math.floor((e.mx - this.x) / animk.frameWidth) * animk.frameWidth
+            let a = e.mx - this.x - this.gTick.x
+            let thisPos = this.toGlobal(new PIXI.Point(this.x, this.y))
+            if (e.my > thisPos.y && e.my < thisPos.y + this.height) {
+                if (a > 0) {
+                    this.gCursor.x = this.gTick.x + Math.floor((a) / animk.frameWidth) * animk.frameWidth
+                }
+            }
+
         })
+
+        let newTrackBtn = new Button({ text: "new" })
+        newTrackBtn.x = -100
+        newTrackBtn.on(PIXI_MOUSE_EVENT.up, () => {
+            const {dialog} = require('electron').remote
+            let ret = dialog.showOpenDialog({
+                properties: ['openFile'], filters: [
+                    { name: 'Images(png)', extensions: ['png'] },
+                    { name: 'All Files', extensions: ['*'] }
+                ]
+            })
+            if (ret.length == 1)
+                animk.projInfo.curComp.newTrack(ret[0])
+            // cmd.emit(CommandId.NewTrack, ret)
+        })
+        this.addChild(newTrackBtn)
     }
 
     resize(width, height) {
         // console.log('resize timestampBar', width);
-
         this.gMask.clear()
         this.gMask.drawRect(0, 0, width, height)
 
@@ -56,7 +80,7 @@ export class TimestampBar extends PIXI.Sprite {
         return 40
     }
 }
-export class Tracker extends PIXI.Container {
+export class LayerTracker extends PIXI.Container {
     timestampBar
     stackerArr: Array<Stacker>
     vScroller: Scroller
@@ -96,14 +120,25 @@ export class Tracker extends PIXI.Container {
         this.addChild(this.vScroller)
 
         this.addChild(this.timestampBar)
+        this.initCmd()
+    }
+
+    initCmd() {
+        cmd.on(CompInfoEvent.NEW_TRACK, (tInfo: TrackInfo) => {
+            let s = this.newStacker(tInfo)
+            // s.load(filePath)
+        })
+
+        // cmd.emit(CompInfoEvent.NEW_TRACK, tInfo)
 
     }
 
-    newStacker() {
-        let s = new Stacker('track#' + (this.stackerArr.length + 1))
+    newStacker(trackInfo: TrackInfo): Stacker {
+        let s = new Stacker(trackInfo)
         this.stackerCtn.addChild(s)
         this.stackerArr.push(s)
         this._updateVPos()
+        return s
     }
 
     _updateVPos() {

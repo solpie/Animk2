@@ -1,12 +1,15 @@
+import { ProjectInfo } from './model/ProjectInfo';
 import { EventDispatcher } from '../utils/EventDispatcher';
 import { ScrollEvent, ViewEvent } from './const';
-import { TimestampBar, Tracker } from './Tracker';
+import { TimestampBar, LayerTracker } from './LayerTracker';
 import { Splitter } from './components/Splitter';
 export class Animk extends EventDispatcher {
+    projInfo:ProjectInfo
     vSplitter: Splitter
-    tracker: Tracker
+    tracker: LayerTracker
     frameWidth = 40
     init(stage: PIXI.Container) {
+        this.projInfo = new ProjectInfo()
         let vs = new Splitter('v', 1600, 1000)
         this.vSplitter = vs
      
@@ -17,7 +20,7 @@ export class Animk extends EventDispatcher {
 
         // let c2 = new PIXI.Graphics().beginFill(0xffff00).drawRect(0,0,400,200)
         // vs.setChild(c2)
-        let tk = new Tracker()
+        let tk = new LayerTracker()
         this.tracker = tk
         vs.setChild(tk)
         vs.setBarY(720)
@@ -25,9 +28,8 @@ export class Animk extends EventDispatcher {
         this.vSplitter.evt.on(ScrollEvent.CHANGED, (vs: Splitter) => {
             this.tracker.resize(vs.width, vs.child2Space)
         })
+
         this.initMouse()
-
-
         this.test()
     }
 
@@ -40,9 +42,9 @@ export class Animk extends EventDispatcher {
     }
 
     test() {
-        for (var i = 0; i < 5; i++) {
-            this.tracker.newStacker()
-        }
+        // for (var i = 0; i < 1; i++) {
+        //     this.tracker.newStacker()
+        // }
         this.tracker.vScroller.setMax(350)
         this.tracker.vScroller.evt.on(ScrollEvent.CHANGED, (v) => {
             console.log('scroll changed', v);

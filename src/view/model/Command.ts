@@ -1,4 +1,5 @@
-enum CommandId{
+import { EventDispatcher } from '../../utils/EventDispatcher';
+export enum CommandId{
     ShowConsoleWin = 100000,
     //test cmd
     testSwapTrack,
@@ -8,6 +9,7 @@ enum CommandId{
     testRender,
     testDialog,
     //
+    NewTrack,
     HideConsoleWin,
     ShowSettingWin,
     ToggleFileMenu,

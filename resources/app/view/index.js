@@ -102,10 +102,11 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var ProjectInfo_1 = __webpack_require__(16);
 	var EventDispatcher_1 = __webpack_require__(5);
 	var const_1 = __webpack_require__(6);
-	var Tracker_1 = __webpack_require__(7);
-	var Splitter_1 = __webpack_require__(12);
+	var LayerTracker_1 = __webpack_require__(24);
+	var Splitter_1 = __webpack_require__(14);
 	var Animk = (function (_super) {
 	    __extends(Animk, _super);
 	    function Animk() {
@@ -115,12 +116,13 @@
 	    }
 	    Animk.prototype.init = function (stage) {
 	        var _this = this;
+	        this.projInfo = new ProjectInfo_1.ProjectInfo();
 	        var vs = new Splitter_1.Splitter('v', 1600, 1000);
 	        this.vSplitter = vs;
 	        stage.addChild(vs);
 	        var c1 = new PIXI.Graphics().beginFill(0xff0000).drawRect(0, 0, 400, 200);
 	        vs.setChild(c1);
-	        var tk = new Tracker_1.Tracker();
+	        var tk = new LayerTracker_1.LayerTracker();
 	        this.tracker = tk;
 	        vs.setChild(tk);
 	        vs.setBarY(720);
@@ -140,9 +142,6 @@
 	        };
 	    };
 	    Animk.prototype.test = function () {
-	        for (var i = 0; i < 5; i++) {
-	            this.tracker.newStacker();
-	        }
 	        this.tracker.vScroller.setMax(350);
 	        this.tracker.vScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
 	            console.log('scroll changed', v);
@@ -227,123 +226,57 @@
 	exports.COLOR = {
 	    PLAYER_EDIT: 'edit player',
 	};
-
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	var ProjectInfoEvent = (function () {
+	    function ProjectInfoEvent() {
+	    }
+	    return ProjectInfoEvent;
+	}());
+	ProjectInfoEvent.NEW_PROJ = "NEW_PROJ";
+	exports.ProjectInfoEvent = ProjectInfoEvent;
+	var SettingInfoEvent = (function () {
+	    function SettingInfoEvent() {
+	    }
+	    return SettingInfoEvent;
+	}());
+	SettingInfoEvent.SET_TMP_PATH = "SET_TMP_PATH";
+	SettingInfoEvent.SET_DRAW_APP1 = "SET_DRAW_APP1";
+	SettingInfoEvent.SET_DRAW_APP2 = "SET_DRAW_APP2";
+	exports.SettingInfoEvent = SettingInfoEvent;
+	exports.CompInfoEvent = {
+	    NEW_COMP: "new comp",
+	    NEW_TRACK: "new track",
+	    DEL_TRACK: "delete track",
+	    SWAP_TRACK: "swap track",
+	    UPDATE_CURSOR: "UPDATE_Cursor",
+	    FRAME_WIDTH_CHANGE: "frame width change"
 	};
-	var Animk_1 = __webpack_require__(4);
-	var const_1 = __webpack_require__(6);
-	var Scroller_1 = __webpack_require__(8);
-	var Stacker_1 = __webpack_require__(11);
-	var TimestampBar = (function (_super) {
-	    __extends(TimestampBar, _super);
-	    function TimestampBar() {
-	        var _this = _super.call(this) || this;
-	        _this.colTick = 0x000000;
-	        _this.gTick = new PIXI.Graphics();
-	        _this.addChild(_this.gTick);
-	        _this.gMask = new PIXI.Graphics().drawRect(0, 0, 1600, _this.height);
-	        _this.addChild(_this.gMask);
-	        _this.gTick.mask = _this.gMask;
-	        _this.gCursor = new PIXI.Graphics()
-	            .lineStyle(2, 0xff0000)
-	            .moveTo(0, 0)
-	            .lineTo(0, 500);
-	        _this.addChild(_this.gCursor);
-	        _this.resize(1600, _this.height);
-	        Animk_1.animk.on(const_1.ViewEvent.MOUSE_UP, function (e) {
-	            console.log('mouse up');
-	            _this.gCursor.x = Math.floor((e.mx - _this.x) / Animk_1.animk.frameWidth) * Animk_1.animk.frameWidth;
-	        });
-	        return _this;
+	exports.TrackInfoEvent = {
+	    LOADED: "load all imgs",
+	    SEL_TRACK: "select track",
+	    PUSH_FRAME: "push frame",
+	    SEL_FRAME: "select frame",
+	    DEL_FRAME: "delete frame",
+	    SET_ACT_TYPE: "set act type",
+	    SET_OPACITY: "set track opacity",
+	    SET_ENABLE: "set track enable",
+	    SET_NAME: "set track name",
+	    SET_TRACK_START: "SET_TRACK_START",
+	};
+	exports.FrameTimerEvent = {
+	    TICK: "TICK"
+	};
+	var TheMachineEvent = (function () {
+	    function TheMachineEvent() {
 	    }
-	    TimestampBar.prototype.resize = function (width, height) {
-	        this.gMask.clear();
-	        this.gMask.drawRect(0, 0, width, height);
-	        this.gTick.clear();
-	        this.gTick.lineStyle(1, this.colTick);
-	        for (var i = 0; i < width; i += Animk_1.animk.frameWidth) {
-	            this.gTick.moveTo(i, 15);
-	            this.gTick.lineTo(i, Animk_1.animk.frameWidth);
-	        }
-	    };
-	    TimestampBar.prototype.scroll = function (v) {
-	        this.gTick.x = -v;
-	        this.gCursor.x = -v;
-	    };
-	    Object.defineProperty(TimestampBar.prototype, "height", {
-	        get: function () {
-	            return 40;
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    return TimestampBar;
-	}(PIXI.Sprite));
-	exports.TimestampBar = TimestampBar;
-	var Tracker = (function (_super) {
-	    __extends(Tracker, _super);
-	    function Tracker() {
-	        var _this = _super.call(this) || this;
-	        _this.timestampBar = new TimestampBar();
-	        _this.timestampBar.x = 200 + 15;
-	        var hs = new Scroller_1.Scroller('h', 600, 0, 100);
-	        hs.x = 200 + 15;
-	        _this.addChild(hs);
-	        _this.hScroller = hs;
-	        _this.hScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
-	            console.log('scroll', v);
-	            for (var i = 0; i < _this.stackerArr.length; i++) {
-	                var s = _this.stackerArr[i];
-	                s.scroll(v);
-	            }
-	            _this.timestampBar.scroll(v);
-	        });
-	        _this.stackerCtn = new PIXI.Container();
-	        _this.stackerCtn.y = _this.hScroller.height;
-	        _this.addChild(_this.stackerCtn);
-	        _this.stackerArr = [];
-	        _this.vScroller = new Scroller_1.Scroller('v', 300, 0, 100);
-	        _this.vScroller.x = 200;
-	        _this.vScroller.y = _this.hScroller.height;
-	        _this.vScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
-	        });
-	        _this.addChild(_this.vScroller);
-	        _this.addChild(_this.timestampBar);
-	        return _this;
-	    }
-	    Tracker.prototype.newStacker = function () {
-	        var s = new Stacker_1.Stacker('track#' + (this.stackerArr.length + 1));
-	        this.stackerCtn.addChild(s);
-	        this.stackerArr.push(s);
-	        this._updateVPos();
-	    };
-	    Tracker.prototype._updateVPos = function () {
-	        var s;
-	        for (var i = 0; i < this.stackerArr.length; i++) {
-	            s = this.stackerArr[i];
-	            s.y = (s.height + 1) * i;
-	        }
-	    };
-	    Tracker.prototype.resize = function (width, height) {
-	        this.vScroller.setMax(height - this.hScroller.height);
-	        this.hScroller.setMax(width - 200 - 15);
-	        this.timestampBar.resize(width - 200 - 15, height);
-	    };
-	    return Tracker;
-	}(PIXI.Container));
-	exports.Tracker = Tracker;
+	    return TheMachineEvent;
+	}());
+	TheMachineEvent.UPDATE_IMG = "UPDATE_IMG";
+	TheMachineEvent.ADD_IMG = "ADD_IMG";
+	exports.TheMachineEvent = TheMachineEvent;
 
 
 /***/ },
+/* 7 */,
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -353,117 +286,38 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Animk_1 = __webpack_require__(4);
-	var const_1 = __webpack_require__(6);
-	var EventDispatcher_1 = __webpack_require__(5);
 	var PixiEx_1 = __webpack_require__(9);
-	var Scroller = (function (_super) {
-	    __extends(Scroller, _super);
-	    function Scroller(dir, max, minValue, maxValue) {
+	var Button = (function (_super) {
+	    __extends(Button, _super);
+	    function Button(option) {
 	        var _this = _super.call(this) || this;
-	        _this.lastMousePosX = -1;
-	        _this.lastMousePosY = -1;
-	        _this.dir = dir;
-	        _this.max = max;
-	        _this.minValue = minValue;
-	        _this.maxValue = maxValue;
-	        _this.evt = new EventDispatcher_1.EventDispatcher();
-	        var w, h;
-	        var tw, th;
-	        if (dir == 'v') {
-	            h = max;
-	            w = Scroller.ScrollerHeight;
-	            th = 100;
-	            tw = Scroller.ScrollerHeight - 2;
-	        }
-	        else if (dir == 'h') {
-	            w = max;
-	            h = Scroller.ScrollerHeight;
-	            tw = 100;
-	            th = Scroller.ScrollerHeight - 2;
-	        }
-	        _this.bg = new PIXI.Graphics().beginFill(0x2e2e2e).drawRect(0, 0, w, h);
-	        _this.addChild(_this.bg);
-	        _this.thumb = new PIXI.Graphics().beginFill(0x505050).drawRect(0, 0, tw, th);
-	        _this.addChild(_this.thumb);
-	        PixiEx_1.setupDrag(_this.thumb, function (e) {
-	            _this.lastMousePosY = e.data.originalEvent.clientY;
-	            _this.lastMousePosX = e.data.originalEvent.clientX;
-	            _this.thumb.alpha = .8;
-	        }, function (e) {
-	            if (_this.dir == 'v') {
-	                if (_this.lastMousePosY > -1) {
-	                    _this.thumb.y += e.my - _this.lastMousePosY;
-	                    if (_this.thumb.y < 0)
-	                        _this.thumb.y = 0;
-	                    else if (_this.thumb.y + _this.thumb.height > _this.max)
-	                        _this.thumb.y = _this.max - _this.thumb.height;
-	                    else {
-	                        _this.lastMousePosY = e.my;
-	                        _this.evt.emit(const_1.ScrollEvent.CHANGED, _this.value);
-	                    }
-	                }
-	            }
-	            else if (_this.dir == 'h') {
-	                if (_this.lastMousePosX > -1) {
-	                    _this.thumb.x += e.mx - _this.lastMousePosX;
-	                    if (_this.thumb.x < 0)
-	                        _this.thumb.x = 0;
-	                    else if (_this.thumb.x + _this.thumb.width > _this.max)
-	                        _this.thumb.x = _this.max - _this.thumb.width;
-	                    else {
-	                        _this.lastMousePosX = e.mx;
-	                        _this.evt.emit(const_1.ScrollEvent.CHANGED, _this.value);
-	                    }
-	                }
-	            }
-	        }, function (e) {
-	            _this.lastMousePosX = -1;
-	            _this.lastMousePosY = -1;
-	            _this.thumb.alpha = 1;
+	        var t = option.text || 'button';
+	        var w = option.width || 70;
+	        var h = option.height || 30;
+	        _this.interactive = true;
+	        _this.buttonMode = true;
+	        _this._bg = new PIXI.Graphics().beginFill(0x333333).drawRect(0, 0, w, h);
+	        _this.addChild(_this._bg);
+	        var ts = {
+	            fontSize: '12px',
+	            fontStyle: 'normal',
+	            fontWeight: 'bold',
+	            fill: 0xffffff
+	        };
+	        _this._label = new PIXI.Text(t, ts);
+	        _this.addChild(_this._label);
+	        _this.on(PixiEx_1.PIXI_MOUSE_EVENT.up, function () {
 	        });
-	        Animk_1.animk.on(const_1.ViewEvent.MOUSE_UP, function () {
-	            _this.lastMousePosX = -1;
-	            _this.lastMousePosY = -1;
-	            _this.thumb.alpha = 1;
-	        });
+	        _this.resize(w, h);
 	        return _this;
 	    }
-	    Object.defineProperty(Scroller.prototype, "value", {
-	        get: function () {
-	            if (this.dir == 'v')
-	                return this.thumb.y / (this.max - this.thumb.height) * (this.maxValue - this.minValue);
-	            if (this.dir == 'h')
-	                return this.thumb.x / (this.max - this.thumb.width) * (this.maxValue - this.minValue);
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Scroller.prototype.setMax = function (v) {
-	        this.max = v;
-	        if (this.dir == 'v') {
-	            this.bg.height = v;
-	        }
-	        else if (this.dir == 'h') {
-	            this.bg.width = v;
-	        }
+	    Button.prototype.resize = function (width, height) {
+	        this._label.x = (width - this._label.width) * .5;
+	        this._label.y = (height - this._label.height) * .5;
 	    };
-	    Scroller.prototype.setThumb = function (v) {
-	        if (this.dir == 'v') {
-	            this.thumb.height = v;
-	        }
-	        else if (this.dir == 'h') {
-	            this.thumb.width = v;
-	        }
-	    };
-	    Scroller.prototype.setRange = function (minValue, maxValue) {
-	        this.minValue = minValue;
-	        this.maxValue = maxValue;
-	    };
-	    return Scroller;
+	    return Button;
 	}(PIXI.Container));
-	Scroller.ScrollerHeight = 15;
-	exports.Scroller = Scroller;
+	exports.Button = Button;
 
 
 /***/ },
@@ -898,22 +752,149 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var Animk_1 = __webpack_require__(4);
+	var const_1 = __webpack_require__(6);
+	var EventDispatcher_1 = __webpack_require__(5);
+	var PixiEx_1 = __webpack_require__(9);
+	var Scroller = (function (_super) {
+	    __extends(Scroller, _super);
+	    function Scroller(dir, max, minValue, maxValue) {
+	        var _this = _super.call(this) || this;
+	        _this.lastMousePosX = -1;
+	        _this.lastMousePosY = -1;
+	        _this.dir = dir;
+	        _this.max = max;
+	        _this.minValue = minValue;
+	        _this.maxValue = maxValue;
+	        _this.evt = new EventDispatcher_1.EventDispatcher();
+	        var w, h;
+	        var tw, th;
+	        if (dir == 'v') {
+	            h = max;
+	            w = Scroller.ScrollerHeight;
+	            th = 100;
+	            tw = Scroller.ScrollerHeight - 2;
+	        }
+	        else if (dir == 'h') {
+	            w = max;
+	            h = Scroller.ScrollerHeight;
+	            tw = 100;
+	            th = Scroller.ScrollerHeight - 2;
+	        }
+	        _this.bg = new PIXI.Graphics().beginFill(0x2e2e2e).drawRect(0, 0, w, h);
+	        _this.addChild(_this.bg);
+	        _this.thumb = new PIXI.Graphics().beginFill(0x505050).drawRect(0, 0, tw, th);
+	        _this.addChild(_this.thumb);
+	        PixiEx_1.setupDrag(_this.thumb, function (e) {
+	            _this.lastMousePosY = e.data.originalEvent.clientY;
+	            _this.lastMousePosX = e.data.originalEvent.clientX;
+	            _this.thumb.alpha = .8;
+	        }, function (e) {
+	            if (_this.dir == 'v') {
+	                if (_this.lastMousePosY > -1) {
+	                    _this.thumb.y += e.my - _this.lastMousePosY;
+	                    if (_this.thumb.y < 0)
+	                        _this.thumb.y = 0;
+	                    else if (_this.thumb.y + _this.thumb.height > _this.max)
+	                        _this.thumb.y = _this.max - _this.thumb.height;
+	                    else {
+	                        _this.lastMousePosY = e.my;
+	                        _this.evt.emit(const_1.ScrollEvent.CHANGED, _this.value);
+	                    }
+	                }
+	            }
+	            else if (_this.dir == 'h') {
+	                if (_this.lastMousePosX > -1) {
+	                    _this.thumb.x += e.mx - _this.lastMousePosX;
+	                    if (_this.thumb.x < 0)
+	                        _this.thumb.x = 0;
+	                    else if (_this.thumb.x + _this.thumb.width > _this.max)
+	                        _this.thumb.x = _this.max - _this.thumb.width;
+	                    else {
+	                        _this.lastMousePosX = e.mx;
+	                        _this.evt.emit(const_1.ScrollEvent.CHANGED, _this.value);
+	                    }
+	                }
+	            }
+	        }, function (e) {
+	            _this.lastMousePosX = -1;
+	            _this.lastMousePosY = -1;
+	            _this.thumb.alpha = 1;
+	        });
+	        Animk_1.animk.on(const_1.ViewEvent.MOUSE_UP, function () {
+	            _this.lastMousePosX = -1;
+	            _this.lastMousePosY = -1;
+	            _this.thumb.alpha = 1;
+	        });
+	        return _this;
+	    }
+	    Object.defineProperty(Scroller.prototype, "value", {
+	        get: function () {
+	            if (this.dir == 'v')
+	                return this.thumb.y / (this.max - this.thumb.height) * (this.maxValue - this.minValue);
+	            if (this.dir == 'h')
+	                return this.thumb.x / (this.max - this.thumb.width) * (this.maxValue - this.minValue);
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Scroller.prototype.setMax = function (v) {
+	        this.max = v;
+	        if (this.dir == 'v') {
+	            this.bg.height = v;
+	        }
+	        else if (this.dir == 'h') {
+	            this.bg.width = v;
+	        }
+	    };
+	    Scroller.prototype.setThumb = function (v) {
+	        if (this.dir == 'v') {
+	            this.thumb.height = v;
+	        }
+	        else if (this.dir == 'h') {
+	            this.thumb.width = v;
+	        }
+	    };
+	    Scroller.prototype.setRange = function (minValue, maxValue) {
+	        this.minValue = minValue;
+	        this.maxValue = maxValue;
+	    };
+	    return Scroller;
+	}(PIXI.Container));
+	Scroller.ScrollerHeight = 15;
+	exports.Scroller = Scroller;
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var Animk_1 = __webpack_require__(4);
+	var const_1 = __webpack_require__(6);
 	var PixiEx_1 = __webpack_require__(9);
 	var Clip = (function (_super) {
 	    __extends(Clip, _super);
 	    function Clip() {
 	        var _this = _super.call(this) || this;
 	        _this.start = 1;
-	        _this.addChild(new PIXI.Graphics().beginFill(0xffff00).drawRect(0, 0, 300, 40));
+	        _this.addChild(new PIXI.Graphics().beginFill(0xffff00).drawRect(0, 0, 300, 15));
 	        return _this;
 	    }
 	    return Clip;
 	}(PIXI.Container));
 	var Stacker = (function (_super) {
 	    __extends(Stacker, _super);
-	    function Stacker(name) {
+	    function Stacker(trackInfo) {
 	        var _this = _super.call(this) || this;
 	        _this.scrollX = 0;
+	        _this.clipStart = 1;
+	        _this.trackInfo = trackInfo;
 	        _this.bg = new PIXI.Graphics().beginFill(0x343434).drawRect(0, 0, 500, 60);
 	        _this.addChild(_this.bg);
 	        _this.clipCtn = new PIXI.Container();
@@ -923,16 +904,31 @@
 	        _this.clip = clip;
 	        _this.clipCtn.addChild(clip);
 	        _this.addChild(PixiEx_1.PIXI_RECT(0x343434, 0, 0, 200, 60));
-	        var nt = new PIXI.Text(name);
+	        var nt = new PIXI.Text(trackInfo.name());
 	        _this.nameText = nt;
 	        _this.addChild(_this.nameText);
 	        _this.scroll(0);
+	        _this.initEvent();
 	        return _this;
 	    }
+	    Stacker.prototype.initEvent = function () {
+	        var _this = this;
+	        this.trackInfo.on(const_1.TrackInfoEvent.PUSH_FRAME, function (frameInfo) {
+	            var fw = Animk_1.animk.projInfo.curComp.frameWidth;
+	            var s = PixiEx_1.newBitmap({ url: frameInfo.filename, x: (frameInfo.idx() - 1) * fw, y: 16 });
+	            s.width = fw;
+	            s.height = fw;
+	            _this.clip.addChild(s);
+	        });
+	    };
+	    Stacker.prototype.load = function (filePath) {
+	        console.log('load img', filePath);
+	    };
 	    Stacker.prototype.scroll = function (v) {
 	        console.log('scroll', v);
 	        this.scrollX = v;
-	        this.clip.x = -this.scrollX + this.clip.start * 40;
+	        var fw = Animk_1.animk.projInfo.curComp.frameWidth;
+	        this.clip.x = -this.scrollX + (this.clip.start) * fw;
 	    };
 	    return Stacker;
 	}(PIXI.Container));
@@ -940,7 +936,13 @@
 
 
 /***/ },
-/* 12 */
+/* 13 */
+/***/ function(module, exports) {
+
+	module.exports = require("electron");
+
+/***/ },
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1069,6 +1071,630 @@
 	    return Splitter;
 	}(PIXI.Container));
 	exports.Splitter = Splitter;
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var EventDispatcher_1 = __webpack_require__(5);
+	var CommandId;
+	(function (CommandId) {
+	    CommandId[CommandId["ShowConsoleWin"] = 100000] = "ShowConsoleWin";
+	    CommandId[CommandId["testSwapTrack"] = 100001] = "testSwapTrack";
+	    CommandId[CommandId["testNewProject"] = 100002] = "testNewProject";
+	    CommandId[CommandId["testSaveProject"] = 100003] = "testSaveProject";
+	    CommandId[CommandId["testProject"] = 100004] = "testProject";
+	    CommandId[CommandId["testRender"] = 100005] = "testRender";
+	    CommandId[CommandId["testDialog"] = 100006] = "testDialog";
+	    CommandId[CommandId["NewTrack"] = 100007] = "NewTrack";
+	    CommandId[CommandId["HideConsoleWin"] = 100008] = "HideConsoleWin";
+	    CommandId[CommandId["ShowSettingWin"] = 100009] = "ShowSettingWin";
+	    CommandId[CommandId["ToggleFileMenu"] = 100010] = "ToggleFileMenu";
+	    CommandId[CommandId["FileMenuOpen"] = 100011] = "FileMenuOpen";
+	    CommandId[CommandId["FileMenuSave"] = 100012] = "FileMenuSave";
+	    CommandId[CommandId["ShowOnHoldWin"] = 100013] = "ShowOnHoldWin";
+	    CommandId[CommandId["ShowTrackMenu"] = 100014] = "ShowTrackMenu";
+	    CommandId[CommandId["HideTrackMenu"] = 100015] = "HideTrackMenu";
+	    CommandId[CommandId["ShowDialogOK"] = 100016] = "ShowDialogOK";
+	    CommandId[CommandId["HideDialogOK"] = 100017] = "HideDialogOK";
+	    CommandId[CommandId["ShowNewPngWin"] = 100018] = "ShowNewPngWin";
+	    CommandId[CommandId["HideNewPngWin"] = 100019] = "HideNewPngWin";
+	    CommandId[CommandId["InsertFrame"] = 100020] = "InsertFrame";
+	    CommandId[CommandId["DeleteFrame"] = 100021] = "DeleteFrame";
+	    CommandId[CommandId["ZoomOutMax"] = 100022] = "ZoomOutMax";
+	    CommandId[CommandId["ZoomInMax"] = 100023] = "ZoomInMax";
+	    CommandId[CommandId["ImportAudio"] = 100024] = "ImportAudio";
+	})(CommandId = exports.CommandId || (exports.CommandId = {}));
+	var CommandItem = (function () {
+	    function CommandItem(id) {
+	        this.id = id;
+	    }
+	    return CommandItem;
+	}());
+	var Command = (function (_super) {
+	    __extends(Command, _super);
+	    function Command() {
+	        var _this = _super.call(this) || this;
+	        _this.cmdArr = [];
+	        _this.newCmd(CommandId.ShowSettingWin, "open Option");
+	        _this.newCmd(CommandId.FileMenuOpen, "open Project");
+	        _this.newCmd(CommandId.FileMenuSave, "save Project");
+	        _this.newCmd(CommandId.ShowOnHoldWin, "open on hold win");
+	        _this.newCmd(CommandId.ShowTrackMenu, "show track menu");
+	        _this.newCmd(CommandId.HideTrackMenu, "hide track menu");
+	        _this.newCmd(CommandId.InsertFrame, "insert frame");
+	        _this.newCmd(CommandId.DeleteFrame, "delete frame");
+	        _this.newCmd(CommandId.ZoomOutMax, "zoom out max");
+	        _this.newCmd(CommandId.ImportAudio, "import audio");
+	        _this.newCmd(CommandId.testSwapTrack, "test swap track");
+	        _this.newCmd(CommandId.testNewProject, "test new project");
+	        _this.newCmd(CommandId.testSaveProject, "test save project");
+	        _this.newCmd(CommandId.testProject, "test project");
+	        _this.newCmd(CommandId.testRender, "test render");
+	        _this.newCmd(CommandId.testDialog, "test dialog");
+	        return _this;
+	    }
+	    Command.prototype.newCmd = function (id, name, desc) {
+	        var ci = new CommandItem(id);
+	        ci.name = name;
+	        ci.desc = desc;
+	        this.cmdArr.push(ci);
+	    };
+	    return Command;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.cmd = new Command();
+
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var const_1 = __webpack_require__(6);
+	var CompInfo_1 = __webpack_require__(17);
+	var EventDispatcher_1 = __webpack_require__(5);
+	var ProjectInfo = (function (_super) {
+	    __extends(ProjectInfo, _super);
+	    function ProjectInfo() {
+	        var _this = _super.call(this) || this;
+	        _this.comps = [];
+	        _this.version = '0.1.0';
+	        _this.newComp(1280, 720, 30);
+	        return _this;
+	    }
+	    ProjectInfo.prototype.newComp = function (width, height, framerate) {
+	        var compInfo = new CompInfo_1.CompInfo(width, height, framerate);
+	        this.curComp = compInfo;
+	        this.comps.push(compInfo);
+	        compInfo.name("Comp" + this.comps.length);
+	        console.log(this, "new CompInfo");
+	        this.emit(const_1.CompInfoEvent.NEW_COMP, compInfo);
+	        return compInfo;
+	    };
+	    return ProjectInfo;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.ProjectInfo = ProjectInfo;
+
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var NodeFunc_1 = __webpack_require__(25);
+	var Command_1 = __webpack_require__(15);
+	var const_1 = __webpack_require__(6);
+	var FrameTimer_1 = __webpack_require__(18);
+	var TrackInfo_1 = __webpack_require__(21);
+	var EventDispatcher_1 = __webpack_require__(5);
+	var CompositionData = (function () {
+	    function CompositionData() {
+	    }
+	    CompositionData.clone = function (val) {
+	    };
+	    return CompositionData;
+	}());
+	var CompInfo = (function (_super) {
+	    __extends(CompInfo, _super);
+	    function CompInfo(width, height, framerate) {
+	        var _this = _super.call(this) || this;
+	        _this.framerate = 24;
+	        _this.frameWidth = 40;
+	        _this._cursorPos = 1;
+	        _this._compData = new CompositionData;
+	        _this.width = width;
+	        _this.height = height;
+	        _this.framerate = framerate;
+	        _this.trackInfoArr = [];
+	        _this._frameTimer = new FrameTimer_1.FrameTimer(framerate);
+	        _this._frameTimer.on(const_1.FrameTimerEvent.TICK, function () {
+	            _this.onFrameTimerTick();
+	        });
+	        return _this;
+	    }
+	    CompInfo.prototype.onFrameTimerTick = function () {
+	        this.forward();
+	    };
+	    CompInfo.prototype.forward = function () {
+	        if (this._cursorPos >= this._maxPos)
+	            this.setCursor(1);
+	        else
+	            this.setCursor(this._cursorPos + 1);
+	    };
+	    CompInfo.prototype.setCursor = function (framePos) {
+	        this._cursorPos = framePos;
+	        this.emit(const_1.CompInfoEvent.UPDATE_CURSOR, this._cursorPos);
+	    };
+	    CompInfo.prototype.name = function (v) {
+	        this._compData.name = v;
+	    };
+	    CompInfo.prototype.newTrack = function (filename) {
+	        var tInfo = new TrackInfo_1.TrackInfo();
+	        this.trackInfoArr.push(tInfo);
+	        tInfo.name('track#' + this.trackInfoArr.length);
+	        Command_1.cmd.emit(const_1.CompInfoEvent.NEW_TRACK, tInfo);
+	        var path = __webpack_require__(20);
+	        var basename = path.basename(filename);
+	        var dir = path.dirname(filename);
+	        console.log('basename', basename);
+	        var a = basename.split('.');
+	        var fs = __webpack_require__(19);
+	        var fileArr = [];
+	        var walk = function (start) {
+	            var f = path.join(dir, start + '.' + a[1]);
+	            fs.exists(f, function (exists) {
+	                if (exists) {
+	                    fileArr.push(f);
+	                    tInfo.pushFrame(f);
+	                    walk(start + 1);
+	                }
+	                else {
+	                    if (fileArr.length == 0) {
+	                        NodeFunc_1.walkDir(dir, function (f) {
+	                            fileArr.push(f);
+	                            tInfo.pushFrame(f);
+	                        });
+	                    }
+	                    console.log('fileArr', fileArr);
+	                }
+	            });
+	        };
+	        walk(Number(a[0]));
+	    };
+	    return CompInfo;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.CompInfo = CompInfo;
+
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var const_1 = __webpack_require__(6);
+	var EventDispatcher_1 = __webpack_require__(5);
+	var FrameTimer = (function (_super) {
+	    __extends(FrameTimer, _super);
+	    function FrameTimer(framerate) {
+	        var _this = _super.call(this) || this;
+	        _this._isBusy = false;
+	        _this._timerId = null;
+	        _this.setFramerate(framerate);
+	        return _this;
+	    }
+	    FrameTimer.prototype.start = function () {
+	        if (!this._isBusy)
+	            this.newTimer();
+	        this._isBusy = true;
+	    };
+	    FrameTimer.prototype.stop = function () {
+	        this._isBusy = false;
+	        this.clearTimer();
+	    };
+	    FrameTimer.prototype.isBusy = function () {
+	        return this._isBusy;
+	    };
+	    FrameTimer.prototype.setFramerate = function (framerate) {
+	        if (this._framerate != framerate) {
+	            this._framerate = framerate;
+	            this.clearTimer();
+	            this.newTimer();
+	        }
+	    };
+	    FrameTimer.prototype.clearTimer = function () {
+	        if (this._timerId) {
+	            clearInterval(this._timerId);
+	        }
+	        this._timerId = null;
+	    };
+	    FrameTimer.prototype.newTimer = function () {
+	        var _this = this;
+	        this._timerId = setInterval(function () {
+	            _this.onTick();
+	        }, 1000 / this._framerate);
+	    };
+	    FrameTimer.prototype.onTick = function () {
+	        if (this._isBusy) {
+	            this.emit(const_1.FrameTimerEvent.TICK);
+	        }
+	        else {
+	            this.clearTimer();
+	        }
+	    };
+	    return FrameTimer;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.FrameTimer = FrameTimer;
+
+
+/***/ },
+/* 19 */
+/***/ function(module, exports) {
+
+	module.exports = require("fs");
+
+/***/ },
+/* 20 */
+/***/ function(module, exports) {
+
+	module.exports = require("path");
+
+/***/ },
+/* 21 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var const_1 = __webpack_require__(6);
+	var FrameInfo_1 = __webpack_require__(22);
+	var EventDispatcher_1 = __webpack_require__(5);
+	var TrackLoopType;
+	(function (TrackLoopType) {
+	    TrackLoopType[TrackLoopType["NONE"] = 0] = "NONE";
+	    TrackLoopType[TrackLoopType["HOLD"] = 1] = "HOLD";
+	    TrackLoopType[TrackLoopType["REPEAT"] = 2] = "REPEAT";
+	})(TrackLoopType || (TrackLoopType = {}));
+	var TrackType;
+	(function (TrackType) {
+	    TrackType[TrackType["IMAGE"] = 1] = "IMAGE";
+	    TrackType[TrackType["COMP"] = 2] = "COMP";
+	    TrackType[TrackType["AUDIO"] = 3] = "AUDIO";
+	})(TrackType || (TrackType = {}));
+	var ImageTrackActType;
+	(function (ImageTrackActType) {
+	    ImageTrackActType[ImageTrackActType["NORMAL"] = 1] = "NORMAL";
+	    ImageTrackActType[ImageTrackActType["REF"] = 2] = "REF";
+	    ImageTrackActType[ImageTrackActType["NOEDIT"] = 3] = "NOEDIT";
+	})(ImageTrackActType || (ImageTrackActType = {}));
+	var TrackData = (function () {
+	    function TrackData() {
+	        this.opacity = 1;
+	        this.enable = true;
+	        this.type = TrackType.IMAGE;
+	        this.start = 1;
+	        this.act = ImageTrackActType.NORMAL;
+	        this.loopType = TrackLoopType.HOLD;
+	        this.end = 1;
+	    }
+	    TrackData.clone = function (val) {
+	        var td = new TrackData();
+	        for (var p in val) {
+	            if (p != "frames")
+	                td[p] = val[p];
+	            else {
+	            }
+	        }
+	        td.frames = [];
+	        for (var i = 0; i < val.frames.length; i++) {
+	            td.frames.push(FrameInfo_1.FrameData.clone(val.frames[i]));
+	        }
+	        return td;
+	    };
+	    return TrackData;
+	}());
+	exports.TrackData = TrackData;
+	var TrackInfo = (function (_super) {
+	    __extends(TrackInfo, _super);
+	    function TrackInfo() {
+	        var _this = _super.call(this) || this;
+	        _this._hold = 1;
+	        _this._isSel = false;
+	        _this._trackData = new TrackData;
+	        _this.frameInfoArr = [];
+	        _this.removedFrameArr = [];
+	        return _this;
+	    }
+	    TrackInfo.prototype.name = function (v) {
+	        if (v != undefined)
+	            this._trackData.name = v;
+	        return this._trackData.name;
+	    };
+	    TrackInfo.prototype.pushFrame = function (filename) {
+	        var frameInfo = new FrameInfo_1.FrameInfo(filename);
+	        this.frameInfoArr.push(frameInfo);
+	        frameInfo.idx(this.frameInfoArr.length);
+	        this.emit(const_1.TrackInfoEvent.PUSH_FRAME, frameInfo);
+	    };
+	    return TrackInfo;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.TrackInfo = TrackInfo;
+
+
+/***/ },
+/* 22 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var EventDispatcher_1 = __webpack_require__(5);
+	var PressFlag;
+	(function (PressFlag) {
+	    PressFlag[PressFlag["L"] = 1] = "L";
+	    PressFlag[PressFlag["R"] = 2] = "R";
+	})(PressFlag || (PressFlag = {}));
+	var FrameData = (function () {
+	    function FrameData() {
+	    }
+	    FrameData.clone = function (val) {
+	        var fd = new FrameData();
+	        for (var p in val) {
+	            fd[p] = val[p];
+	        }
+	        return fd;
+	    };
+	    return FrameData;
+	}());
+	exports.FrameData = FrameData;
+	var FrameInfo = (function (_super) {
+	    __extends(FrameInfo, _super);
+	    function FrameInfo(filename) {
+	        var _this = _super.call(this) || this;
+	        _this._idx = -1;
+	        _this._start = 1;
+	        _this._end = 1;
+	        _this._hold = 1;
+	        _this.pressFlag = 0;
+	        _this.filename = filename;
+	        return _this;
+	    }
+	    FrameInfo.prototype.getIdx = function () {
+	        return this._idx;
+	    };
+	    FrameInfo.prototype.idx = function (v) {
+	        if (v != undefined)
+	            this._idx = v;
+	        return this._idx;
+	    };
+	    FrameInfo.prototype.dtIdx = function (deltaVal) {
+	        this.setIdx(this._idx + deltaVal);
+	    };
+	    FrameInfo.prototype.setIdx = function (v) {
+	        this._idx = v;
+	    };
+	    FrameInfo.prototype.getStart = function () {
+	        return this._start;
+	    };
+	    FrameInfo.prototype.dtStart = function (deltaVal) {
+	        this.setStart(this._start + deltaVal);
+	    };
+	    FrameInfo.prototype.setStart = function (v) {
+	        this._start = v;
+	        this._end = v + this._hold - 1;
+	    };
+	    FrameInfo.prototype.getHold = function () {
+	        return this._hold;
+	    };
+	    FrameInfo.prototype.dtHold = function (deltaVal) {
+	        this.setHold(this._hold + deltaVal);
+	    };
+	    FrameInfo.prototype.setHold = function (v) {
+	        this._hold = v;
+	        this._end = this._start + this._hold - 1;
+	    };
+	    FrameInfo.prototype.getEnd = function () {
+	        return this._end;
+	    };
+	    return FrameInfo;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.FrameInfo = FrameInfo;
+
+
+/***/ },
+/* 23 */,
+/* 24 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var Command_1 = __webpack_require__(15);
+	var Button_1 = __webpack_require__(8);
+	var Animk_1 = __webpack_require__(4);
+	var PixiEx_1 = __webpack_require__(9);
+	var const_1 = __webpack_require__(6);
+	var Scroller_1 = __webpack_require__(11);
+	var Stacker_1 = __webpack_require__(12);
+	var TimestampBar = (function (_super) {
+	    __extends(TimestampBar, _super);
+	    function TimestampBar() {
+	        var _this = _super.call(this) || this;
+	        _this.colTick = 0x000000;
+	        _this.gTick = new PIXI.Graphics();
+	        _this.addChild(_this.gTick);
+	        _this.gMask = new PIXI.Graphics().drawRect(0, 0, 1600, _this.height);
+	        _this.addChild(_this.gMask);
+	        _this.gTick.mask = _this.gMask;
+	        _this.gCursor = new PIXI.Graphics()
+	            .lineStyle(2, 0xff0000)
+	            .moveTo(0, 0)
+	            .lineTo(0, 500);
+	        _this.addChild(_this.gCursor);
+	        _this.resize(1600, _this.height);
+	        Animk_1.animk.on(const_1.ViewEvent.MOUSE_UP, function (e) {
+	            var a = e.mx - _this.x - _this.gTick.x;
+	            var thisPos = _this.toGlobal(new PIXI.Point(_this.x, _this.y));
+	            if (e.my > thisPos.y && e.my < thisPos.y + _this.height) {
+	                if (a > 0) {
+	                    _this.gCursor.x = _this.gTick.x + Math.floor((a) / Animk_1.animk.frameWidth) * Animk_1.animk.frameWidth;
+	                }
+	            }
+	        });
+	        var newTrackBtn = new Button_1.Button({ text: "new" });
+	        newTrackBtn.x = -100;
+	        newTrackBtn.on(PixiEx_1.PIXI_MOUSE_EVENT.up, function () {
+	            var dialog = __webpack_require__(13).remote.dialog;
+	            var ret = dialog.showOpenDialog({
+	                properties: ['openFile'], filters: [
+	                    { name: 'Images(png)', extensions: ['png'] },
+	                    { name: 'All Files', extensions: ['*'] }
+	                ]
+	            });
+	            if (ret.length == 1)
+	                Animk_1.animk.projInfo.curComp.newTrack(ret[0]);
+	        });
+	        _this.addChild(newTrackBtn);
+	        return _this;
+	    }
+	    TimestampBar.prototype.resize = function (width, height) {
+	        this.gMask.clear();
+	        this.gMask.drawRect(0, 0, width, height);
+	        this.gTick.clear();
+	        this.gTick.lineStyle(1, this.colTick);
+	        for (var i = 0; i < width; i += Animk_1.animk.frameWidth) {
+	            this.gTick.moveTo(i, 15);
+	            this.gTick.lineTo(i, Animk_1.animk.frameWidth);
+	        }
+	    };
+	    TimestampBar.prototype.scroll = function (v) {
+	        this.gTick.x = -v;
+	        this.gCursor.x = -v;
+	    };
+	    Object.defineProperty(TimestampBar.prototype, "height", {
+	        get: function () {
+	            return 40;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    return TimestampBar;
+	}(PIXI.Sprite));
+	exports.TimestampBar = TimestampBar;
+	var LayerTracker = (function (_super) {
+	    __extends(LayerTracker, _super);
+	    function LayerTracker() {
+	        var _this = _super.call(this) || this;
+	        _this.timestampBar = new TimestampBar();
+	        _this.timestampBar.x = 200 + 15;
+	        var hs = new Scroller_1.Scroller('h', 600, 0, 100);
+	        hs.x = 200 + 15;
+	        _this.addChild(hs);
+	        _this.hScroller = hs;
+	        _this.hScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
+	            console.log('scroll', v);
+	            for (var i = 0; i < _this.stackerArr.length; i++) {
+	                var s = _this.stackerArr[i];
+	                s.scroll(v);
+	            }
+	            _this.timestampBar.scroll(v);
+	        });
+	        _this.stackerCtn = new PIXI.Container();
+	        _this.stackerCtn.y = _this.hScroller.height;
+	        _this.addChild(_this.stackerCtn);
+	        _this.stackerArr = [];
+	        _this.vScroller = new Scroller_1.Scroller('v', 300, 0, 100);
+	        _this.vScroller.x = 200;
+	        _this.vScroller.y = _this.hScroller.height;
+	        _this.vScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
+	        });
+	        _this.addChild(_this.vScroller);
+	        _this.addChild(_this.timestampBar);
+	        _this.initCmd();
+	        return _this;
+	    }
+	    LayerTracker.prototype.initCmd = function () {
+	        var _this = this;
+	        Command_1.cmd.on(const_1.CompInfoEvent.NEW_TRACK, function (tInfo) {
+	            var s = _this.newStacker(tInfo);
+	        });
+	    };
+	    LayerTracker.prototype.newStacker = function (trackInfo) {
+	        var s = new Stacker_1.Stacker(trackInfo);
+	        this.stackerCtn.addChild(s);
+	        this.stackerArr.push(s);
+	        this._updateVPos();
+	        return s;
+	    };
+	    LayerTracker.prototype._updateVPos = function () {
+	        var s;
+	        for (var i = 0; i < this.stackerArr.length; i++) {
+	            s = this.stackerArr[i];
+	            s.y = (s.height + 1) * i;
+	        }
+	    };
+	    LayerTracker.prototype.resize = function (width, height) {
+	        this.vScroller.setMax(height - this.hScroller.height);
+	        this.hScroller.setMax(width - 200 - 15);
+	        this.timestampBar.resize(width - 200 - 15, height);
+	    };
+	    return LayerTracker;
+	}(PIXI.Container));
+	exports.LayerTracker = LayerTracker;
+
+
+/***/ },
+/* 25 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	exports.walkDir = function (dirPath, callback) {
+	    var fs = __webpack_require__(19);
+	    var path = __webpack_require__(20);
+	    var fileArr = [];
+	    var dirArr = fs.readdirSync(dirPath);
+	    dirArr.forEach(function (item) {
+	        if (fs.statSync(dirPath + '/' + item).isDirectory()) {
+	        }
+	        else {
+	            var filename = path.join(dirPath, item);
+	            fileArr.push(filename);
+	            if (callback)
+	                callback(filename);
+	        }
+	    });
+	    return fileArr;
+	};
 
 
 /***/ }

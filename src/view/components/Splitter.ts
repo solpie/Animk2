@@ -1,4 +1,4 @@
-import { TimestampBar } from '../Tracker';
+import { TimestampBar } from '../LayerTracker';
 import { animk } from '../Animk';
 import { ScrollEvent, ViewEvent } from '../const';
 import { EventDispatcher } from '../../utils/EventDispatcher';

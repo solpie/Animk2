@@ -5,7 +5,7 @@ module.exports = {
     entry: {
         "view/index.js": "./src/view/index.ts"
     },
-    target: "node",
+    target: "electron",
     externals: [nodeExternals()],
     output: {
         path: './resources/app',

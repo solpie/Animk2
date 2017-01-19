@@ -14,6 +14,12 @@ isDev = /[\\/]projects[\\/]/.test(process.execPath);
 function onReady() {
     console.log('onReady');
     openWin();
+    const {
+        dialog
+    } = require('electron')
+    console.log(dialog.showOpenDialog({
+        properties: ['openFile', 'openDirectory', 'multiSelections']
+    }))
 }
 
 function openWin(serverConf) {
