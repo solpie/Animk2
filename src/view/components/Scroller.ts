@@ -1,5 +1,5 @@
 import { animk } from '../Animk';
-import { ScrollEvent, ViewConst, ViewEvent } from '../const';
+import { ScrollEvent, ViewConst, InputEvent } from '../const';
 import { EventDispatcher } from '../../utils/EventDispatcher';
 import { setupDrag } from '../../utils/PixiEx';
 export class Scroller extends PIXI.Container {
@@ -82,7 +82,7 @@ export class Scroller extends PIXI.Container {
             this.thumb.alpha = 1
         })
 
-        animk.on(ViewEvent.MOUSE_UP, () => {
+        animk.on(InputEvent.MOUSE_UP, () => {
             this.lastMousePosX = -1
             this.lastMousePosY = -1
             this.thumb.alpha = 1

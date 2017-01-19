@@ -58,8 +58,10 @@ export class CompInfo extends EventDispatcher {
         this._cursorPos = framePos;
         this.emit(CompInfoEvent.UPDATE_CURSOR, this._cursorPos);
     }
-
-
+    
+    getCursor() {
+        return this._cursorPos
+    }
 
     name(v?) {
         this._compData.name = v

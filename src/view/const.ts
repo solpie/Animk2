@@ -10,9 +10,9 @@ export const ScrollEvent = {
     CHANGED: 'changed'
 };
 
-export const ViewEvent = {
+export const InputEvent = {
     MOUSE_UP: 'onmouseup',
-    PLAYER_EDIT: 'edit player',
+    KEY_UP: 'onkeyup',
 };
 
 export const COLOR = {

@@ -102,11 +102,11 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var ProjectInfo_1 = __webpack_require__(16);
-	var EventDispatcher_1 = __webpack_require__(5);
+	var LayerTracker_1 = __webpack_require__(19);
+	var ProjectInfo_1 = __webpack_require__(5);
+	var EventDispatcher_1 = __webpack_require__(12);
 	var const_1 = __webpack_require__(6);
-	var LayerTracker_1 = __webpack_require__(24);
-	var Splitter_1 = __webpack_require__(14);
+	var Splitter_1 = __webpack_require__(16);
 	var Animk = (function (_super) {
 	    __extends(Animk, _super);
 	    function Animk() {
@@ -138,7 +138,11 @@
 	        document.onmouseup = function (e) {
 	            e['mx'] = e.clientX;
 	            e['my'] = e.clientY;
-	            _this.emit(const_1.ViewEvent.MOUSE_UP, e);
+	            _this.emit(const_1.InputEvent.MOUSE_UP, e);
+	        };
+	        window.onkeyup = function (e) {
+	            console.log('keyup', e);
+	            _this.emit(const_1.InputEvent.KEY_UP, e);
 	        };
 	    };
 	    Animk.prototype.test = function () {
@@ -156,53 +160,41 @@
 
 /***/ },
 /* 5 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var EventDispatcher = (function () {
-	    function EventDispatcher() {
-	        this._func = {};
-	        this._funcId = 0;
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var const_1 = __webpack_require__(6);
+	var CompInfo_1 = __webpack_require__(7);
+	var EventDispatcher_1 = __webpack_require__(12);
+	var ProjectInfo = (function (_super) {
+	    __extends(ProjectInfo, _super);
+	    function ProjectInfo() {
+	        var _this = _super.call(this) || this;
+	        _this.comps = [];
+	        _this.version = '0.1.0';
+	        _this.newComp(1280, 720, 30);
+	        return _this;
 	    }
-	    EventDispatcher.prototype.on = function (type, func) {
-	        if (!this._func[type])
-	            this._func[type] = [];
-	        this._funcId++;
-	        this._func[type].push({ func: func, id: this._funcId });
+	    ProjectInfo.prototype.frameWidth = function () {
+	        return this.curComp.frameWidth;
 	    };
-	    EventDispatcher.prototype.emit = function (type, param) {
-	        if (this._func[type])
-	            for (var i = 0; i < this._func[type].length; ++i) {
-	                var f = this._func[type][i];
-	                if (f)
-	                    f.func(param);
-	            }
+	    ProjectInfo.prototype.newComp = function (width, height, framerate) {
+	        var compInfo = new CompInfo_1.CompInfo(width, height, framerate);
+	        this.curComp = compInfo;
+	        this.comps.push(compInfo);
+	        compInfo.name("Comp" + this.comps.length);
+	        console.log(this, "new CompInfo");
+	        this.emit(const_1.CompInfoEvent.NEW_COMP, compInfo);
+	        return compInfo;
 	    };
-	    EventDispatcher.prototype.del = function (type, funcId) {
-	        if (funcId === void 0) { funcId = -1; }
-	        if (this._func[type])
-	            if (funcId < 0) {
-	                this._func[type] = [];
-	            }
-	            else {
-	                for (var i = 0; i < this._func[type].length; ++i) {
-	                    var f = this._func[type][i];
-	                    if (f) {
-	                        if (f.id == funcId) {
-	                            delete this._func[type][i];
-	                            console.log('del event', type, funcId);
-	                            break;
-	                        }
-	                    }
-	                }
-	            }
-	    };
-	    EventDispatcher.prototype.removeAll = function () {
-	        this._func = {};
-	    };
-	    return EventDispatcher;
-	}());
-	exports.EventDispatcher = EventDispatcher;
+	    return ProjectInfo;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.ProjectInfo = ProjectInfo;
 
 
 /***/ },
@@ -220,9 +212,9 @@
 	exports.ScrollEvent = {
 	    CHANGED: 'changed'
 	};
-	exports.ViewEvent = {
+	exports.InputEvent = {
 	    MOUSE_UP: 'onmouseup',
-	    PLAYER_EDIT: 'edit player',
+	    KEY_UP: 'onkeyup',
 	};
 	exports.COLOR = {
 	    PLAYER_EDIT: 'edit player',
@@ -277,52 +269,141 @@
 
 
 /***/ },
-/* 7 */,
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var NodeFunc_1 = __webpack_require__(8);
+	var Command_1 = __webpack_require__(11);
+	var const_1 = __webpack_require__(6);
+	var FrameTimer_1 = __webpack_require__(13);
+	var TrackInfo_1 = __webpack_require__(14);
+	var EventDispatcher_1 = __webpack_require__(12);
+	var CompositionData = (function () {
+	    function CompositionData() {
+	    }
+	    CompositionData.clone = function (val) {
+	    };
+	    return CompositionData;
+	}());
+	var CompInfo = (function (_super) {
+	    __extends(CompInfo, _super);
+	    function CompInfo(width, height, framerate) {
+	        var _this = _super.call(this) || this;
+	        _this.framerate = 24;
+	        _this.frameWidth = 40;
+	        _this._cursorPos = 1;
+	        _this._compData = new CompositionData;
+	        _this.width = width;
+	        _this.height = height;
+	        _this.framerate = framerate;
+	        _this.trackInfoArr = [];
+	        _this._frameTimer = new FrameTimer_1.FrameTimer(framerate);
+	        _this._frameTimer.on(const_1.FrameTimerEvent.TICK, function () {
+	            _this.onFrameTimerTick();
+	        });
+	        return _this;
+	    }
+	    CompInfo.prototype.onFrameTimerTick = function () {
+	        this.forward();
+	    };
+	    CompInfo.prototype.forward = function () {
+	        if (this._cursorPos >= this._maxPos)
+	            this.setCursor(1);
+	        else
+	            this.setCursor(this._cursorPos + 1);
+	    };
+	    CompInfo.prototype.setCursor = function (framePos) {
+	        this._cursorPos = framePos;
+	        this.emit(const_1.CompInfoEvent.UPDATE_CURSOR, this._cursorPos);
+	    };
+	    CompInfo.prototype.getCursor = function () {
+	        return this._cursorPos;
+	    };
+	    CompInfo.prototype.name = function (v) {
+	        this._compData.name = v;
+	    };
+	    CompInfo.prototype.newTrack = function (filename) {
+	        var tInfo = new TrackInfo_1.TrackInfo();
+	        this.trackInfoArr.push(tInfo);
+	        tInfo.name('track#' + this.trackInfoArr.length);
+	        Command_1.cmd.emit(const_1.CompInfoEvent.NEW_TRACK, tInfo);
+	        var path = __webpack_require__(10);
+	        var basename = path.basename(filename);
+	        var dir = path.dirname(filename);
+	        console.log('basename', basename);
+	        var a = basename.split('.');
+	        var fs = __webpack_require__(9);
+	        var fileArr = [];
+	        var walk = function (start) {
+	            var f = path.join(dir, start + '.' + a[1]);
+	            fs.exists(f, function (exists) {
+	                if (exists) {
+	                    fileArr.push(f);
+	                    tInfo.pushFrame(f);
+	                    walk(start + 1);
+	                }
+	                else {
+	                    if (fileArr.length == 0) {
+	                        NodeFunc_1.walkDir(dir, function (f) {
+	                            fileArr.push(f);
+	                            tInfo.pushFrame(f);
+	                        });
+	                    }
+	                    console.log('fileArr', fileArr);
+	                }
+	            });
+	        };
+	        walk(Number(a[0]));
+	    };
+	    return CompInfo;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.CompInfo = CompInfo;
+
+
+/***/ },
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	exports.walkDir = function (dirPath, callback) {
+	    var fs = __webpack_require__(9);
+	    var path = __webpack_require__(10);
+	    var fileArr = [];
+	    var dirArr = fs.readdirSync(dirPath);
+	    dirArr.forEach(function (item) {
+	        if (fs.statSync(dirPath + '/' + item).isDirectory()) {
+	        }
+	        else {
+	            var filename = path.join(dirPath, item);
+	            fileArr.push(filename);
+	            if (callback)
+	                callback(filename);
+	        }
+	    });
+	    return fileArr;
 	};
-	var PixiEx_1 = __webpack_require__(9);
-	var Button = (function (_super) {
-	    __extends(Button, _super);
-	    function Button(option) {
-	        var _this = _super.call(this) || this;
-	        var t = option.text || 'button';
-	        var w = option.width || 70;
-	        var h = option.height || 30;
-	        _this.interactive = true;
-	        _this.buttonMode = true;
-	        _this._bg = new PIXI.Graphics().beginFill(0x333333).drawRect(0, 0, w, h);
-	        _this.addChild(_this._bg);
-	        var ts = {
-	            fontSize: '12px',
-	            fontStyle: 'normal',
-	            fontWeight: 'bold',
-	            fill: 0xffffff
-	        };
-	        _this._label = new PIXI.Text(t, ts);
-	        _this.addChild(_this._label);
-	        _this.on(PixiEx_1.PIXI_MOUSE_EVENT.up, function () {
-	        });
-	        _this.resize(w, h);
-	        return _this;
-	    }
-	    Button.prototype.resize = function (width, height) {
-	        this._label.x = (width - this._label.width) * .5;
-	        this._label.y = (height - this._label.height) * .5;
-	    };
-	    return Button;
-	}(PIXI.Container));
-	exports.Button = Button;
 
 
 /***/ },
 /* 9 */
+/***/ function(module, exports) {
+
+	module.exports = require("fs");
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+	module.exports = require("path");
+
+/***/ },
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -331,7 +412,502 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var JsFunc_1 = __webpack_require__(10);
+	var EventDispatcher_1 = __webpack_require__(12);
+	var CommandId;
+	(function (CommandId) {
+	    CommandId[CommandId["ShowConsoleWin"] = 100000] = "ShowConsoleWin";
+	    CommandId[CommandId["testSwapTrack"] = 100001] = "testSwapTrack";
+	    CommandId[CommandId["testNewProject"] = 100002] = "testNewProject";
+	    CommandId[CommandId["testSaveProject"] = 100003] = "testSaveProject";
+	    CommandId[CommandId["testProject"] = 100004] = "testProject";
+	    CommandId[CommandId["testRender"] = 100005] = "testRender";
+	    CommandId[CommandId["testDialog"] = 100006] = "testDialog";
+	    CommandId[CommandId["NewTrack"] = 100007] = "NewTrack";
+	    CommandId[CommandId["HideConsoleWin"] = 100008] = "HideConsoleWin";
+	    CommandId[CommandId["ShowSettingWin"] = 100009] = "ShowSettingWin";
+	    CommandId[CommandId["ToggleFileMenu"] = 100010] = "ToggleFileMenu";
+	    CommandId[CommandId["FileMenuOpen"] = 100011] = "FileMenuOpen";
+	    CommandId[CommandId["FileMenuSave"] = 100012] = "FileMenuSave";
+	    CommandId[CommandId["ShowOnHoldWin"] = 100013] = "ShowOnHoldWin";
+	    CommandId[CommandId["ShowTrackMenu"] = 100014] = "ShowTrackMenu";
+	    CommandId[CommandId["HideTrackMenu"] = 100015] = "HideTrackMenu";
+	    CommandId[CommandId["ShowDialogOK"] = 100016] = "ShowDialogOK";
+	    CommandId[CommandId["HideDialogOK"] = 100017] = "HideDialogOK";
+	    CommandId[CommandId["ShowNewPngWin"] = 100018] = "ShowNewPngWin";
+	    CommandId[CommandId["HideNewPngWin"] = 100019] = "HideNewPngWin";
+	    CommandId[CommandId["InsertFrame"] = 100020] = "InsertFrame";
+	    CommandId[CommandId["DeleteFrame"] = 100021] = "DeleteFrame";
+	    CommandId[CommandId["ZoomOutMax"] = 100022] = "ZoomOutMax";
+	    CommandId[CommandId["ZoomInMax"] = 100023] = "ZoomInMax";
+	    CommandId[CommandId["ImportAudio"] = 100024] = "ImportAudio";
+	})(CommandId = exports.CommandId || (exports.CommandId = {}));
+	var CommandItem = (function () {
+	    function CommandItem(id) {
+	        this.id = id;
+	    }
+	    return CommandItem;
+	}());
+	var Command = (function (_super) {
+	    __extends(Command, _super);
+	    function Command() {
+	        var _this = _super.call(this) || this;
+	        _this.cmdArr = [];
+	        _this.newCmd(CommandId.ShowSettingWin, "open Option");
+	        _this.newCmd(CommandId.FileMenuOpen, "open Project");
+	        _this.newCmd(CommandId.FileMenuSave, "save Project");
+	        _this.newCmd(CommandId.ShowOnHoldWin, "open on hold win");
+	        _this.newCmd(CommandId.ShowTrackMenu, "show track menu");
+	        _this.newCmd(CommandId.HideTrackMenu, "hide track menu");
+	        _this.newCmd(CommandId.InsertFrame, "insert frame");
+	        _this.newCmd(CommandId.DeleteFrame, "delete frame");
+	        _this.newCmd(CommandId.ZoomOutMax, "zoom out max");
+	        _this.newCmd(CommandId.ImportAudio, "import audio");
+	        _this.newCmd(CommandId.testSwapTrack, "test swap track");
+	        _this.newCmd(CommandId.testNewProject, "test new project");
+	        _this.newCmd(CommandId.testSaveProject, "test save project");
+	        _this.newCmd(CommandId.testProject, "test project");
+	        _this.newCmd(CommandId.testRender, "test render");
+	        _this.newCmd(CommandId.testDialog, "test dialog");
+	        return _this;
+	    }
+	    Command.prototype.newCmd = function (id, name, desc) {
+	        var ci = new CommandItem(id);
+	        ci.name = name;
+	        ci.desc = desc;
+	        this.cmdArr.push(ci);
+	    };
+	    return Command;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.cmd = new Command();
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports) {
+
+	"use strict";
+	var EventDispatcher = (function () {
+	    function EventDispatcher() {
+	        this._func = {};
+	        this._funcId = 0;
+	    }
+	    EventDispatcher.prototype.on = function (type, func) {
+	        if (!this._func[type])
+	            this._func[type] = [];
+	        this._funcId++;
+	        this._func[type].push({ func: func, id: this._funcId });
+	    };
+	    EventDispatcher.prototype.emit = function (type, param) {
+	        if (this._func[type])
+	            for (var i = 0; i < this._func[type].length; ++i) {
+	                var f = this._func[type][i];
+	                if (f)
+	                    f.func(param);
+	            }
+	    };
+	    EventDispatcher.prototype.del = function (type, funcId) {
+	        if (funcId === void 0) { funcId = -1; }
+	        if (this._func[type])
+	            if (funcId < 0) {
+	                this._func[type] = [];
+	            }
+	            else {
+	                for (var i = 0; i < this._func[type].length; ++i) {
+	                    var f = this._func[type][i];
+	                    if (f) {
+	                        if (f.id == funcId) {
+	                            delete this._func[type][i];
+	                            console.log('del event', type, funcId);
+	                            break;
+	                        }
+	                    }
+	                }
+	            }
+	    };
+	    EventDispatcher.prototype.removeAll = function () {
+	        this._func = {};
+	    };
+	    return EventDispatcher;
+	}());
+	exports.EventDispatcher = EventDispatcher;
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var const_1 = __webpack_require__(6);
+	var EventDispatcher_1 = __webpack_require__(12);
+	var FrameTimer = (function (_super) {
+	    __extends(FrameTimer, _super);
+	    function FrameTimer(framerate) {
+	        var _this = _super.call(this) || this;
+	        _this._isBusy = false;
+	        _this._timerId = null;
+	        _this.setFramerate(framerate);
+	        return _this;
+	    }
+	    FrameTimer.prototype.start = function () {
+	        if (!this._isBusy)
+	            this.newTimer();
+	        this._isBusy = true;
+	    };
+	    FrameTimer.prototype.stop = function () {
+	        this._isBusy = false;
+	        this.clearTimer();
+	    };
+	    FrameTimer.prototype.isBusy = function () {
+	        return this._isBusy;
+	    };
+	    FrameTimer.prototype.setFramerate = function (framerate) {
+	        if (this._framerate != framerate) {
+	            this._framerate = framerate;
+	            this.clearTimer();
+	            this.newTimer();
+	        }
+	    };
+	    FrameTimer.prototype.clearTimer = function () {
+	        if (this._timerId) {
+	            clearInterval(this._timerId);
+	        }
+	        this._timerId = null;
+	    };
+	    FrameTimer.prototype.newTimer = function () {
+	        var _this = this;
+	        this._timerId = setInterval(function () {
+	            _this.onTick();
+	        }, 1000 / this._framerate);
+	    };
+	    FrameTimer.prototype.onTick = function () {
+	        if (this._isBusy) {
+	            this.emit(const_1.FrameTimerEvent.TICK);
+	        }
+	        else {
+	            this.clearTimer();
+	        }
+	    };
+	    return FrameTimer;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.FrameTimer = FrameTimer;
+
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var const_1 = __webpack_require__(6);
+	var FrameInfo_1 = __webpack_require__(15);
+	var EventDispatcher_1 = __webpack_require__(12);
+	var TrackLoopType;
+	(function (TrackLoopType) {
+	    TrackLoopType[TrackLoopType["NONE"] = 0] = "NONE";
+	    TrackLoopType[TrackLoopType["HOLD"] = 1] = "HOLD";
+	    TrackLoopType[TrackLoopType["REPEAT"] = 2] = "REPEAT";
+	})(TrackLoopType || (TrackLoopType = {}));
+	var TrackType;
+	(function (TrackType) {
+	    TrackType[TrackType["IMAGE"] = 1] = "IMAGE";
+	    TrackType[TrackType["COMP"] = 2] = "COMP";
+	    TrackType[TrackType["AUDIO"] = 3] = "AUDIO";
+	})(TrackType || (TrackType = {}));
+	var ImageTrackActType;
+	(function (ImageTrackActType) {
+	    ImageTrackActType[ImageTrackActType["NORMAL"] = 1] = "NORMAL";
+	    ImageTrackActType[ImageTrackActType["REF"] = 2] = "REF";
+	    ImageTrackActType[ImageTrackActType["NOEDIT"] = 3] = "NOEDIT";
+	})(ImageTrackActType || (ImageTrackActType = {}));
+	var TrackData = (function () {
+	    function TrackData() {
+	        this.opacity = 1;
+	        this.enable = true;
+	        this.type = TrackType.IMAGE;
+	        this.start = 1;
+	        this.act = ImageTrackActType.NORMAL;
+	        this.loopType = TrackLoopType.HOLD;
+	        this.end = 1;
+	    }
+	    TrackData.clone = function (val) {
+	        var td = new TrackData();
+	        for (var p in val) {
+	            if (p != "frames")
+	                td[p] = val[p];
+	            else {
+	            }
+	        }
+	        td.frames = [];
+	        for (var i = 0; i < val.frames.length; i++) {
+	            td.frames.push(FrameInfo_1.FrameData.clone(val.frames[i]));
+	        }
+	        return td;
+	    };
+	    return TrackData;
+	}());
+	exports.TrackData = TrackData;
+	var TrackInfo = (function (_super) {
+	    __extends(TrackInfo, _super);
+	    function TrackInfo() {
+	        var _this = _super.call(this) || this;
+	        _this._hold = 1;
+	        _this._isSel = false;
+	        _this._trackData = new TrackData;
+	        _this.frameInfoArr = [];
+	        _this.removedFrameArr = [];
+	        return _this;
+	    }
+	    TrackInfo.prototype.name = function (v) {
+	        if (v != undefined)
+	            this._trackData.name = v;
+	        return this._trackData.name;
+	    };
+	    TrackInfo.prototype.pushFrame = function (filename) {
+	        var frameInfo = new FrameInfo_1.FrameInfo(filename);
+	        this.frameInfoArr.push(frameInfo);
+	        frameInfo.idx(this.frameInfoArr.length);
+	        this.emit(const_1.TrackInfoEvent.PUSH_FRAME, frameInfo);
+	    };
+	    return TrackInfo;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.TrackInfo = TrackInfo;
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var EventDispatcher_1 = __webpack_require__(12);
+	var PressFlag;
+	(function (PressFlag) {
+	    PressFlag[PressFlag["L"] = 1] = "L";
+	    PressFlag[PressFlag["R"] = 2] = "R";
+	})(PressFlag || (PressFlag = {}));
+	var FrameData = (function () {
+	    function FrameData() {
+	    }
+	    FrameData.clone = function (val) {
+	        var fd = new FrameData();
+	        for (var p in val) {
+	            fd[p] = val[p];
+	        }
+	        return fd;
+	    };
+	    return FrameData;
+	}());
+	exports.FrameData = FrameData;
+	var FrameInfo = (function (_super) {
+	    __extends(FrameInfo, _super);
+	    function FrameInfo(filename) {
+	        var _this = _super.call(this) || this;
+	        _this._idx = -1;
+	        _this._start = 1;
+	        _this._end = 1;
+	        _this._hold = 1;
+	        _this.pressFlag = 0;
+	        _this.filename = filename;
+	        return _this;
+	    }
+	    FrameInfo.prototype.getIdx = function () {
+	        return this._idx;
+	    };
+	    FrameInfo.prototype.idx = function (v) {
+	        if (v != undefined)
+	            this._idx = v;
+	        return this._idx;
+	    };
+	    FrameInfo.prototype.dtIdx = function (deltaVal) {
+	        this.setIdx(this._idx + deltaVal);
+	    };
+	    FrameInfo.prototype.setIdx = function (v) {
+	        this._idx = v;
+	    };
+	    FrameInfo.prototype.getStart = function () {
+	        return this._start;
+	    };
+	    FrameInfo.prototype.dtStart = function (deltaVal) {
+	        this.setStart(this._start + deltaVal);
+	    };
+	    FrameInfo.prototype.setStart = function (v) {
+	        this._start = v;
+	        this._end = v + this._hold - 1;
+	    };
+	    FrameInfo.prototype.getHold = function () {
+	        return this._hold;
+	    };
+	    FrameInfo.prototype.dtHold = function (deltaVal) {
+	        this.setHold(this._hold + deltaVal);
+	    };
+	    FrameInfo.prototype.setHold = function (v) {
+	        this._hold = v;
+	        this._end = this._start + this._hold - 1;
+	    };
+	    FrameInfo.prototype.getEnd = function () {
+	        return this._end;
+	    };
+	    return FrameInfo;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.FrameInfo = FrameInfo;
+
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var Animk_1 = __webpack_require__(4);
+	var const_1 = __webpack_require__(6);
+	var EventDispatcher_1 = __webpack_require__(12);
+	var PixiEx_1 = __webpack_require__(17);
+	var Splitter = (function (_super) {
+	    __extends(Splitter, _super);
+	    function Splitter(dir, width, height) {
+	        var _this = _super.call(this) || this;
+	        _this.barSpace = 40;
+	        _this.lastMousePosX = -1;
+	        _this.lastMousePosY = -1;
+	        _this.evt = new EventDispatcher_1.EventDispatcher;
+	        _this._w = width;
+	        _this._h = height;
+	        _this.dir = dir;
+	        _this.bar = new PIXI.Sprite();
+	        _this.bar.alpha = .9;
+	        PixiEx_1.setupDrag(_this.bar, function (e) {
+	            _this.lastMousePosY = e.data.originalEvent.clientY;
+	            _this.lastMousePosX = e.data.originalEvent.clientX;
+	            _this.bar.alpha = .6;
+	        }, function (e) {
+	            if (_this.dir == 'v') {
+	                if (_this.lastMousePosY > -1) {
+	                    _this.setBarY(_this.bar.y + e.my - _this.lastMousePosY);
+	                    _this.lastMousePosY = e.data.originalEvent.clientY;
+	                    if (_this.child2) {
+	                        _this.evt.emit(const_1.ScrollEvent.CHANGED, _this);
+	                    }
+	                }
+	            }
+	            else if (_this.dir == 'h') {
+	                if (_this.lastMousePosX > -1) {
+	                    _this.bar.x += e.data.originalEvent.clientY - _this.lastMousePosX;
+	                    _this.lastMousePosX = e.data.originalEvent.clientX;
+	                }
+	            }
+	        }, function (e) {
+	            _this.lastMousePosX = -1;
+	            _this.lastMousePosY = -1;
+	            _this.bar.alpha = .9;
+	        });
+	        Animk_1.animk.on(const_1.InputEvent.MOUSE_UP, function () {
+	            _this.lastMousePosX = -1;
+	            _this.lastMousePosY = -1;
+	            _this.bar.alpha = .9;
+	        });
+	        _this.addChild(_this.bar);
+	        _this.mask1 = new PIXI.Graphics().drawRect(0, 0, 1100, 1000);
+	        _this.mask2 = new PIXI.Graphics().drawRect(0, 0, 1000, 1000);
+	        _this.addChild(_this.mask2);
+	        _this.resize(width, height);
+	        return _this;
+	    }
+	    Object.defineProperty(Splitter.prototype, "width", {
+	        get: function () { return this._w; },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(Splitter.prototype, "height", {
+	        get: function () { return this._h; },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Splitter.prototype.setBarY = function (by) {
+	        this.bar.y = by;
+	        this.child1Space = by;
+	        this.child2Space = this.height - by - this.barSpace;
+	        this.mask1.height = by;
+	        if (this.child2) {
+	            this.child2.y = by + this.barSpace;
+	        }
+	        this.mask2.y = this.bar.y + this.barSpace;
+	        this.mask2.height = this.child2Space;
+	    };
+	    Splitter.prototype._setBarX = function (bx) {
+	        this.bar.x = bx;
+	        this.child1Space = bx;
+	        this.child2Space = this.width - bx - this.barSpace;
+	    };
+	    Splitter.prototype.setChild = function (child) {
+	        if (!this.child1) {
+	            this.child1 = child;
+	            this.addChildAt(child, 0);
+	        }
+	        else if (!this.child2) {
+	            this.child2 = child;
+	            this.addChild(child);
+	            if (this.dir == 'v') {
+	                child.y = this.child1Space + this.barSpace;
+	            }
+	            else if (this.dir == 'h') {
+	                child.x = this.child1Space + this.barSpace;
+	            }
+	        }
+	        this.addChild(this.bar);
+	    };
+	    Splitter.prototype.resize = function (width, height) {
+	        if (this.dir == 'v') {
+	            this.setBarY(height / 2);
+	            if (!this.bar.children.length)
+	                this.bar.addChild(new PIXI.Graphics()
+	                    .beginFill(0x2e2e2e)
+	                    .drawRect(0, 0, width, this.barSpace));
+	            this.mask1.width = width;
+	            this.mask2.width = width;
+	        }
+	        else if (this.dir == 'h') {
+	            this._setBarX(width / 2);
+	            this.mask1.height = height;
+	            this.mask2.height = height;
+	            if (!this.bar.children.length)
+	                this.bar.addChild(new PIXI.Graphics()
+	                    .beginFill(0x2e2e2e)
+	                    .drawRect(0, 0, this.barSpace, height));
+	        }
+	    };
+	    return Splitter;
+	}(PIXI.Container));
+	exports.Splitter = Splitter;
+
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var JsFunc_1 = __webpack_require__(18);
 	function imgToTex(img) {
 	    return new PIXI.Texture(new PIXI.BaseTexture(img));
 	}
@@ -557,7 +1133,7 @@
 
 
 /***/ },
-/* 10 */
+/* 18 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -744,7 +1320,229 @@
 
 
 /***/ },
-/* 11 */
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var TimestampBar_1 = __webpack_require__(20);
+	var Command_1 = __webpack_require__(11);
+	var const_1 = __webpack_require__(6);
+	var Scroller_1 = __webpack_require__(23);
+	var Stacker_1 = __webpack_require__(24);
+	var LayerTracker = (function (_super) {
+	    __extends(LayerTracker, _super);
+	    function LayerTracker() {
+	        var _this = _super.call(this) || this;
+	        _this.timestampBar = new TimestampBar_1.TimestampBar();
+	        _this.timestampBar.x = 200 + 15;
+	        var hs = new Scroller_1.Scroller('h', 600, 0, 100);
+	        hs.x = 200 + 15;
+	        _this.addChild(hs);
+	        _this.hScroller = hs;
+	        _this.hScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
+	            console.log('scroll', v);
+	            for (var i = 0; i < _this.stackerArr.length; i++) {
+	                var s = _this.stackerArr[i];
+	                s.scroll(v);
+	            }
+	            _this.timestampBar.scroll(v);
+	        });
+	        _this.stackerCtn = new PIXI.Container();
+	        _this.stackerCtn.y = _this.hScroller.height;
+	        _this.addChild(_this.stackerCtn);
+	        _this.stackerArr = [];
+	        _this.vScroller = new Scroller_1.Scroller('v', 300, 0, 100);
+	        _this.vScroller.x = 200;
+	        _this.vScroller.y = _this.hScroller.height;
+	        _this.vScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
+	        });
+	        _this.addChild(_this.vScroller);
+	        _this.addChild(_this.timestampBar);
+	        _this.initCmd();
+	        return _this;
+	    }
+	    LayerTracker.prototype.initCmd = function () {
+	        var _this = this;
+	        Command_1.cmd.on(const_1.CompInfoEvent.NEW_TRACK, function (tInfo) {
+	            var s = _this.newStacker(tInfo);
+	        });
+	    };
+	    LayerTracker.prototype.newStacker = function (trackInfo) {
+	        var s = new Stacker_1.Stacker(trackInfo);
+	        this.stackerCtn.addChild(s);
+	        this.stackerArr.push(s);
+	        this._updateVPos();
+	        return s;
+	    };
+	    LayerTracker.prototype._updateVPos = function () {
+	        var s;
+	        for (var i = 0; i < this.stackerArr.length; i++) {
+	            s = this.stackerArr[i];
+	            s.y = (s.height + 1) * i;
+	        }
+	    };
+	    LayerTracker.prototype.resize = function (width, height) {
+	        this.vScroller.setMax(height - this.hScroller.height);
+	        this.hScroller.setMax(width - 200 - 15);
+	        this.timestampBar.resize(width - 200 - 15, height);
+	    };
+	    return LayerTracker;
+	}(PIXI.Container));
+	exports.LayerTracker = LayerTracker;
+
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var const_1 = __webpack_require__(6);
+	var Animk_1 = __webpack_require__(4);
+	var PixiEx_1 = __webpack_require__(17);
+	var Button_1 = __webpack_require__(21);
+	var TimestampBar = (function (_super) {
+	    __extends(TimestampBar, _super);
+	    function TimestampBar() {
+	        var _this = _super.call(this) || this;
+	        _this.colTick = 0x000000;
+	        _this.cursorPos = 0;
+	        _this.textCtn = new PIXI.Container();
+	        _this.addChild(_this.textCtn);
+	        _this.gTick = new PIXI.Graphics();
+	        _this.addChild(_this.gTick);
+	        _this.gMask = new PIXI.Graphics().drawRect(0, 0, 1600, _this.height);
+	        _this.addChild(_this.gMask);
+	        _this.gTick.mask = _this.gMask;
+	        _this.gCursor = new PIXI.Graphics()
+	            .lineStyle(2, 0xff0000)
+	            .moveTo(0, 0)
+	            .lineTo(0, 500);
+	        _this.addChild(_this.gCursor);
+	        _this.resize(1600, _this.height);
+	        Animk_1.animk.on(const_1.InputEvent.MOUSE_UP, function (e) {
+	            var a = e.mx - _this.x - _this.gTick.x;
+	            var thisPos = _this.toGlobal(new PIXI.Point(_this.x, _this.y));
+	            if (e.my > thisPos.y && e.my < thisPos.y + _this.height) {
+	                if (a > 0) {
+	                    _this.cursorPos = Math.floor((a) / Animk_1.animk.frameWidth) * Animk_1.animk.frameWidth;
+	                    _this.gCursor.x = _this.gTick.x + _this.cursorPos;
+	                }
+	            }
+	        });
+	        var newTrackBtn = new Button_1.Button({ text: "new" });
+	        newTrackBtn.x = -100;
+	        newTrackBtn.on(PixiEx_1.PIXI_MOUSE_EVENT.up, function () {
+	            var dialog = __webpack_require__(22).remote.dialog;
+	            var ret = dialog.showOpenDialog({
+	                properties: ['openFile'], filters: [
+	                    { name: 'Images(png)', extensions: ['png'] },
+	                    { name: 'All Files', extensions: ['*'] }
+	                ]
+	            });
+	            if (ret.length == 1)
+	                Animk_1.animk.projInfo.curComp.newTrack(ret[0]);
+	        });
+	        _this.addChild(newTrackBtn);
+	        return _this;
+	    }
+	    TimestampBar.prototype.resize = function (width, height) {
+	        this.textCtn.removeChildren();
+	        this.gMask.clear();
+	        this.gMask.drawRect(0, 0, width, height);
+	        this.gTick.clear();
+	        this.gTick.lineStyle(1, this.colTick);
+	        var ts = { fill: 0xffffff, fontSize: '12px' };
+	        var fw = Animk_1.animk.projInfo.frameWidth();
+	        var frame = 0;
+	        for (var i = 0; i < width; i += fw) {
+	            this.gTick.moveTo(i, 20);
+	            this.gTick.lineTo(i, fw);
+	            var textTick = new PIXI.Text(frame + '', ts);
+	            textTick.x = i + 3;
+	            textTick.y = 23;
+	            this.textCtn.addChild(textTick);
+	            frame++;
+	        }
+	    };
+	    TimestampBar.prototype.scroll = function (v) {
+	        this.gTick.x = -v;
+	        this.gCursor.x = this.gTick.x + this.cursorPos;
+	        this.textCtn.x = -v;
+	    };
+	    Object.defineProperty(TimestampBar.prototype, "height", {
+	        get: function () {
+	            return 40;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    return TimestampBar;
+	}(PIXI.Sprite));
+	exports.TimestampBar = TimestampBar;
+
+
+/***/ },
+/* 21 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var PixiEx_1 = __webpack_require__(17);
+	var Button = (function (_super) {
+	    __extends(Button, _super);
+	    function Button(option) {
+	        var _this = _super.call(this) || this;
+	        var t = option.text || 'button';
+	        var w = option.width || 70;
+	        var h = option.height || 30;
+	        _this.interactive = true;
+	        _this.buttonMode = true;
+	        _this._bg = new PIXI.Graphics().beginFill(0x333333).drawRect(0, 0, w, h);
+	        _this.addChild(_this._bg);
+	        var ts = {
+	            fontSize: '12px',
+	            fontStyle: 'normal',
+	            fontWeight: 'bold',
+	            fill: 0xffffff
+	        };
+	        _this._label = new PIXI.Text(t, ts);
+	        _this.addChild(_this._label);
+	        _this.on(PixiEx_1.PIXI_MOUSE_EVENT.up, function () {
+	        });
+	        _this.resize(w, h);
+	        return _this;
+	    }
+	    Button.prototype.resize = function (width, height) {
+	        this._label.x = (width - this._label.width) * .5;
+	        this._label.y = (height - this._label.height) * .5;
+	    };
+	    return Button;
+	}(PIXI.Container));
+	exports.Button = Button;
+
+
+/***/ },
+/* 22 */
+/***/ function(module, exports) {
+
+	module.exports = require("electron");
+
+/***/ },
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -755,8 +1553,8 @@
 	};
 	var Animk_1 = __webpack_require__(4);
 	var const_1 = __webpack_require__(6);
-	var EventDispatcher_1 = __webpack_require__(5);
-	var PixiEx_1 = __webpack_require__(9);
+	var EventDispatcher_1 = __webpack_require__(12);
+	var PixiEx_1 = __webpack_require__(17);
 	var Scroller = (function (_super) {
 	    __extends(Scroller, _super);
 	    function Scroller(dir, max, minValue, maxValue) {
@@ -822,7 +1620,7 @@
 	            _this.lastMousePosY = -1;
 	            _this.thumb.alpha = 1;
 	        });
-	        Animk_1.animk.on(const_1.ViewEvent.MOUSE_UP, function () {
+	        Animk_1.animk.on(const_1.InputEvent.MOUSE_UP, function () {
 	            _this.lastMousePosX = -1;
 	            _this.lastMousePosY = -1;
 	            _this.thumb.alpha = 1;
@@ -867,7 +1665,7 @@
 
 
 /***/ },
-/* 12 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -878,7 +1676,7 @@
 	};
 	var Animk_1 = __webpack_require__(4);
 	var const_1 = __webpack_require__(6);
-	var PixiEx_1 = __webpack_require__(9);
+	var PixiEx_1 = __webpack_require__(17);
 	var Clip = (function (_super) {
 	    __extends(Clip, _super);
 	    function Clip() {
@@ -908,7 +1706,7 @@
 	        }, function () {
 	            lastX = null;
 	        });
-	        Animk_1.animk.on(const_1.ViewEvent.MOUSE_UP, function () {
+	        Animk_1.animk.on(const_1.InputEvent.MOUSE_UP, function () {
 	            lastX = null;
 	        });
 	        return _this;
@@ -964,771 +1762,6 @@
 	    return Stacker;
 	}(PIXI.Container));
 	exports.Stacker = Stacker;
-
-
-/***/ },
-/* 13 */
-/***/ function(module, exports) {
-
-	module.exports = require("electron");
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var Animk_1 = __webpack_require__(4);
-	var const_1 = __webpack_require__(6);
-	var EventDispatcher_1 = __webpack_require__(5);
-	var PixiEx_1 = __webpack_require__(9);
-	var Splitter = (function (_super) {
-	    __extends(Splitter, _super);
-	    function Splitter(dir, width, height) {
-	        var _this = _super.call(this) || this;
-	        _this.barSpace = 40;
-	        _this.lastMousePosX = -1;
-	        _this.lastMousePosY = -1;
-	        _this.evt = new EventDispatcher_1.EventDispatcher;
-	        _this._w = width;
-	        _this._h = height;
-	        _this.dir = dir;
-	        _this.bar = new PIXI.Sprite();
-	        _this.bar.alpha = .9;
-	        PixiEx_1.setupDrag(_this.bar, function (e) {
-	            _this.lastMousePosY = e.data.originalEvent.clientY;
-	            _this.lastMousePosX = e.data.originalEvent.clientX;
-	            _this.bar.alpha = .6;
-	        }, function (e) {
-	            if (_this.dir == 'v') {
-	                if (_this.lastMousePosY > -1) {
-	                    _this.setBarY(_this.bar.y + e.my - _this.lastMousePosY);
-	                    _this.lastMousePosY = e.data.originalEvent.clientY;
-	                    if (_this.child2) {
-	                        _this.evt.emit(const_1.ScrollEvent.CHANGED, _this);
-	                    }
-	                }
-	            }
-	            else if (_this.dir == 'h') {
-	                if (_this.lastMousePosX > -1) {
-	                    _this.bar.x += e.data.originalEvent.clientY - _this.lastMousePosX;
-	                    _this.lastMousePosX = e.data.originalEvent.clientX;
-	                }
-	            }
-	        }, function (e) {
-	            _this.lastMousePosX = -1;
-	            _this.lastMousePosY = -1;
-	            _this.bar.alpha = .9;
-	        });
-	        Animk_1.animk.on(const_1.ViewEvent.MOUSE_UP, function () {
-	            _this.lastMousePosX = -1;
-	            _this.lastMousePosY = -1;
-	            _this.bar.alpha = .9;
-	        });
-	        _this.addChild(_this.bar);
-	        _this.mask1 = new PIXI.Graphics().drawRect(0, 0, 1100, 1000);
-	        _this.mask2 = new PIXI.Graphics().drawRect(0, 0, 1000, 1000);
-	        _this.addChild(_this.mask2);
-	        _this.resize(width, height);
-	        return _this;
-	    }
-	    Object.defineProperty(Splitter.prototype, "width", {
-	        get: function () { return this._w; },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(Splitter.prototype, "height", {
-	        get: function () { return this._h; },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Splitter.prototype.setBarY = function (by) {
-	        this.bar.y = by;
-	        this.child1Space = by;
-	        this.child2Space = this.height - by - this.barSpace;
-	        this.mask1.height = by;
-	        if (this.child2) {
-	            this.child2.y = by + this.barSpace;
-	        }
-	        this.mask2.y = this.bar.y + this.barSpace;
-	        this.mask2.height = this.child2Space;
-	    };
-	    Splitter.prototype._setBarX = function (bx) {
-	        this.bar.x = bx;
-	        this.child1Space = bx;
-	        this.child2Space = this.width - bx - this.barSpace;
-	    };
-	    Splitter.prototype.setChild = function (child) {
-	        if (!this.child1) {
-	            this.child1 = child;
-	            this.addChildAt(child, 0);
-	        }
-	        else if (!this.child2) {
-	            this.child2 = child;
-	            this.addChild(child);
-	            if (this.dir == 'v') {
-	                child.y = this.child1Space + this.barSpace;
-	            }
-	            else if (this.dir == 'h') {
-	                child.x = this.child1Space + this.barSpace;
-	            }
-	        }
-	        this.addChild(this.bar);
-	    };
-	    Splitter.prototype.resize = function (width, height) {
-	        if (this.dir == 'v') {
-	            this.setBarY(height / 2);
-	            if (!this.bar.children.length)
-	                this.bar.addChild(new PIXI.Graphics()
-	                    .beginFill(0x2e2e2e)
-	                    .drawRect(0, 0, width, this.barSpace));
-	            this.mask1.width = width;
-	            this.mask2.width = width;
-	        }
-	        else if (this.dir == 'h') {
-	            this._setBarX(width / 2);
-	            this.mask1.height = height;
-	            this.mask2.height = height;
-	            if (!this.bar.children.length)
-	                this.bar.addChild(new PIXI.Graphics()
-	                    .beginFill(0x2e2e2e)
-	                    .drawRect(0, 0, this.barSpace, height));
-	        }
-	    };
-	    return Splitter;
-	}(PIXI.Container));
-	exports.Splitter = Splitter;
-
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var EventDispatcher_1 = __webpack_require__(5);
-	var CommandId;
-	(function (CommandId) {
-	    CommandId[CommandId["ShowConsoleWin"] = 100000] = "ShowConsoleWin";
-	    CommandId[CommandId["testSwapTrack"] = 100001] = "testSwapTrack";
-	    CommandId[CommandId["testNewProject"] = 100002] = "testNewProject";
-	    CommandId[CommandId["testSaveProject"] = 100003] = "testSaveProject";
-	    CommandId[CommandId["testProject"] = 100004] = "testProject";
-	    CommandId[CommandId["testRender"] = 100005] = "testRender";
-	    CommandId[CommandId["testDialog"] = 100006] = "testDialog";
-	    CommandId[CommandId["NewTrack"] = 100007] = "NewTrack";
-	    CommandId[CommandId["HideConsoleWin"] = 100008] = "HideConsoleWin";
-	    CommandId[CommandId["ShowSettingWin"] = 100009] = "ShowSettingWin";
-	    CommandId[CommandId["ToggleFileMenu"] = 100010] = "ToggleFileMenu";
-	    CommandId[CommandId["FileMenuOpen"] = 100011] = "FileMenuOpen";
-	    CommandId[CommandId["FileMenuSave"] = 100012] = "FileMenuSave";
-	    CommandId[CommandId["ShowOnHoldWin"] = 100013] = "ShowOnHoldWin";
-	    CommandId[CommandId["ShowTrackMenu"] = 100014] = "ShowTrackMenu";
-	    CommandId[CommandId["HideTrackMenu"] = 100015] = "HideTrackMenu";
-	    CommandId[CommandId["ShowDialogOK"] = 100016] = "ShowDialogOK";
-	    CommandId[CommandId["HideDialogOK"] = 100017] = "HideDialogOK";
-	    CommandId[CommandId["ShowNewPngWin"] = 100018] = "ShowNewPngWin";
-	    CommandId[CommandId["HideNewPngWin"] = 100019] = "HideNewPngWin";
-	    CommandId[CommandId["InsertFrame"] = 100020] = "InsertFrame";
-	    CommandId[CommandId["DeleteFrame"] = 100021] = "DeleteFrame";
-	    CommandId[CommandId["ZoomOutMax"] = 100022] = "ZoomOutMax";
-	    CommandId[CommandId["ZoomInMax"] = 100023] = "ZoomInMax";
-	    CommandId[CommandId["ImportAudio"] = 100024] = "ImportAudio";
-	})(CommandId = exports.CommandId || (exports.CommandId = {}));
-	var CommandItem = (function () {
-	    function CommandItem(id) {
-	        this.id = id;
-	    }
-	    return CommandItem;
-	}());
-	var Command = (function (_super) {
-	    __extends(Command, _super);
-	    function Command() {
-	        var _this = _super.call(this) || this;
-	        _this.cmdArr = [];
-	        _this.newCmd(CommandId.ShowSettingWin, "open Option");
-	        _this.newCmd(CommandId.FileMenuOpen, "open Project");
-	        _this.newCmd(CommandId.FileMenuSave, "save Project");
-	        _this.newCmd(CommandId.ShowOnHoldWin, "open on hold win");
-	        _this.newCmd(CommandId.ShowTrackMenu, "show track menu");
-	        _this.newCmd(CommandId.HideTrackMenu, "hide track menu");
-	        _this.newCmd(CommandId.InsertFrame, "insert frame");
-	        _this.newCmd(CommandId.DeleteFrame, "delete frame");
-	        _this.newCmd(CommandId.ZoomOutMax, "zoom out max");
-	        _this.newCmd(CommandId.ImportAudio, "import audio");
-	        _this.newCmd(CommandId.testSwapTrack, "test swap track");
-	        _this.newCmd(CommandId.testNewProject, "test new project");
-	        _this.newCmd(CommandId.testSaveProject, "test save project");
-	        _this.newCmd(CommandId.testProject, "test project");
-	        _this.newCmd(CommandId.testRender, "test render");
-	        _this.newCmd(CommandId.testDialog, "test dialog");
-	        return _this;
-	    }
-	    Command.prototype.newCmd = function (id, name, desc) {
-	        var ci = new CommandItem(id);
-	        ci.name = name;
-	        ci.desc = desc;
-	        this.cmdArr.push(ci);
-	    };
-	    return Command;
-	}(EventDispatcher_1.EventDispatcher));
-	exports.cmd = new Command();
-
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var const_1 = __webpack_require__(6);
-	var CompInfo_1 = __webpack_require__(17);
-	var EventDispatcher_1 = __webpack_require__(5);
-	var ProjectInfo = (function (_super) {
-	    __extends(ProjectInfo, _super);
-	    function ProjectInfo() {
-	        var _this = _super.call(this) || this;
-	        _this.comps = [];
-	        _this.version = '0.1.0';
-	        _this.newComp(1280, 720, 30);
-	        return _this;
-	    }
-	    ProjectInfo.prototype.frameWidth = function () {
-	        return this.curComp.frameWidth;
-	    };
-	    ProjectInfo.prototype.newComp = function (width, height, framerate) {
-	        var compInfo = new CompInfo_1.CompInfo(width, height, framerate);
-	        this.curComp = compInfo;
-	        this.comps.push(compInfo);
-	        compInfo.name("Comp" + this.comps.length);
-	        console.log(this, "new CompInfo");
-	        this.emit(const_1.CompInfoEvent.NEW_COMP, compInfo);
-	        return compInfo;
-	    };
-	    return ProjectInfo;
-	}(EventDispatcher_1.EventDispatcher));
-	exports.ProjectInfo = ProjectInfo;
-
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var NodeFunc_1 = __webpack_require__(25);
-	var Command_1 = __webpack_require__(15);
-	var const_1 = __webpack_require__(6);
-	var FrameTimer_1 = __webpack_require__(18);
-	var TrackInfo_1 = __webpack_require__(21);
-	var EventDispatcher_1 = __webpack_require__(5);
-	var CompositionData = (function () {
-	    function CompositionData() {
-	    }
-	    CompositionData.clone = function (val) {
-	    };
-	    return CompositionData;
-	}());
-	var CompInfo = (function (_super) {
-	    __extends(CompInfo, _super);
-	    function CompInfo(width, height, framerate) {
-	        var _this = _super.call(this) || this;
-	        _this.framerate = 24;
-	        _this.frameWidth = 40;
-	        _this._cursorPos = 1;
-	        _this._compData = new CompositionData;
-	        _this.width = width;
-	        _this.height = height;
-	        _this.framerate = framerate;
-	        _this.trackInfoArr = [];
-	        _this._frameTimer = new FrameTimer_1.FrameTimer(framerate);
-	        _this._frameTimer.on(const_1.FrameTimerEvent.TICK, function () {
-	            _this.onFrameTimerTick();
-	        });
-	        return _this;
-	    }
-	    CompInfo.prototype.onFrameTimerTick = function () {
-	        this.forward();
-	    };
-	    CompInfo.prototype.forward = function () {
-	        if (this._cursorPos >= this._maxPos)
-	            this.setCursor(1);
-	        else
-	            this.setCursor(this._cursorPos + 1);
-	    };
-	    CompInfo.prototype.setCursor = function (framePos) {
-	        this._cursorPos = framePos;
-	        this.emit(const_1.CompInfoEvent.UPDATE_CURSOR, this._cursorPos);
-	    };
-	    CompInfo.prototype.name = function (v) {
-	        this._compData.name = v;
-	    };
-	    CompInfo.prototype.newTrack = function (filename) {
-	        var tInfo = new TrackInfo_1.TrackInfo();
-	        this.trackInfoArr.push(tInfo);
-	        tInfo.name('track#' + this.trackInfoArr.length);
-	        Command_1.cmd.emit(const_1.CompInfoEvent.NEW_TRACK, tInfo);
-	        var path = __webpack_require__(20);
-	        var basename = path.basename(filename);
-	        var dir = path.dirname(filename);
-	        console.log('basename', basename);
-	        var a = basename.split('.');
-	        var fs = __webpack_require__(19);
-	        var fileArr = [];
-	        var walk = function (start) {
-	            var f = path.join(dir, start + '.' + a[1]);
-	            fs.exists(f, function (exists) {
-	                if (exists) {
-	                    fileArr.push(f);
-	                    tInfo.pushFrame(f);
-	                    walk(start + 1);
-	                }
-	                else {
-	                    if (fileArr.length == 0) {
-	                        NodeFunc_1.walkDir(dir, function (f) {
-	                            fileArr.push(f);
-	                            tInfo.pushFrame(f);
-	                        });
-	                    }
-	                    console.log('fileArr', fileArr);
-	                }
-	            });
-	        };
-	        walk(Number(a[0]));
-	    };
-	    return CompInfo;
-	}(EventDispatcher_1.EventDispatcher));
-	exports.CompInfo = CompInfo;
-
-
-/***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var const_1 = __webpack_require__(6);
-	var EventDispatcher_1 = __webpack_require__(5);
-	var FrameTimer = (function (_super) {
-	    __extends(FrameTimer, _super);
-	    function FrameTimer(framerate) {
-	        var _this = _super.call(this) || this;
-	        _this._isBusy = false;
-	        _this._timerId = null;
-	        _this.setFramerate(framerate);
-	        return _this;
-	    }
-	    FrameTimer.prototype.start = function () {
-	        if (!this._isBusy)
-	            this.newTimer();
-	        this._isBusy = true;
-	    };
-	    FrameTimer.prototype.stop = function () {
-	        this._isBusy = false;
-	        this.clearTimer();
-	    };
-	    FrameTimer.prototype.isBusy = function () {
-	        return this._isBusy;
-	    };
-	    FrameTimer.prototype.setFramerate = function (framerate) {
-	        if (this._framerate != framerate) {
-	            this._framerate = framerate;
-	            this.clearTimer();
-	            this.newTimer();
-	        }
-	    };
-	    FrameTimer.prototype.clearTimer = function () {
-	        if (this._timerId) {
-	            clearInterval(this._timerId);
-	        }
-	        this._timerId = null;
-	    };
-	    FrameTimer.prototype.newTimer = function () {
-	        var _this = this;
-	        this._timerId = setInterval(function () {
-	            _this.onTick();
-	        }, 1000 / this._framerate);
-	    };
-	    FrameTimer.prototype.onTick = function () {
-	        if (this._isBusy) {
-	            this.emit(const_1.FrameTimerEvent.TICK);
-	        }
-	        else {
-	            this.clearTimer();
-	        }
-	    };
-	    return FrameTimer;
-	}(EventDispatcher_1.EventDispatcher));
-	exports.FrameTimer = FrameTimer;
-
-
-/***/ },
-/* 19 */
-/***/ function(module, exports) {
-
-	module.exports = require("fs");
-
-/***/ },
-/* 20 */
-/***/ function(module, exports) {
-
-	module.exports = require("path");
-
-/***/ },
-/* 21 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var const_1 = __webpack_require__(6);
-	var FrameInfo_1 = __webpack_require__(22);
-	var EventDispatcher_1 = __webpack_require__(5);
-	var TrackLoopType;
-	(function (TrackLoopType) {
-	    TrackLoopType[TrackLoopType["NONE"] = 0] = "NONE";
-	    TrackLoopType[TrackLoopType["HOLD"] = 1] = "HOLD";
-	    TrackLoopType[TrackLoopType["REPEAT"] = 2] = "REPEAT";
-	})(TrackLoopType || (TrackLoopType = {}));
-	var TrackType;
-	(function (TrackType) {
-	    TrackType[TrackType["IMAGE"] = 1] = "IMAGE";
-	    TrackType[TrackType["COMP"] = 2] = "COMP";
-	    TrackType[TrackType["AUDIO"] = 3] = "AUDIO";
-	})(TrackType || (TrackType = {}));
-	var ImageTrackActType;
-	(function (ImageTrackActType) {
-	    ImageTrackActType[ImageTrackActType["NORMAL"] = 1] = "NORMAL";
-	    ImageTrackActType[ImageTrackActType["REF"] = 2] = "REF";
-	    ImageTrackActType[ImageTrackActType["NOEDIT"] = 3] = "NOEDIT";
-	})(ImageTrackActType || (ImageTrackActType = {}));
-	var TrackData = (function () {
-	    function TrackData() {
-	        this.opacity = 1;
-	        this.enable = true;
-	        this.type = TrackType.IMAGE;
-	        this.start = 1;
-	        this.act = ImageTrackActType.NORMAL;
-	        this.loopType = TrackLoopType.HOLD;
-	        this.end = 1;
-	    }
-	    TrackData.clone = function (val) {
-	        var td = new TrackData();
-	        for (var p in val) {
-	            if (p != "frames")
-	                td[p] = val[p];
-	            else {
-	            }
-	        }
-	        td.frames = [];
-	        for (var i = 0; i < val.frames.length; i++) {
-	            td.frames.push(FrameInfo_1.FrameData.clone(val.frames[i]));
-	        }
-	        return td;
-	    };
-	    return TrackData;
-	}());
-	exports.TrackData = TrackData;
-	var TrackInfo = (function (_super) {
-	    __extends(TrackInfo, _super);
-	    function TrackInfo() {
-	        var _this = _super.call(this) || this;
-	        _this._hold = 1;
-	        _this._isSel = false;
-	        _this._trackData = new TrackData;
-	        _this.frameInfoArr = [];
-	        _this.removedFrameArr = [];
-	        return _this;
-	    }
-	    TrackInfo.prototype.name = function (v) {
-	        if (v != undefined)
-	            this._trackData.name = v;
-	        return this._trackData.name;
-	    };
-	    TrackInfo.prototype.pushFrame = function (filename) {
-	        var frameInfo = new FrameInfo_1.FrameInfo(filename);
-	        this.frameInfoArr.push(frameInfo);
-	        frameInfo.idx(this.frameInfoArr.length);
-	        this.emit(const_1.TrackInfoEvent.PUSH_FRAME, frameInfo);
-	    };
-	    return TrackInfo;
-	}(EventDispatcher_1.EventDispatcher));
-	exports.TrackInfo = TrackInfo;
-
-
-/***/ },
-/* 22 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var EventDispatcher_1 = __webpack_require__(5);
-	var PressFlag;
-	(function (PressFlag) {
-	    PressFlag[PressFlag["L"] = 1] = "L";
-	    PressFlag[PressFlag["R"] = 2] = "R";
-	})(PressFlag || (PressFlag = {}));
-	var FrameData = (function () {
-	    function FrameData() {
-	    }
-	    FrameData.clone = function (val) {
-	        var fd = new FrameData();
-	        for (var p in val) {
-	            fd[p] = val[p];
-	        }
-	        return fd;
-	    };
-	    return FrameData;
-	}());
-	exports.FrameData = FrameData;
-	var FrameInfo = (function (_super) {
-	    __extends(FrameInfo, _super);
-	    function FrameInfo(filename) {
-	        var _this = _super.call(this) || this;
-	        _this._idx = -1;
-	        _this._start = 1;
-	        _this._end = 1;
-	        _this._hold = 1;
-	        _this.pressFlag = 0;
-	        _this.filename = filename;
-	        return _this;
-	    }
-	    FrameInfo.prototype.getIdx = function () {
-	        return this._idx;
-	    };
-	    FrameInfo.prototype.idx = function (v) {
-	        if (v != undefined)
-	            this._idx = v;
-	        return this._idx;
-	    };
-	    FrameInfo.prototype.dtIdx = function (deltaVal) {
-	        this.setIdx(this._idx + deltaVal);
-	    };
-	    FrameInfo.prototype.setIdx = function (v) {
-	        this._idx = v;
-	    };
-	    FrameInfo.prototype.getStart = function () {
-	        return this._start;
-	    };
-	    FrameInfo.prototype.dtStart = function (deltaVal) {
-	        this.setStart(this._start + deltaVal);
-	    };
-	    FrameInfo.prototype.setStart = function (v) {
-	        this._start = v;
-	        this._end = v + this._hold - 1;
-	    };
-	    FrameInfo.prototype.getHold = function () {
-	        return this._hold;
-	    };
-	    FrameInfo.prototype.dtHold = function (deltaVal) {
-	        this.setHold(this._hold + deltaVal);
-	    };
-	    FrameInfo.prototype.setHold = function (v) {
-	        this._hold = v;
-	        this._end = this._start + this._hold - 1;
-	    };
-	    FrameInfo.prototype.getEnd = function () {
-	        return this._end;
-	    };
-	    return FrameInfo;
-	}(EventDispatcher_1.EventDispatcher));
-	exports.FrameInfo = FrameInfo;
-
-
-/***/ },
-/* 23 */,
-/* 24 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var Command_1 = __webpack_require__(15);
-	var Button_1 = __webpack_require__(8);
-	var Animk_1 = __webpack_require__(4);
-	var PixiEx_1 = __webpack_require__(9);
-	var const_1 = __webpack_require__(6);
-	var Scroller_1 = __webpack_require__(11);
-	var Stacker_1 = __webpack_require__(12);
-	var TimestampBar = (function (_super) {
-	    __extends(TimestampBar, _super);
-	    function TimestampBar() {
-	        var _this = _super.call(this) || this;
-	        _this.colTick = 0x000000;
-	        _this.gTick = new PIXI.Graphics();
-	        _this.addChild(_this.gTick);
-	        _this.gMask = new PIXI.Graphics().drawRect(0, 0, 1600, _this.height);
-	        _this.addChild(_this.gMask);
-	        _this.gTick.mask = _this.gMask;
-	        _this.gCursor = new PIXI.Graphics()
-	            .lineStyle(2, 0xff0000)
-	            .moveTo(0, 0)
-	            .lineTo(0, 500);
-	        _this.addChild(_this.gCursor);
-	        _this.resize(1600, _this.height);
-	        Animk_1.animk.on(const_1.ViewEvent.MOUSE_UP, function (e) {
-	            var a = e.mx - _this.x - _this.gTick.x;
-	            var thisPos = _this.toGlobal(new PIXI.Point(_this.x, _this.y));
-	            if (e.my > thisPos.y && e.my < thisPos.y + _this.height) {
-	                if (a > 0) {
-	                    _this.gCursor.x = _this.gTick.x + Math.floor((a) / Animk_1.animk.frameWidth) * Animk_1.animk.frameWidth;
-	                }
-	            }
-	        });
-	        var newTrackBtn = new Button_1.Button({ text: "new" });
-	        newTrackBtn.x = -100;
-	        newTrackBtn.on(PixiEx_1.PIXI_MOUSE_EVENT.up, function () {
-	            var dialog = __webpack_require__(13).remote.dialog;
-	            var ret = dialog.showOpenDialog({
-	                properties: ['openFile'], filters: [
-	                    { name: 'Images(png)', extensions: ['png'] },
-	                    { name: 'All Files', extensions: ['*'] }
-	                ]
-	            });
-	            if (ret.length == 1)
-	                Animk_1.animk.projInfo.curComp.newTrack(ret[0]);
-	        });
-	        _this.addChild(newTrackBtn);
-	        return _this;
-	    }
-	    TimestampBar.prototype.resize = function (width, height) {
-	        this.gMask.clear();
-	        this.gMask.drawRect(0, 0, width, height);
-	        this.gTick.clear();
-	        this.gTick.lineStyle(1, this.colTick);
-	        for (var i = 0; i < width; i += Animk_1.animk.frameWidth) {
-	            this.gTick.moveTo(i, 15);
-	            this.gTick.lineTo(i, Animk_1.animk.frameWidth);
-	        }
-	    };
-	    TimestampBar.prototype.scroll = function (v) {
-	        this.gTick.x = -v;
-	        this.gCursor.x = -v;
-	    };
-	    Object.defineProperty(TimestampBar.prototype, "height", {
-	        get: function () {
-	            return 40;
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    return TimestampBar;
-	}(PIXI.Sprite));
-	exports.TimestampBar = TimestampBar;
-	var LayerTracker = (function (_super) {
-	    __extends(LayerTracker, _super);
-	    function LayerTracker() {
-	        var _this = _super.call(this) || this;
-	        _this.timestampBar = new TimestampBar();
-	        _this.timestampBar.x = 200 + 15;
-	        var hs = new Scroller_1.Scroller('h', 600, 0, 100);
-	        hs.x = 200 + 15;
-	        _this.addChild(hs);
-	        _this.hScroller = hs;
-	        _this.hScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
-	            console.log('scroll', v);
-	            for (var i = 0; i < _this.stackerArr.length; i++) {
-	                var s = _this.stackerArr[i];
-	                s.scroll(v);
-	            }
-	            _this.timestampBar.scroll(v);
-	        });
-	        _this.stackerCtn = new PIXI.Container();
-	        _this.stackerCtn.y = _this.hScroller.height;
-	        _this.addChild(_this.stackerCtn);
-	        _this.stackerArr = [];
-	        _this.vScroller = new Scroller_1.Scroller('v', 300, 0, 100);
-	        _this.vScroller.x = 200;
-	        _this.vScroller.y = _this.hScroller.height;
-	        _this.vScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
-	        });
-	        _this.addChild(_this.vScroller);
-	        _this.addChild(_this.timestampBar);
-	        _this.initCmd();
-	        return _this;
-	    }
-	    LayerTracker.prototype.initCmd = function () {
-	        var _this = this;
-	        Command_1.cmd.on(const_1.CompInfoEvent.NEW_TRACK, function (tInfo) {
-	            var s = _this.newStacker(tInfo);
-	        });
-	    };
-	    LayerTracker.prototype.newStacker = function (trackInfo) {
-	        var s = new Stacker_1.Stacker(trackInfo);
-	        this.stackerCtn.addChild(s);
-	        this.stackerArr.push(s);
-	        this._updateVPos();
-	        return s;
-	    };
-	    LayerTracker.prototype._updateVPos = function () {
-	        var s;
-	        for (var i = 0; i < this.stackerArr.length; i++) {
-	            s = this.stackerArr[i];
-	            s.y = (s.height + 1) * i;
-	        }
-	    };
-	    LayerTracker.prototype.resize = function (width, height) {
-	        this.vScroller.setMax(height - this.hScroller.height);
-	        this.hScroller.setMax(width - 200 - 15);
-	        this.timestampBar.resize(width - 200 - 15, height);
-	    };
-	    return LayerTracker;
-	}(PIXI.Container));
-	exports.LayerTracker = LayerTracker;
-
-
-/***/ },
-/* 25 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	exports.walkDir = function (dirPath, callback) {
-	    var fs = __webpack_require__(19);
-	    var path = __webpack_require__(20);
-	    var fileArr = [];
-	    var dirArr = fs.readdirSync(dirPath);
-	    dirArr.forEach(function (item) {
-	        if (fs.statSync(dirPath + '/' + item).isDirectory()) {
-	        }
-	        else {
-	            var filename = path.join(dirPath, item);
-	            fileArr.push(filename);
-	            if (callback)
-	                callback(filename);
-	        }
-	    });
-	    return fileArr;
-	};
 
 
 /***/ }

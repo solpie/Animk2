@@ -1,6 +1,6 @@
-import { TimestampBar } from '../LayerTracker';
+// import { TimestampBar } from '../LayerTracker';
 import { animk } from '../Animk';
-import { ScrollEvent, ViewEvent } from '../const';
+import { ScrollEvent, InputEvent } from '../const';
 import { EventDispatcher } from '../../utils/EventDispatcher';
 import { PIXI_MOUSE_EVENT, setupDrag } from '../../utils/PixiEx';
 // import { dirname } from 'path';
@@ -56,7 +56,7 @@ export class Splitter extends PIXI.Container {
             this.bar.alpha = .9
         })
 
-        animk.on(ViewEvent.MOUSE_UP, () => {
+        animk.on(InputEvent.MOUSE_UP, () => {
             this.lastMousePosX = -1
             this.lastMousePosY = -1
             this.bar.alpha = .9

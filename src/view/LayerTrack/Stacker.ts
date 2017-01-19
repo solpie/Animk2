@@ -1,8 +1,8 @@
-import { animk } from './Animk';
-import { FrameInfo } from './model/FrameInfo';
-import { TrackInfoEvent, ViewEvent } from './const';
-import { TrackInfo } from './model/TrackInfo';
-import { newBitmap, PIXI_RECT, setupDrag } from '../utils/PixiEx';
+import { animk } from './../Animk';
+import { FrameInfo } from './../model/FrameInfo';
+import { TrackInfoEvent, InputEvent } from './../const';
+import { TrackInfo } from './../model/TrackInfo';
+import { newBitmap, PIXI_RECT, setupDrag } from '../../utils/PixiEx';
 class Clip extends PIXI.Container {
     start = 1
     header: PIXI.Graphics
@@ -33,7 +33,7 @@ class Clip extends PIXI.Container {
         }, () => {
             lastX = null
         })
-        animk.on(ViewEvent.MOUSE_UP, () => {
+        animk.on(InputEvent.MOUSE_UP, () => {
             lastX = null
         })
     }

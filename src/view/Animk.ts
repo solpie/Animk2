@@ -1,7 +1,7 @@
+import { LayerTracker } from './LayerTrack/LayerTracker';
 import { ProjectInfo } from './model/ProjectInfo';
 import { EventDispatcher } from '../utils/EventDispatcher';
-import { ScrollEvent, ViewEvent } from './const';
-import { TimestampBar, LayerTracker } from './LayerTracker';
+import { ScrollEvent, InputEvent } from './const';
 import { Splitter } from './components/Splitter';
 export class Animk extends EventDispatcher {
     projInfo:ProjectInfo
@@ -37,7 +37,11 @@ export class Animk extends EventDispatcher {
         document.onmouseup = (e) => {
             e['mx'] = e.clientX
             e['my'] = e.clientY
-            this.emit(ViewEvent.MOUSE_UP, e)
+            this.emit(InputEvent.MOUSE_UP, e)
+        }
+        window.onkeyup = (e) => {
+            console.log('keyup',e);
+            this.emit(InputEvent.KEY_UP, e)
         }
     }
 
