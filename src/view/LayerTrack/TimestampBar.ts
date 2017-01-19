@@ -38,8 +38,6 @@ export class TimestampBar extends PIXI.Sprite {
             if (e.my > thisPos.y && e.my < thisPos.y + this.height) {
                 if (a > 0) {
                     animk.projInfo.curComp.setCursor(Math.floor((a) / fw))
-                    // this.cursorPos = Math.floor((a) / fw) * fw
-                    // this.gCursor.x = this.gTick.x + this.cursorPos
                 }
             }
         })
@@ -56,9 +54,8 @@ export class TimestampBar extends PIXI.Sprite {
                     { name: 'All Files', extensions: ['*'] }
                 ]
             })
-            if (ret.length == 1)
+            if (ret&&ret.length == 1)
                 animk.projInfo.curComp.newTrack(ret[0])
-            // cmd.emit(CommandId.NewTrack, ret)
         })
         this.addChild(newTrackBtn)
         this.initEvent()
@@ -91,7 +88,6 @@ export class TimestampBar extends PIXI.Sprite {
             this.textCtn.addChild(textTick)
             frame++
         }
-
     }
 
     scroll(v) {

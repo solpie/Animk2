@@ -2,7 +2,7 @@
 import { animk } from '../Animk';
 import { ScrollEvent, InputEvent } from '../const';
 import { EventDispatcher } from '../../utils/EventDispatcher';
-import { PIXI_MOUSE_EVENT, setupDrag } from '../../utils/PixiEx';
+import { PIXI_MOUSE_EVENT, PIXI_RECT, setupDrag } from '../../utils/PixiEx';
 // import { dirname } from 'path';
 export class Splitter extends PIXI.Container {
     bar: PIXI.Sprite
@@ -66,7 +66,7 @@ export class Splitter extends PIXI.Container {
         this.addChild(this.bar)
         this.mask1 = new PIXI.Graphics().drawRect(0, 0, 1100, 1000)
         // this.mask1.interactive = true
-        this.mask2 = new PIXI.Graphics().drawRect(0, 0, 1000, 1000)
+        this.mask2 = PIXI_RECT(0x1c1c1c,0, 0, 1000, 1000)
 
         // this.mask2.interactive = true
         // this.addChild(this.mask1)

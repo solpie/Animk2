@@ -1,3 +1,4 @@
+import { Viewport } from './components/Viewport/Viewport';
 import { LayerTracker } from './LayerTrack/LayerTracker';
 import { ProjectInfo } from './model/ProjectInfo';
 import { EventDispatcher } from '../utils/EventDispatcher';
@@ -7,6 +8,7 @@ export class Animk extends EventDispatcher {
     projInfo: ProjectInfo
     vSplitter: Splitter
     tracker: LayerTracker
+    viewport:Viewport
     // frameWidth = 40
     init(stage: PIXI.Container) {
         this.projInfo = new ProjectInfo()
@@ -15,9 +17,10 @@ export class Animk extends EventDispatcher {
 
         stage.addChild(vs)
 
-        let c1 = new PIXI.Graphics().beginFill(0xff0000).drawRect(0, 0, 400, 200)
-        vs.setChild(c1)
-
+        // let c1 = new PIXI.Graphics().beginFill(0xff0000).drawRect(0, 0, 400, 200)
+        // vs.setChild(c1)
+        let vp = new Viewport()
+        vs.setChild(vp)
         // let c2 = new PIXI.Graphics().beginFill(0xffff00).drawRect(0,0,400,200)
         // vs.setChild(c2)
         let tk = new LayerTracker()

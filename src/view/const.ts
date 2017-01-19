@@ -2,6 +2,8 @@ export const FontName = {
     MicrosoftYahei: "Microsoft Yahei"
 };
 export const ViewConst = {
+    COMP_WIDTH: 1280,
+    COMP_HEIGHT: 720,
     STAGE_WIDTH: 1920,
     STAGE_HEIGHT: 1080
 };

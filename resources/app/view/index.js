@@ -102,6 +102,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var Viewport_1 = __webpack_require__(25);
 	var LayerTracker_1 = __webpack_require__(19);
 	var ProjectInfo_1 = __webpack_require__(5);
 	var EventDispatcher_1 = __webpack_require__(12);
@@ -118,8 +119,8 @@
 	        var vs = new Splitter_1.Splitter('v', 1600, 1000);
 	        this.vSplitter = vs;
 	        stage.addChild(vs);
-	        var c1 = new PIXI.Graphics().beginFill(0xff0000).drawRect(0, 0, 400, 200);
-	        vs.setChild(c1);
+	        var vp = new Viewport_1.Viewport();
+	        vs.setChild(vp);
 	        var tk = new LayerTracker_1.LayerTracker();
 	        this.tracker = tk;
 	        vs.setChild(tk);
@@ -216,6 +217,8 @@
 	    MicrosoftYahei: "Microsoft Yahei"
 	};
 	exports.ViewConst = {
+	    COMP_WIDTH: 1280,
+	    COMP_HEIGHT: 720,
 	    STAGE_WIDTH: 1920,
 	    STAGE_HEIGHT: 1080
 	};
@@ -701,8 +704,32 @@
 	    TrackInfo.prototype.pushFrame = function (filename) {
 	        var frameInfo = new FrameInfo_1.FrameInfo(filename);
 	        this.frameInfoArr.push(frameInfo);
-	        frameInfo.idx(this.frameInfoArr.length);
+	        frameInfo.setIdx(this.frameInfoArr.length);
+	        frameInfo.setStart(this.frameInfoArr.length);
 	        this.emit(const_1.TrackInfoEvent.PUSH_FRAME, frameInfo);
+	    };
+	    TrackInfo.prototype.loopType = function (v) {
+	        if (v != undefined)
+	            this._trackData.loopType = v;
+	        return this._trackData.loopType;
+	    };
+	    TrackInfo.prototype.start = function (v) {
+	        if (v != undefined)
+	            this._trackData.start = v;
+	        return this._trackData.start;
+	    };
+	    TrackInfo.prototype.getFrameByCursor = function (frameIdx) {
+	        frameIdx -= this.start() - 1;
+	        for (var i = 0; i < this.frameInfoArr.length; i++) {
+	            var frameInfo = this.frameInfoArr[i];
+	            if (frameInfo.getStart() <= frameIdx && frameInfo.getEnd() >= frameIdx) {
+	                return frameInfo.filename;
+	            }
+	        }
+	        if (frameIdx > frameInfo.getEnd() && this.loopType() == TrackLoopType.HOLD) {
+	            return frameInfo.filename;
+	        }
+	        return null;
 	    };
 	    return TrackInfo;
 	}(EventDispatcher_1.EventDispatcher));
@@ -851,7 +878,7 @@
 	        });
 	        _this.addChild(_this.bar);
 	        _this.mask1 = new PIXI.Graphics().drawRect(0, 0, 1100, 1000);
-	        _this.mask2 = new PIXI.Graphics().drawRect(0, 0, 1000, 1000);
+	        _this.mask2 = PixiEx_1.PIXI_RECT(0x1c1c1c, 0, 0, 1000, 1000);
 	        _this.addChild(_this.mask2);
 	        _this.resize(width, height);
 	        return _this;
@@ -1476,7 +1503,7 @@
 	                    { name: 'All Files', extensions: ['*'] }
 	                ]
 	            });
-	            if (ret.length == 1)
+	            if (ret && ret.length == 1)
 	                Animk_1.animk.projInfo.curComp.newTrack(ret[0]);
 	        });
 	        _this.addChild(newTrackBtn);
@@ -1798,6 +1825,84 @@
 	    return Stacker;
 	}(PIXI.Container));
 	exports.Stacker = Stacker;
+
+
+/***/ },
+/* 25 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var const_1 = __webpack_require__(6);
+	var CompView_1 = __webpack_require__(26);
+	var Viewport = (function (_super) {
+	    __extends(Viewport, _super);
+	    function Viewport() {
+	        var _this = _super.call(this) || this;
+	        _this.compView = new CompView_1.CompView(const_1.ViewConst.COMP_WIDTH, const_1.ViewConst.COMP_HEIGHT);
+	        _this.compView.x = 20;
+	        _this.compView.y = 20;
+	        _this.addChild(_this.compView);
+	        return _this;
+	    }
+	    return Viewport;
+	}(PIXI.Container));
+	exports.Viewport = Viewport;
+
+
+/***/ },
+/* 26 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var JsFunc_1 = __webpack_require__(18);
+	var Animk_1 = __webpack_require__(4);
+	var const_1 = __webpack_require__(6);
+	var PixiEx_1 = __webpack_require__(17);
+	var CompView = (function (_super) {
+	    __extends(CompView, _super);
+	    function CompView(width, height) {
+	        var _this = _super.call(this) || this;
+	        _this._imgMap = {};
+	        var sp = new PIXI.Sprite();
+	        _this._spArr = [sp];
+	        _this._bg = PixiEx_1.PIXI_RECT(0, 0, 0, const_1.ViewConst.COMP_WIDTH, const_1.ViewConst.COMP_HEIGHT);
+	        _this.addChild(_this._bg);
+	        _this.addChild(sp);
+	        _this.initEvent();
+	        return _this;
+	    }
+	    CompView.prototype.initEvent = function () {
+	        var _this = this;
+	        Animk_1.animk.projInfo.curComp.on(const_1.CompInfoEvent.UPDATE_CURSOR, function (frame) {
+	            var trackInfoArr = Animk_1.animk.projInfo.curComp.trackInfoArr;
+	            for (var i = 0; i < trackInfoArr.length; i++) {
+	                var tInfo = trackInfoArr[i];
+	                var filename = tInfo.getFrameByCursor(frame);
+	                console.log('udpate comp view', frame, filename);
+	                if (!_this._imgMap[filename]) {
+	                    JsFunc_1.loadImg(filename, function (img) {
+	                        _this._imgMap[filename] = PixiEx_1.imgToTex(img);
+	                        _this._spArr[0].texture = _this._imgMap[filename];
+	                    });
+	                }
+	                else
+	                    _this._spArr[0].texture = _this._imgMap[filename];
+	            }
+	        });
+	    };
+	    return CompView;
+	}(PIXI.Container));
+	exports.CompView = CompView;
 
 
 /***/ }

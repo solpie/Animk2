@@ -72,7 +72,34 @@ export class TrackInfo extends EventDispatcher {
     pushFrame(filename) {
         let frameInfo = new FrameInfo(filename)
         this.frameInfoArr.push(frameInfo)
-        frameInfo.idx(this.frameInfoArr.length)
+        frameInfo.setIdx(this.frameInfoArr.length)
+        frameInfo.setStart(this.frameInfoArr.length)
         this.emit(TrackInfoEvent.PUSH_FRAME, frameInfo)
+    }
+
+    loopType(v?) {
+        if (v != undefined)
+            this._trackData.loopType = v;
+        return this._trackData.loopType;
+    }
+
+    start(v?) {
+        if (v != undefined)
+            this._trackData.start = v
+        return this._trackData.start
+    }
+
+    getFrameByCursor(frameIdx) {
+        frameIdx -= this.start() - 1;
+        for (var i = 0; i < this.frameInfoArr.length; i++) {
+            var frameInfo: FrameInfo = this.frameInfoArr[i];
+            if (frameInfo.getStart() <= frameIdx && frameInfo.getEnd() >= frameIdx) {
+                return frameInfo.filename;
+            }
+        }
+        if (frameIdx > frameInfo.getEnd() && this.loopType() == TrackLoopType.HOLD) {
+            return frameInfo.filename;
+        }
+        return null;
     }
 }
