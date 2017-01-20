@@ -2,7 +2,7 @@ import { walkDir } from '../../utils/NodeFunc';
 import { cmd } from './Command';
 import { basename } from 'path';
 import { FrameData } from './FrameInfo';
-import { CompInfoEvent, FrameTimerEvent } from '../const';
+import { CompInfoEvent, FrameTimerEvent, TrackInfoEvent } from '../const';
 import { FrameTimer } from './FrameTimer';
 import { TrackData, TrackInfo } from './TrackInfo';
 import { EventDispatcher } from '../../utils/EventDispatcher';
@@ -114,6 +114,9 @@ export class CompInfo extends EventDispatcher {
     newTrack(filename, callback?) {
         let tInfo = new TrackInfo()
         this.trackInfoArr.push(tInfo)
+        tInfo.on(TrackInfoEvent.SET_TRACK_START, () => {
+            this.emit(CompInfoEvent.UPDATE_CURSOR, this.getCursor())
+        })
         tInfo.name('track#' + this.trackInfoArr.length)
         cmd.emit(CompInfoEvent.NEW_TRACK, tInfo)
 

@@ -238,3 +238,16 @@ export let setupDrag = (obj, onDown, onMove, onUp) => {
 export let PIXI_RECT = (col, x, y, w, h) => {
     return new PIXI.Graphics().beginFill(col).drawRect(x, y, w, h)
 }
+export let isIn = (pos, obj): boolean => {
+    var x, y
+    if (pos['mx'] != undefined && pos['my'] != undefined) {
+        x = pos['mx']
+        y = pos['my']
+    }
+    else if (pos['x'] != undefined && pos['y'] != undefined) {
+        x = pos['x']
+        y = pos['y']
+    }
+    let objPos = obj.toGlobal(new PIXI.Point(0, 0))
+    return x > objPos.x && x < objPos.x + obj['width'] && y > objPos.y && y < objPos.y + obj['height']
+}

@@ -84,9 +84,19 @@ export class TrackInfo extends EventDispatcher {
     }
 
     start(v?) {
-        if (v != undefined)
+        if (v != undefined) {
             this._trackData.start = v
+            this.emit(TrackInfoEvent.SET_TRACK_START, v)
+        }
         return this._trackData.start
+    }
+
+    enable(v?) {
+        if (v != undefined) {
+            this._trackData.enable = v
+            this.emit(TrackInfoEvent.SET_ENABLE, v)
+        }
+        return this._trackData.enable
     }
 
     getFrameByCursor(frameIdx) {

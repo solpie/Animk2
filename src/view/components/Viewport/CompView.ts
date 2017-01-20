@@ -1,8 +1,8 @@
 import { loadImg } from '../../../utils/JsFunc';
-import { TrackInfo } from '../../model/TrackInfo';
+import { imgToTex, PIXI_RECT } from '../../../utils/PixiEx';
 import { animk } from '../../Animk';
 import { CompInfoEvent, ViewConst } from '../../const';
-import { imgToTex, loadRes, PIXI_RECT } from '../../../utils/PixiEx';
+import { TrackInfo } from '../../model/TrackInfo';
 export class CompView extends PIXI.Container {
     _bg: PIXI.Graphics
     _spArr: Array<PIXI.Sprite>
@@ -16,7 +16,7 @@ export class CompView extends PIXI.Container {
 
         this.initEvent()
     }
-    
+
     _newSp() {
         let sp = new PIXI.Sprite()
         this.addChild(sp)
@@ -33,16 +33,23 @@ export class CompView extends PIXI.Container {
                 var tInfo: TrackInfo = trackInfoArr[i];
                 if (tInfo) {
                     var filename = tInfo.getFrameByCursor(frame)
-                    console.log('udpate comp view', frame, filename, trackInfoArr.length);
-                    if (!this._imgMap[filename]) {
-                        loadImg(filename, (img) => {
-                            this._imgMap[filename] = imgToTex(img)
+                    if (filename) {
+                        this._spArr[i].visible = true
+                        console.log('udpate comp view', frame, filename, trackInfoArr.length);
+                        if (!this._imgMap[filename]) {
+                            loadImg(filename, (img) => {
+                                this._imgMap[filename] = imgToTex(img)
+                                this._spArr[i].texture = this._imgMap[filename]
+                                renderTrack(i + 1)
+                            })
+                        }
+                        else {
                             this._spArr[i].texture = this._imgMap[filename]
                             renderTrack(i + 1)
-                        })
+                        }
                     }
                     else {
-                        this._spArr[i].texture = this._imgMap[filename]
+                        this._spArr[i].visible = false
                         renderTrack(i + 1)
                     }
                 }

@@ -192,10 +192,10 @@
 	};
 	var Viewport_1 = __webpack_require__(8);
 	var LayerTracker_1 = __webpack_require__(12);
-	var ProjectInfo_1 = __webpack_require__(21);
+	var ProjectInfo_1 = __webpack_require__(23);
 	var EventDispatcher_1 = __webpack_require__(18);
 	var const_1 = __webpack_require__(6);
-	var Splitter_1 = __webpack_require__(29);
+	var Splitter_1 = __webpack_require__(31);
 	var Animk = (function (_super) {
 	    __extends(Animk, _super);
 	    function Animk() {
@@ -302,9 +302,9 @@
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var JsFunc_1 = __webpack_require__(10);
+	var PixiEx_1 = __webpack_require__(11);
 	var Animk_1 = __webpack_require__(7);
 	var const_1 = __webpack_require__(6);
-	var PixiEx_1 = __webpack_require__(11);
 	var CompView = (function (_super) {
 	    __extends(CompView, _super);
 	    function CompView(width, height) {
@@ -331,16 +331,23 @@
 	                var tInfo = trackInfoArr[i];
 	                if (tInfo) {
 	                    var filename = tInfo.getFrameByCursor(frame);
-	                    console.log('udpate comp view', frame, filename, trackInfoArr.length);
-	                    if (!_this._imgMap[filename]) {
-	                        JsFunc_1.loadImg(filename, function (img) {
-	                            _this._imgMap[filename] = PixiEx_1.imgToTex(img);
+	                    if (filename) {
+	                        _this._spArr[i].visible = true;
+	                        console.log('udpate comp view', frame, filename, trackInfoArr.length);
+	                        if (!_this._imgMap[filename]) {
+	                            JsFunc_1.loadImg(filename, function (img) {
+	                                _this._imgMap[filename] = PixiEx_1.imgToTex(img);
+	                                _this._spArr[i].texture = _this._imgMap[filename];
+	                                renderTrack(i + 1);
+	                            });
+	                        }
+	                        else {
 	                            _this._spArr[i].texture = _this._imgMap[filename];
 	                            renderTrack(i + 1);
-	                        });
+	                        }
 	                    }
 	                    else {
-	                        _this._spArr[i].texture = _this._imgMap[filename];
+	                        _this._spArr[i].visible = false;
 	                        renderTrack(i + 1);
 	                    }
 	                }
@@ -772,6 +779,19 @@
 	};
 	exports.PIXI_RECT = function (col, x, y, w, h) {
 	    return new PIXI.Graphics().beginFill(col).drawRect(x, y, w, h);
+	};
+	exports.isIn = function (pos, obj) {
+	    var x, y;
+	    if (pos['mx'] != undefined && pos['my'] != undefined) {
+	        x = pos['mx'];
+	        y = pos['my'];
+	    }
+	    else if (pos['x'] != undefined && pos['y'] != undefined) {
+	        x = pos['x'];
+	        y = pos['y'];
+	    }
+	    var objPos = obj.toGlobal(new PIXI.Point(0, 0));
+	    return x > objPos.x && x < objPos.x + obj['width'] && y > objPos.y && y < objPos.y + obj['height'];
 	};
 
 
@@ -1290,50 +1310,12 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var CheckBox_1 = __webpack_require__(21);
+	var PixiEx_1 = __webpack_require__(11);
 	var Color_1 = __webpack_require__(14);
 	var Animk_1 = __webpack_require__(7);
 	var const_1 = __webpack_require__(6);
-	var PixiEx_1 = __webpack_require__(11);
-	var Clip = (function (_super) {
-	    __extends(Clip, _super);
-	    function Clip() {
-	        var _this = _super.call(this) || this;
-	        _this.start = 1;
-	        _this.header = new PIXI.Graphics()
-	            .beginFill(0x000000).drawRect(0, 0, 1, 55)
-	            .beginFill(0x2f2f2f).drawRect(0, 0, 1, 15)
-	            .beginFill(0x343434).drawRect(0, 0, 1, 1)
-	            .beginFill(0x383838).drawRect(0, 0, 1, 2);
-	        _this.addChild(_this.header);
-	        _this.header.interactive = true;
-	        _this.header.buttonMode = true;
-	        var lastX, dtX;
-	        PixiEx_1.setupDrag(_this.header, function (e) {
-	            lastX = e.mx;
-	        }, function (e) {
-	            if (lastX != null) {
-	                dtX = e.mx - lastX;
-	                var fw = Animk_1.animk.projInfo.frameWidth();
-	                var cx;
-	                if (dtX > fw || dtX < -fw) {
-	                    cx = Math.floor(dtX / fw) * fw;
-	                    lastX = e.mx;
-	                    _this.x += cx;
-	                }
-	            }
-	        }, function () {
-	            lastX = null;
-	        });
-	        Animk_1.animk.on(const_1.InputEvent.MOUSE_UP, function () {
-	            lastX = null;
-	        });
-	        return _this;
-	    }
-	    Clip.prototype.resize = function () {
-	        this.header.width = this.width;
-	    };
-	    return Clip;
-	}(PIXI.Container));
+	var Clip_1 = __webpack_require__(22);
 	var Stacker = (function (_super) {
 	    __extends(Stacker, _super);
 	    function Stacker(trackInfo) {
@@ -1346,7 +1328,7 @@
 	        _this.clipCtn = new PIXI.Container();
 	        _this.clipCtn.x = 215;
 	        _this.addChild(_this.clipCtn);
-	        var clip = new Clip();
+	        var clip = new Clip_1.Clip(trackInfo);
 	        _this.clip = clip;
 	        _this.clipCtn.addChild(clip);
 	        _this.addChild(PixiEx_1.PIXI_RECT(0x343434, 0, 0, 200, 60));
@@ -1354,8 +1336,12 @@
 	        var nt = new PIXI.Text(trackInfo.name(), nts);
 	        _this.nameText = nt;
 	        _this.addChild(_this.nameText);
-	        _this.scroll(0);
+	        var cb = new CheckBox_1.CheckBox(Animk_1.animk);
+	        cb.x = 150;
+	        cb.y = 10;
+	        _this.addChild(cb);
 	        _this.initEvent();
+	        _this.scroll(0);
 	        return _this;
 	    }
 	    Stacker.prototype.initEvent = function () {
@@ -1373,14 +1359,11 @@
 	            _this.clip.resize();
 	        });
 	    };
-	    Stacker.prototype.load = function (filePath) {
-	        console.log('load img', filePath);
-	    };
 	    Stacker.prototype.scroll = function (v) {
 	        console.log('scroll', v);
 	        this.scrollX = v;
 	        var fw = Animk_1.animk.projInfo.curComp.frameWidth;
-	        this.clip.x = -this.scrollX + (this.clip.start) * fw;
+	        this.clip.x = -this.scrollX + (this.trackInfo.start()) * fw;
 	    };
 	    return Stacker;
 	}(PIXI.Container));
@@ -1398,7 +1381,130 @@
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var const_1 = __webpack_require__(6);
-	var CompInfo_1 = __webpack_require__(22);
+	var Color_1 = __webpack_require__(14);
+	var PixiEx_1 = __webpack_require__(11);
+	var CheckBox = (function (_super) {
+	    __extends(CheckBox, _super);
+	    function CheckBox(globalEvent) {
+	        var _this = _super.call(this) || this;
+	        var r = 3;
+	        var bg = new PIXI.Graphics().beginFill(Color_1.Col.panelBg)
+	            .lineStyle(2, 0x8a8a8a)
+	            .drawRoundedRect(r, r, 20 - r * 2, 20 - r * 2, r);
+	        _this.addChild(bg);
+	        _this.gCheck = PixiEx_1.PIXI_RECT(0x8a8a8a, 7, 7, 6, 6);
+	        _this.addChild(_this.gCheck);
+	        globalEvent.on(const_1.InputEvent.MOUSE_UP, function (e) {
+	            if (PixiEx_1.isIn(e, _this)) {
+	                _this.checked = !_this.checked;
+	            }
+	        });
+	        return _this;
+	    }
+	    Object.defineProperty(CheckBox.prototype, "width", {
+	        get: function () {
+	            return 20;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(CheckBox.prototype, "height", {
+	        get: function () {
+	            return 20;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(CheckBox.prototype, "checked", {
+	        get: function () {
+	            return this.gCheck.visible;
+	        },
+	        set: function (v) {
+	            this.gCheck.visible = v;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    return CheckBox;
+	}(PIXI.Container));
+	exports.CheckBox = CheckBox;
+
+
+/***/ },
+/* 22 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var PixiEx_1 = __webpack_require__(11);
+	var Animk_1 = __webpack_require__(7);
+	var const_1 = __webpack_require__(6);
+	var Clip = (function (_super) {
+	    __extends(Clip, _super);
+	    function Clip(trackInfo) {
+	        var _this = _super.call(this) || this;
+	        _this.trackInfo = trackInfo;
+	        _this.bg = PixiEx_1.PIXI_RECT(0, 0, 0, 1, 55);
+	        _this.addChild(_this.bg);
+	        _this.header = new PIXI.Graphics()
+	            .beginFill(0x2f2f2f).drawRect(0, 0, 1, 15)
+	            .beginFill(0x343434).drawRect(0, 0, 1, 1)
+	            .beginFill(0x383838).drawRect(0, 0, 1, 2);
+	        _this.addChild(_this.header);
+	        _this.header.interactive = true;
+	        _this.header.buttonMode = true;
+	        var lastX = null, dtX, flag = 1;
+	        PixiEx_1.setupDrag(_this.header, function (e) {
+	            lastX = e.mx;
+	        }, function (e) {
+	            if (lastX != null) {
+	                dtX = e.mx - lastX;
+	                dtX > 0 ? flag = 1 : flag = -1;
+	                dtX = Math.abs(dtX);
+	                var fw = Animk_1.animk.projInfo.frameWidth();
+	                var cx;
+	                if (dtX > fw) {
+	                    trackInfo.start(trackInfo.start() + flag * Math.floor(dtX / fw));
+	                    lastX = e.mx;
+	                }
+	            }
+	        }, function () {
+	            lastX = null;
+	        });
+	        Animk_1.animk.on(const_1.InputEvent.MOUSE_UP, function () {
+	            lastX = null;
+	        });
+	        trackInfo.on(const_1.TrackInfoEvent.SET_TRACK_START, function (start) {
+	            var fw = Animk_1.animk.projInfo.frameWidth();
+	            _this.x = start * fw;
+	        });
+	        return _this;
+	    }
+	    Clip.prototype.resize = function () {
+	        this.bg.width = this.width;
+	        this.header.width = this.width;
+	    };
+	    return Clip;
+	}(PIXI.Container));
+	exports.Clip = Clip;
+
+
+/***/ },
+/* 23 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var const_1 = __webpack_require__(6);
+	var CompInfo_1 = __webpack_require__(24);
 	var EventDispatcher_1 = __webpack_require__(18);
 	var ProjectInfo = (function (_super) {
 	    __extends(ProjectInfo, _super);
@@ -1427,7 +1533,7 @@
 
 
 /***/ },
-/* 22 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1436,11 +1542,11 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var NodeFunc_1 = __webpack_require__(23);
+	var NodeFunc_1 = __webpack_require__(25);
 	var Command_1 = __webpack_require__(17);
 	var const_1 = __webpack_require__(6);
-	var FrameTimer_1 = __webpack_require__(26);
-	var TrackInfo_1 = __webpack_require__(27);
+	var FrameTimer_1 = __webpack_require__(28);
+	var TrackInfo_1 = __webpack_require__(29);
 	var EventDispatcher_1 = __webpack_require__(18);
 	var CompositionData = (function () {
 	    function CompositionData() {
@@ -1496,14 +1602,17 @@
 	        var _this = this;
 	        var tInfo = new TrackInfo_1.TrackInfo();
 	        this.trackInfoArr.push(tInfo);
+	        tInfo.on(const_1.TrackInfoEvent.SET_TRACK_START, function () {
+	            _this.emit(const_1.CompInfoEvent.UPDATE_CURSOR, _this.getCursor());
+	        });
 	        tInfo.name('track#' + this.trackInfoArr.length);
 	        Command_1.cmd.emit(const_1.CompInfoEvent.NEW_TRACK, tInfo);
-	        var path = __webpack_require__(25);
+	        var path = __webpack_require__(27);
 	        var basename = path.basename(filename);
 	        var dir = path.dirname(filename);
 	        console.log('basename', basename);
 	        var a = basename.split('.');
-	        var fs = __webpack_require__(24);
+	        var fs = __webpack_require__(26);
 	        var fileArr = [];
 	        var fileCount = 0;
 	        var fa = NodeFunc_1.walkDir(dir, function (f) {
@@ -1525,13 +1634,13 @@
 
 
 /***/ },
-/* 23 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	exports.walkDir = function (dirPath, callback) {
-	    var fs = __webpack_require__(24);
-	    var path = __webpack_require__(25);
+	    var fs = __webpack_require__(26);
+	    var path = __webpack_require__(27);
 	    var fileArr = [];
 	    var dirArr = fs.readdirSync(dirPath);
 	    dirArr.forEach(function (item) {
@@ -1549,19 +1658,19 @@
 
 
 /***/ },
-/* 24 */
+/* 26 */
 /***/ function(module, exports) {
 
 	module.exports = require("fs");
 
 /***/ },
-/* 25 */
+/* 27 */
 /***/ function(module, exports) {
 
 	module.exports = require("path");
 
 /***/ },
-/* 26 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1626,7 +1735,7 @@
 
 
 /***/ },
-/* 27 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1636,7 +1745,7 @@
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var const_1 = __webpack_require__(6);
-	var FrameInfo_1 = __webpack_require__(28);
+	var FrameInfo_1 = __webpack_require__(30);
 	var EventDispatcher_1 = __webpack_require__(18);
 	var TrackLoopType;
 	(function (TrackLoopType) {
@@ -1712,9 +1821,18 @@
 	        return this._trackData.loopType;
 	    };
 	    TrackInfo.prototype.start = function (v) {
-	        if (v != undefined)
+	        if (v != undefined) {
 	            this._trackData.start = v;
+	            this.emit(const_1.TrackInfoEvent.SET_TRACK_START, v);
+	        }
 	        return this._trackData.start;
+	    };
+	    TrackInfo.prototype.enable = function (v) {
+	        if (v != undefined) {
+	            this._trackData.enable = v;
+	            this.emit(const_1.TrackInfoEvent.SET_ENABLE, v);
+	        }
+	        return this._trackData.enable;
 	    };
 	    TrackInfo.prototype.getFrameByCursor = function (frameIdx) {
 	        frameIdx -= this.start() - 1;
@@ -1735,7 +1853,7 @@
 
 
 /***/ },
-/* 28 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1818,7 +1936,7 @@
 
 
 /***/ },
-/* 29 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1827,7 +1945,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var TweenEx_1 = __webpack_require__(30);
+	var TweenEx_1 = __webpack_require__(32);
 	var Animk_1 = __webpack_require__(7);
 	var const_1 = __webpack_require__(6);
 	var EventDispatcher_1 = __webpack_require__(18);
@@ -1958,7 +2076,7 @@
 
 
 /***/ },
-/* 30 */
+/* 32 */
 /***/ function(module, exports) {
 
 	"use strict";
