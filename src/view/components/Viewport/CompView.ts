@@ -9,32 +9,45 @@ export class CompView extends PIXI.Container {
     _imgMap = {}
     constructor(width, height) {
         super()
-        let sp = new PIXI.Sprite()
-        this._spArr = [sp]
+        this._spArr = []
 
         this._bg = PIXI_RECT(0, 0, 0, ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
         this.addChild(this._bg)
-        this.addChild(sp)
 
         this.initEvent()
     }
+    
+    _newSp() {
+        let sp = new PIXI.Sprite()
+        this.addChild(sp)
+        this._spArr.push(sp)
+    }
+
     initEvent() {
         animk.projInfo.curComp.on(CompInfoEvent.UPDATE_CURSOR, (frame) => {
             let trackInfoArr = animk.projInfo.curComp.trackInfoArr
-            for (var i = 0; i < trackInfoArr.length; i++) {
-                var tInfo: TrackInfo = trackInfoArr[i];
-                var filename = tInfo.getFrameByCursor(frame)
-                console.log('udpate comp view', frame, filename);
 
-                if (!this._imgMap[filename]) {
-                    loadImg(filename, (img) => {
-                        this._imgMap[filename] = imgToTex(img)
-                        this._spArr[0].texture = this._imgMap[filename]
-                    })
+            while (this._spArr.length < trackInfoArr.length)
+                this._newSp()
+            let renderTrack = (i) => {
+                var tInfo: TrackInfo = trackInfoArr[i];
+                if (tInfo) {
+                    var filename = tInfo.getFrameByCursor(frame)
+                    console.log('udpate comp view', frame, filename, trackInfoArr.length);
+                    if (!this._imgMap[filename]) {
+                        loadImg(filename, (img) => {
+                            this._imgMap[filename] = imgToTex(img)
+                            this._spArr[i].texture = this._imgMap[filename]
+                            renderTrack(i + 1)
+                        })
+                    }
+                    else {
+                        this._spArr[i].texture = this._imgMap[filename]
+                        renderTrack(i + 1)
+                    }
                 }
-                else
-                    this._spArr[0].texture = this._imgMap[filename]
             }
+            renderTrack(0)
         })
     }
 }

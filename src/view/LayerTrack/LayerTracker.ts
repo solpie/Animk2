@@ -68,7 +68,7 @@ export class LayerTracker extends PIXI.Container {
     _updateVPos() {
         var s;
         for (var i = 0; i < this.stackerArr.length; i++) {
-            s = this.stackerArr[i];
+            s = this.stackerArr[this.stackerArr.length - 1 - i];
             s.y = (s.height + 1) * i
         }
         // if(this.height)

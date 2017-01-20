@@ -73,8 +73,45 @@ export class CompInfo extends EventDispatcher {
     name(v?) {
         this._compData.name = v
     }
+    // walkFile(start) {
+    //     var fileCount = 0,
+    //     fileArr = []
+    //     const path =  require('path')
+    //     var f = path.join(dir, start + '.' + a[1])
+    //     fs.exists(f, (exists) => {
+    //         if (exists) {
+    //             fileArr.push(f)
+    //             tInfo.pushFrame(f)
+    //             fileCount++
+    //             this.updateMaxPos(fileCount)
+    //             this.walkFile(start + 1)
+    //         }
+    //         else {
+    //             if (fileArr.length == 0)//not name by frame
+    //             {
+    //                 let fa = walkDir(dir, (f) => {
+    //                     fileArr.push(f)
+    //                     tInfo.pushFrame(f)
+    //                     fileCount++
+    //                     this.updateMaxPos(fileCount)
+    //                 })
+    //                 cmd.emit(CompInfoEvent.READ_DIR)
+    //                 // if (callback)
+    //                 //     callback()
+    //                 // console.log('fa', fa);
 
-    newTrack(filename) {
+    //             }
+    //             else {
+    //                 cmd.emit(CompInfoEvent.READ_DIR)
+    //             }
+    //             // else if (callback) {
+    //             //     callback()
+    //             // }
+    //             // console.log('fileArr', fileArr);
+    //         }
+    //     });
+    // }
+    newTrack(filename, callback?) {
         let tInfo = new TrackInfo()
         this.trackInfoArr.push(tInfo)
         tInfo.name('track#' + this.trackInfoArr.length)
@@ -89,31 +126,52 @@ export class CompInfo extends EventDispatcher {
         let fileArr = []
 
         var fileCount = 0
-        let walk = (start) => {
-            var f = path.join(dir, start + '.' + a[1])
-            fs.exists(f, (exists) => {
-                if (exists) {
-                    fileArr.push(f)
-                    tInfo.pushFrame(f)
-                    fileCount++
-                    this.updateMaxPos(fileCount)
-                    walk(start + 1)
-                }
-                else {
-                    if (fileArr.length == 0)//not name by frame
-                    {
-                        walkDir(dir, (f) => {
-                            fileArr.push(f)
-                            tInfo.pushFrame(f)
-                            fileCount++
-                            this.updateMaxPos(fileCount)
-                        })
-                    }
-                    console.log('fileArr', fileArr);
-                }
-            });
-        }
-        walk(Number(a[0]))
+
+
+        let fa = walkDir(dir, (f) => {
+            fileArr.push(f)
+            tInfo.pushFrame(f)
+            fileCount++
+            this.updateMaxPos(fileCount)
+        })
+        cmd.emit(CompInfoEvent.READ_DIR)
+        //
+        // let walk = (start) => {
+        //     var f = path.join(dir, start + '.' + a[1])
+        //     fs.exists(f, (exists) => {
+        //         if (exists) {
+        //             fileArr.push(f)
+        //             tInfo.pushFrame(f)
+        //             fileCount++
+        //             this.updateMaxPos(fileCount)
+        //             walk(start + 1)
+        //         }
+        //         else {
+        //             if (fileArr.length == 0)//not name by frame
+        //             {
+        //                 let fa = walkDir(dir, (f) => {
+        //                     fileArr.push(f)
+        //                     tInfo.pushFrame(f)
+        //                     fileCount++
+        //                     this.updateMaxPos(fileCount)
+        //                 })
+        //                 cmd.emit(CompInfoEvent.READ_DIR)
+        //                 // if (callback)
+        //                 //     callback()
+        //                 // console.log('fa', fa);
+
+        //             }
+        //             else {
+        //                 cmd.emit(CompInfoEvent.READ_DIR)
+        //             }
+        //             // else if (callback) {
+        //             //     callback()
+        //             // }
+        //             // console.log('fileArr', fileArr);
+        //         }
+        //     });
+        // }
+        // walk(Number(a[0]))
 
         // var trackData: TrackData = new TrackData();
         // trackData.frames = this.walk(path);

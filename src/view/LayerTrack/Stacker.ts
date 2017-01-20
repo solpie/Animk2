@@ -1,3 +1,4 @@
+import { Col } from '../model/Color';
 import { animk } from './../Animk';
 import { FrameInfo } from './../model/FrameInfo';
 import { TrackInfoEvent, InputEvent } from './../const';
@@ -9,6 +10,7 @@ class Clip extends PIXI.Container {
     constructor() {
         super()
         this.header = new PIXI.Graphics()
+            .beginFill(0x000000).drawRect(0, 0, 1, 55)
             .beginFill(0x2f2f2f).drawRect(0, 0, 1, 15)
             .beginFill(0x343434).drawRect(0, 0, 1, 1)
             .beginFill(0x383838).drawRect(0, 0, 1, 2)
@@ -67,7 +69,8 @@ export class Stacker extends PIXI.Container {
 
         this.addChild(PIXI_RECT(0x343434, 0, 0, 200, 60))
 
-        let nt = new PIXI.Text(trackInfo.name())
+        let nts = { fill: Col.trackText, fontSize: '15px' }
+        let nt = new PIXI.Text(trackInfo.name(), nts)
         this.nameText = nt
         this.addChild(this.nameText)
 
@@ -79,8 +82,12 @@ export class Stacker extends PIXI.Container {
         this.trackInfo.on(TrackInfoEvent.PUSH_FRAME, (frameInfo: FrameInfo) => {
             let fw = animk.projInfo.curComp.frameWidth
             let s = newBitmap({ url: frameInfo.filename, x: (frameInfo.idx() - 1) * fw, y: 16 })
-            s.width = fw
-            s.height = fw
+            s.width = fw - 1
+            s.height = fw - 1
+            let bg = PIXI_RECT(0xffffff, 0, 0, s.width, s.height)
+            bg.x = s.x
+            bg.y = s.y
+            this.clip.addChild(bg)
             this.clip.addChild(s)
             this.clip.resize()
 

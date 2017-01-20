@@ -1,14 +1,15 @@
+import { cmd } from './model/Command';
 import { Viewport } from './components/Viewport/Viewport';
 import { LayerTracker } from './LayerTrack/LayerTracker';
 import { ProjectInfo } from './model/ProjectInfo';
 import { EventDispatcher } from '../utils/EventDispatcher';
-import { ScrollEvent, InputEvent } from './const';
+import { CompInfoEvent, InputEvent, ScrollEvent } from './const';
 import { Splitter } from './components/Splitter';
 export class Animk extends EventDispatcher {
     projInfo: ProjectInfo
     vSplitter: Splitter
     tracker: LayerTracker
-    viewport:Viewport
+    viewport: Viewport
     // frameWidth = 40
     init(stage: PIXI.Container) {
         this.projInfo = new ProjectInfo()
@@ -34,11 +35,15 @@ export class Animk extends EventDispatcher {
 
         this.initMouse()
         this.initEvent()
+        this.onload()
         this.test()
+    }
+    onload() {
+        this.projInfo.curComp.setCursor(1)
     }
     initEvent() {
         // this.projInfo.curComp.removeAll()
-        this.on(InputEvent.KEY_UP, (e) => {
+        this.on(InputEvent.KEY_DOWN, (e) => {
             let k = e.key
             if (k == 'f') {
                 console.log('forward');
@@ -58,13 +63,33 @@ export class Animk extends EventDispatcher {
         window.onkeyup = (e) => {
             this.emit(InputEvent.KEY_UP, e)
         }
+        window.onkeydown = (e) => {
+            this.emit(InputEvent.KEY_DOWN, e)
+        }
     }
 
     test() {
         // for (var i = 0; i < 1; i++) {
         //     this.tracker.newStacker()
         // }
-        this.projInfo.curComp.newTrack('D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png')
+        // for (var p of ['D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png', 'D:\lsj\rkb2017\军哥\reto\101.png']) {
+        // this.projInfo.curComp.newTrack(p);
+        // }
+        this.projInfo.curComp.newTrack('D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png');
+        
+        // let a = ['D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png', 'D:\lsj\rkb2017\军哥\reto\101.png']
+        // let loadTrack = (pathArr: Array<string>) => {
+        //     let p = pathArr.shift()
+        //     if (p) {
+        //         let fid = cmd.on(CompInfoEvent.READ_DIR, () => {
+        //             cmd.del(CompInfoEvent.READ_DIR, fid)
+        //             loadTrack(pathArr)
+        //         })
+        //         this.projInfo.curComp.newTrack(p);
+        //     }
+        // }
+        // loadTrack(a)
+
         this.tracker.vScroller.setMax(350)
         this.tracker.vScroller.evt.on(ScrollEvent.CHANGED, (v) => {
             console.log('scroll changed', v);

@@ -15,6 +15,7 @@ export const ScrollEvent = {
 export const InputEvent = {
     MOUSE_UP: 'onmouseup',
     KEY_UP: 'onkeyup',
+    KEY_DOWN: 'onkeydown',
 };
 
 export const COLOR = {
@@ -33,6 +34,7 @@ export class SettingInfoEvent {
 export const CompInfoEvent = {
     NEW_COMP: "new comp",
     NEW_TRACK: "new track",
+    READ_DIR: "read dir",
     DEL_TRACK: "delete track",
     SWAP_TRACK: "swap track",
     UPDATE_CURSOR: "UPDATE_Cursor",

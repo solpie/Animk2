@@ -1,8 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
-// if (process.platform == 'win32')
-//     process.env['VLC_PLUGIN_PATH'] = require('path').join(__dirname, 'node_modules/wcjs-prebuilt/bin/plugins');
-// process.env['VLC_PLUGIN_PATH'] = 'D:\\projects\\walue\\node_modules\\webchimera.js\\plugins';
-// process.env['VLC_PLUGIN_PATH'] = 'D:\\projects\\walue\\node_modules\\wcjs-prebuilt\\bin\\plugins';
+// app.commandLine.appendSwitch('--enable-npapi')
+app.commandLine.appendSwitch('enable-npapi')
 var path = require('path');
 var process = require('process');
 console.log(process.execPath);
@@ -14,12 +12,6 @@ isDev = /[\\/]projects[\\/]/.test(process.execPath);
 function onReady() {
     console.log('onReady');
     openWin();
-    const {
-        dialog
-    } = require('electron')
-    console.log(dialog.showOpenDialog({
-        properties: ['openFile', 'openDirectory', 'multiSelections']
-    }))
 }
 
 function openWin(serverConf) {
@@ -29,7 +21,10 @@ function openWin(serverConf) {
         // width: 500, height: 540,
         frame: true,
         autoHideMenuBar: false,
-        webaudio: false
+        webPreferences: {
+            plugins: true
+        }
+        // webaudio: false
     });
     // win.setMenu(null);
     win.setMenuBarVisibility(false);

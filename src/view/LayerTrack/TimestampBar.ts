@@ -1,3 +1,4 @@
+import { Col } from '../model/Color';
 import { cmd } from '../model/Command';
 import { CompInfoEvent, InputEvent } from '../const';
 import { animk } from '../Animk';
@@ -6,10 +7,10 @@ import { Button } from '../components/Button';
 
 export class TimestampBar extends PIXI.Sprite {
     gTick: PIXI.Graphics
-    colTick = 0x000000
     gMask: PIXI.Graphics
     gCursor: PIXI.Graphics
     textCtn: PIXI.Container
+    gBg: PIXI.Graphics
     cursorPos = 0
     constructor() {
         super()
@@ -24,12 +25,13 @@ export class TimestampBar extends PIXI.Sprite {
         this.gTick.mask = this.gMask
 
         this.gCursor = new PIXI.Graphics()
-            .lineStyle(2, 0xff0000)
+            .lineStyle(2, Col.cursor)
             .moveTo(0, 55)
             .lineTo(0, 500)
         this.addChild(this.gCursor)
+    
+        ///
 
-        this.resize(1600, this.height)
 
         animk.on(InputEvent.MOUSE_UP, (e) => {
             let a = e.mx - this.x - this.gTick.x
@@ -42,7 +44,11 @@ export class TimestampBar extends PIXI.Sprite {
             }
         })
 
-
+    this.gBg = new PIXI.Graphics()
+            .beginFill(Col.panelBg)
+            .drawRect(0, 0, 215, 40)
+        this.gBg.x = -215
+        this.addChild(this.gBg)
 
         let newTrackBtn = new Button({ text: "new" })
         newTrackBtn.x = -100
@@ -54,11 +60,13 @@ export class TimestampBar extends PIXI.Sprite {
                     { name: 'All Files', extensions: ['*'] }
                 ]
             })
-            if (ret&&ret.length == 1)
+            if (ret && ret.length == 1)
                 animk.projInfo.curComp.newTrack(ret[0])
         })
         this.addChild(newTrackBtn)
         this.initEvent()
+        this.resize(1600, this.height)
+
     }
     initEvent() {
         animk.projInfo.curComp.on(CompInfoEvent.UPDATE_CURSOR, (frame) => {
@@ -75,16 +83,16 @@ export class TimestampBar extends PIXI.Sprite {
         this.gMask.drawRect(0, 0, width, height)
 
         this.gTick.clear()
-        this.gTick.lineStyle(1, this.colTick)
-        let ts = { fill: 0xffffff, fontSize: '12px' }
+        this.gTick.lineStyle(1,Col.tick)
+        let ts = { fill: Col.tickText, fontSize: '12px' }
         let fw = animk.projInfo.frameWidth()
         var frame = 0
         for (var i = 0; i < width; i += fw) {
-            this.gTick.moveTo(i, 20)
+            this.gTick.moveTo(i, 35)
             this.gTick.lineTo(i, fw)
             var textTick = new PIXI.Text(frame + '', ts)
-            textTick.x = i + 3
-            textTick.y = 23
+            textTick.x = i - textTick.width * .5
+            textTick.y = 13
             this.textCtn.addChild(textTick)
             frame++
         }

@@ -1,7 +1,9 @@
 require(`script!./../libs/pixi.min.js`);
-import { animk } from './Animk';
+require(`script!./../libs/Tween.min.js`);
 import { ViewConst } from './const';
-console.log('running!')
+import { animk } from './Animk';
+// console.log('running!')
+declare const TWEEN
 let main = () => {
     let renderer: any = PIXI.autoDetectRenderer(ViewConst.STAGE_WIDTH, ViewConst.STAGE_HEIGHT,
         { antialias: false, transparent: true, resolution: 1 });
@@ -11,7 +13,7 @@ let main = () => {
     //Loop this function 60 times per second
     renderer.renderStage = (time) => {
         requestAnimationFrame(renderer.renderStage);
-        // TWEEN.update(time)
+        TWEEN.update(time)
         renderer.render(renderer.stage);
     };
     renderer.renderStage();

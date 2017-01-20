@@ -11,7 +11,8 @@ export class EventDispatcher {
         if (!this._func[type])
             this._func[type] = [];
         this._funcId++;
-        this._func[type].push({func: func, id: this._funcId});
+        this._func[type].push({ func: func, id: this._funcId });
+        return this._funcId
     }
 
     emit(type:any, param?) {

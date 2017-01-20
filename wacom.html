@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>wacom API test</title>
+
+    <!-- Bootstrap -->
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style>
+        #canvasWrapper {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 1px #000 solid;
+        }
+        
+        #testCanvas {
+            position: absolute;
+            width: 800px;
+            height: 600px;
+            top: 0;
+            left: 0;
+        }
+        
+        #tmpTestCanvas {
+            position: absolute;
+            width: 800px;
+            height: 600px;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>wacom API test</h1>
+
+    <div id="canvasWrapper">
+        <canvas width="800" height="600" id="testCanvas"></canvas>
+    </div>
+
+    <!--[if IE]>
+    <object id='wtPlugin' classid='CLSID:092dfa86-5807-5a94-bf3b-5a53ba9e5308'>
+    </object>
+    <![endif]-->
+    <!--[if !IE]> <-->
+    <object id="wtPlugin" type="application/x-wacomtabletplugin">
+      <param name="onload" value="pluginLoaded" />
+    </object>
+    <!-->
+    <![endif]-->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script >
+    $(document).ready(function(){
+    var havewt = false;
+    if(navigator.plugins){
+        for (i=0; i < navigator.plugins.length; i++ ) {
+            if (navigator.plugins[i].name.indexOf
+                ("Wacom") >= 0)
+            { havewt = true; }
+        }
+    }
+
+    var plugin = document.getElementById('wtPlugin');
+    var prevPoints = [];
+    var prevPointsSize = 1;
+    var isMouseDown = false;
+    var canvas = document.getElementById('testCanvas');
+    var ctx    = canvas.getContext('2d');
+
+    var pushPrevPoint = function(x, y){
+        prevPoints.push({x: x, y: y});
+        if(prevPoints.length > prevPointsSize){
+            prevPoints = prevPoints.slice(prevPoints.length - prevPointsSize);
+        }
+    };
+    var clearPrevPoints = function(){
+        prevPoints = [];
+    };
+
+    $('#canvasWrapper').on('mousemove', function(e){
+        var pressure;
+
+        if(prevPoints.length < prevPointsSize){
+            pushPrevPoint(e.offsetX, e.offsetY);
+            return false;
+        }
+
+        if(isMouseDown){
+            if(plugin.penAPI == undefined){
+                pressure = 0.8;
+            } else {
+                pressure = plugin.penAPI.pressure;
+            }
+
+            ctx.lineWidth = pressure * 15;
+	        ctx.lineJoin = 'round';
+	        ctx.lineCap  = 'round';
+            ctx.beginPath();
+            ctx.moveTo(prevPoints[prevPointsSize-1].x, prevPoints[prevPointsSize-1].y);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.closePath();
+		    ctx.stroke();
+
+        };
+        pushPrevPoint(e.offsetX, e.offsetY);
+        return true;
+    });
+
+    $('#canvasWrapper').on('mousedown', function(e){
+        console.log('mousedown');
+        clearPrevPoints();
+        isMouseDown = true;
+        return false;
+    });
+    $('#canvasWrapper').on('mouseup', function(e){
+        console.log('mouseup');
+        isMouseDown = false;
+        clearPrevPoints();
+        return false;
+    });
+});
+</script>
+  </body>
+</html>

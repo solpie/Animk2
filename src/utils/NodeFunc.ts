@@ -2,6 +2,7 @@ export let walkDir = (dirPath, callback?): Array<string> => {
     const fs = require('fs')
     const path = require('path')
     var fileArr = [];
+    // var dirArr = fs.readdir(dirPath);
     var dirArr = fs.readdirSync(dirPath);
     dirArr.forEach(function (item) {
         if (fs.statSync(dirPath + '/' + item).isDirectory()) {

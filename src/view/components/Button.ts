@@ -18,7 +18,7 @@ export class Button extends PIXI.Container {
             fontSize: '12px',
             fontStyle: 'normal',
             fontWeight: 'bold',
-            fill: 0xffffff
+            fill: 0xaaaaaa
         }
         this._label = new PIXI.Text(t, ts)
         this.addChild(this._label)

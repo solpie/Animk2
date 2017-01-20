@@ -1,3 +1,4 @@
+import { TweenEx } from '../../utils/TweenEx';
 // import { TimestampBar } from '../LayerTracker';
 import { animk } from '../Animk';
 import { ScrollEvent, InputEvent } from '../const';
@@ -12,8 +13,7 @@ export class Splitter extends PIXI.Container {
     child1Space
     child2Space
     barSpace = 40
-    lastMousePosX = -1
-    lastMousePosY = -1
+
     evt: EventDispatcher = new EventDispatcher
     mask1: PIXI.Graphics
     mask2: PIXI.Graphics
@@ -28,45 +28,56 @@ export class Splitter extends PIXI.Container {
 
         this.dir = dir
         this.bar = new PIXI.Sprite()
-        this.bar.alpha = .9
+        // this.bar.alpha = .9
+
+        var lastMousePosX = -1,
+            lastMousePosY = -1
+            , isPress
         setupDrag(this.bar, (e) => {
-            this.lastMousePosY = e.data.originalEvent.clientY
-            this.lastMousePosX = e.data.originalEvent.clientX
-            this.bar.alpha = .6
+            isPress = true
+            TweenEx.delayedCall(200, () => {
+                console.log('mouse');
+                if (isPress) {
+                    lastMousePosY = e.my
+                    lastMousePosX = e.mx
+                    this.bar.getChildAt(0).alpha = .6
+                }
+            })
         }, (e) => {
             if (this.dir == 'v') {
-                if (this.lastMousePosY > -1) {
+                if (lastMousePosY > -1) {
                     // this.bar.y += e.data.originalEvent.clientY - this.lastMousePosY
-                    this.setBarY(this.bar.y + e.my - this.lastMousePosY)
-                    this.lastMousePosY = e.data.originalEvent.clientY
+                    this.setBarY(this.bar.y + e.my - lastMousePosY)
+                    lastMousePosY = e.my
                     if (this.child2) {
                         this.evt.emit(ScrollEvent.CHANGED, this)
                     }
                 }
             }
             else if (this.dir == 'h') {
-                if (this.lastMousePosX > -1) {
-                    this.bar.x += e.data.originalEvent.clientY - this.lastMousePosX
-                    this.lastMousePosX = e.data.originalEvent.clientX
+                if (lastMousePosX > -1) {
+                    this.bar.x += e.my - lastMousePosX
+                    lastMousePosX = e.mx
                 }
             }
         }, (e) => {
-            this.lastMousePosX = -1
-            this.lastMousePosY = -1
-            this.bar.alpha = .9
+            onUp(e)
+        })
+        let onUp = (e) => {
+            isPress = false
+            lastMousePosX = -1
+            lastMousePosY = -1
+            this.bar.getChildAt(0).alpha = 1
+        }
+        animk.on(InputEvent.MOUSE_UP, (e) => {
+            onUp(e)
         })
 
-        animk.on(InputEvent.MOUSE_UP, () => {
-            this.lastMousePosX = -1
-            this.lastMousePosY = -1
-            this.bar.alpha = .9
-        })
 
-        
         this.addChild(this.bar)
         this.mask1 = new PIXI.Graphics().drawRect(0, 0, 1100, 1000)
         // this.mask1.interactive = true
-        this.mask2 = PIXI_RECT(0x1c1c1c,0, 0, 1000, 1000)
+        this.mask2 = PIXI_RECT(0x1c1c1c, 0, 0, 1000, 1000)
 
         // this.mask2.interactive = true
         // this.addChild(this.mask1)
@@ -112,14 +123,14 @@ export class Splitter extends PIXI.Container {
         }
         this.addChild(this.bar)
     }
-
+    colBg = 0x232323
     resize(width, height) {
         if (this.dir == 'v') {
             // this.bar.
             this.setBarY(height / 2)
             if (!this.bar.children.length)
                 this.bar.addChild(new PIXI.Graphics()
-                    .beginFill(0x2e2e2e)
+                    .beginFill(this.colBg)
                     .drawRect(0, 0, width, this.barSpace))
             this.mask1.width = width
             this.mask2.width = width
@@ -130,9 +141,10 @@ export class Splitter extends PIXI.Container {
             this.mask2.height = height
             if (!this.bar.children.length)
                 this.bar.addChild(new PIXI.Graphics()
-                    .beginFill(0x2e2e2e)
-                    .drawRect(0, 0, this.barSpace, height))
+                    .beginFill(this.colBg)
+                    .drawRect(0, 0, this.barSpace, height)
+                )
         }
-    
+
     }
 }
