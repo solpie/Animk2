@@ -251,3 +251,28 @@ export let isIn = (pos, obj): boolean => {
     let objPos = obj.toGlobal(new PIXI.Point(0, 0))
     return x > objPos.x && x < objPos.x + obj['width'] && y > objPos.y && y < objPos.y + obj['height']
 }
+
+export const FillMatrix = (g: PIXI.Graphics, colArr: Array<Array<{ color: number, alpha: number }>>, ofsX = 0, ofsY = 0) => {
+    for (var y = 0; y < colArr.length; y++) {
+        var rowArr = colArr[y];
+        for (var x = 0; x < rowArr.length; x++) {
+            var col = rowArr[x];
+            if (col.alpha > 0) {
+                g.beginFill(col.color, col.alpha)
+                g.drawRect(ofsX + x, ofsY + y, 1, 1)
+            }
+        }
+    }
+    g.endFill()
+}
+export const MakeMatrix = (row, col, color): Array<Array<{ color: number, alpha: number }>> => {
+    let m: Array<Array<{ color: number, alpha: number }>> = []
+    for (var i = 0; i < row; i++) {
+        var r = []
+        for (var j = 0; j < col; j++) {
+            r.push({ color: color, alpha: 1 })
+        }
+        m.push(r)
+    }
+    return m
+}

@@ -2,7 +2,7 @@ import { Col } from '../model/Color';
 import { cmd } from '../model/Command';
 import { CompInfoEvent, InputEvent } from '../const';
 import { animk } from '../Animk';
-import { PIXI_MOUSE_EVENT } from '../../utils/PixiEx';
+import { FillMatrix, MakeMatrix, PIXI_MOUSE_EVENT } from '../../utils/PixiEx';
 import { Button } from '../components/Button';
 
 export class TimestampBar extends PIXI.Sprite {
@@ -24,12 +24,40 @@ export class TimestampBar extends PIXI.Sprite {
         this.addChild(this.gMask)
         this.gTick.mask = this.gMask
 
+        let m = MakeMatrix(13,11,Col.cursor)
+        let m1 = [
+            [.7, 1, 1, 1, 1, 1, 1, 1, 1, 1, .7],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [.9, 1, 1, 1, 0, 0, 0, 1, 1, 1, .9],
+            [.5, 1, 1, 1, 1, 0, 1, 1, 1, 1, .5],
+            [0, .4, 1, 1, 1, 0, 1, 1, 1, .4, 0],
+            [0, .1, .8, 1, 1, 0, 1, 1, .8, .1, 0],
+            [0, 0, .3, 1, 1, 0, 1, 1, .3, 0, 0],
+            [0, 0, 0, .6, 1, 0, 1, .6, 0, 0, 0],
+            [0, 0, 0, .1, .9, 0, .9, .1, 0, 0, 0],
+        ]
+
+        for (var y = 0; y < m1.length; y++) {
+            var rowArr = m1[y];
+            for (var x = 0; x < rowArr.length; x++) {
+                var alpha = rowArr[x];
+                m[y][x].alpha = alpha
+            }
+        }
         this.gCursor = new PIXI.Graphics()
-            .lineStyle(2, Col.cursor)
-            .moveTo(0, 55)
+        FillMatrix(this.gCursor, m, -6, 0)
+        this.gCursor
+            .lineStyle(1, Col.cursor)
+            .moveTo(0, 15)
             .lineTo(0, 500)
+        this.gCursor.cacheAsBitmap = true
+        this.gCursor.y = 25
         this.addChild(this.gCursor)
-    
+
         ///
 
 
@@ -44,7 +72,7 @@ export class TimestampBar extends PIXI.Sprite {
             }
         })
 
-    this.gBg = new PIXI.Graphics()
+        this.gBg = new PIXI.Graphics()
             .beginFill(Col.panelBg)
             .drawRect(0, 0, 215, 40)
         this.gBg.x = -215
@@ -83,7 +111,7 @@ export class TimestampBar extends PIXI.Sprite {
         this.gMask.drawRect(0, 0, width, height)
 
         this.gTick.clear()
-        this.gTick.lineStyle(1,Col.tick)
+        this.gTick.lineStyle(1, Col.tick)
         let ts = { fill: Col.tickText, fontSize: '12px' }
         let fw = animk.projInfo.frameWidth()
         var frame = 0

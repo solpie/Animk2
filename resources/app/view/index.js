@@ -793,6 +793,32 @@
 	    var objPos = obj.toGlobal(new PIXI.Point(0, 0));
 	    return x > objPos.x && x < objPos.x + obj['width'] && y > objPos.y && y < objPos.y + obj['height'];
 	};
+	exports.FillMatrix = function (g, colArr, ofsX, ofsY) {
+	    if (ofsX === void 0) { ofsX = 0; }
+	    if (ofsY === void 0) { ofsY = 0; }
+	    for (var y = 0; y < colArr.length; y++) {
+	        var rowArr = colArr[y];
+	        for (var x = 0; x < rowArr.length; x++) {
+	            var col = rowArr[x];
+	            if (col.alpha > 0) {
+	                g.beginFill(col.color, col.alpha);
+	                g.drawRect(ofsX + x, ofsY + y, 1, 1);
+	            }
+	        }
+	    }
+	    g.endFill();
+	};
+	exports.MakeMatrix = function (row, col, color) {
+	    var m = [];
+	    for (var i = 0; i < row; i++) {
+	        var r = [];
+	        for (var j = 0; j < col; j++) {
+	            r.push({ color: color, alpha: 1 });
+	        }
+	        m.push(r);
+	    }
+	    return m;
+	};
 
 
 /***/ },
@@ -899,10 +925,37 @@
 	        _this.gMask = new PIXI.Graphics().drawRect(0, 0, 1600, _this.height);
 	        _this.addChild(_this.gMask);
 	        _this.gTick.mask = _this.gMask;
-	        _this.gCursor = new PIXI.Graphics()
-	            .lineStyle(2, Color_1.Col.cursor)
-	            .moveTo(0, 55)
+	        var m = PixiEx_1.MakeMatrix(13, 11, Color_1.Col.cursor);
+	        var m1 = [
+	            [.7, 1, 1, 1, 1, 1, 1, 1, 1, 1, .7],
+	            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	            [.9, 1, 1, 1, 0, 0, 0, 1, 1, 1, .9],
+	            [.5, 1, 1, 1, 1, 0, 1, 1, 1, 1, .5],
+	            [0, .4, 1, 1, 1, 0, 1, 1, 1, .4, 0],
+	            [0, .1, .8, 1, 1, 0, 1, 1, .8, .1, 0],
+	            [0, 0, .3, 1, 1, 0, 1, 1, .3, 0, 0],
+	            [0, 0, 0, .6, 1, 0, 1, .6, 0, 0, 0],
+	            [0, 0, 0, .1, .9, 0, .9, .1, 0, 0, 0],
+	        ];
+	        for (var y = 0; y < m1.length; y++) {
+	            var rowArr = m1[y];
+	            for (var x = 0; x < rowArr.length; x++) {
+	                var alpha = rowArr[x];
+	                m[y][x].alpha = alpha;
+	            }
+	        }
+	        _this.gCursor = new PIXI.Graphics();
+	        PixiEx_1.FillMatrix(_this.gCursor, m, -6, 0);
+	        _this.gCursor
+	            .lineStyle(1, Color_1.Col.cursor)
+	            .moveTo(0, 15)
 	            .lineTo(0, 500);
+	        _this.gCursor.cacheAsBitmap = true;
+	        _this.gCursor.y = 25;
 	        _this.addChild(_this.gCursor);
 	        Animk_1.animk.on(const_1.InputEvent.MOUSE_UP, function (e) {
 	            var a = e.mx - _this.x - _this.gTick.x;
