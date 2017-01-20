@@ -1,7 +1,7 @@
 import { TweenEx } from '../../utils/TweenEx';
 // import { TimestampBar } from '../LayerTracker';
 import { animk } from '../Animk';
-import { ScrollEvent, InputEvent } from '../const';
+import { BaseEvent, InputEvent } from '../const';
 import { EventDispatcher } from '../../utils/EventDispatcher';
 import { PIXI_MOUSE_EVENT, PIXI_RECT, setupDrag } from '../../utils/PixiEx';
 // import { dirname } from 'path';
@@ -50,7 +50,7 @@ export class Splitter extends PIXI.Container {
                     this.setBarY(this.bar.y + e.my - lastMousePosY)
                     lastMousePosY = e.my
                     if (this.child2) {
-                        this.evt.emit(ScrollEvent.CHANGED, this)
+                        this.evt.emit(BaseEvent.CHANGED, this)
                     }
                 }
             }

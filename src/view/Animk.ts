@@ -3,7 +3,7 @@ import { Viewport } from './components/Viewport/Viewport';
 import { LayerTracker } from './LayerTrack/LayerTracker';
 import { ProjectInfo } from './model/ProjectInfo';
 import { EventDispatcher } from '../utils/EventDispatcher';
-import { CompInfoEvent, InputEvent, ScrollEvent } from './const';
+import { CompInfoEvent, InputEvent, BaseEvent } from './const';
 import { Splitter } from './components/Splitter';
 export class Animk extends EventDispatcher {
     projInfo: ProjectInfo
@@ -29,7 +29,7 @@ export class Animk extends EventDispatcher {
         vs.setChild(tk)
         vs.setBarY(720)
         vs.bar.addChild(tk.timestampBar)
-        this.vSplitter.evt.on(ScrollEvent.CHANGED, (vs: Splitter) => {
+        this.vSplitter.evt.on(BaseEvent.CHANGED, (vs: Splitter) => {
             this.tracker.resize(vs.width, vs.child2Space)
         })
 
@@ -91,7 +91,7 @@ export class Animk extends EventDispatcher {
         // loadTrack(a)
 
         this.tracker.vScroller.setMax(350)
-        this.tracker.vScroller.evt.on(ScrollEvent.CHANGED, (v) => {
+        this.tracker.vScroller.evt.on(BaseEvent.CHANGED, (v) => {
             console.log('scroll changed', v);
         })
     }

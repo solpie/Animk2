@@ -2,7 +2,7 @@ import { CheckBox } from '../components/CheckBox';
 import { newBitmap, PIXI_RECT } from '../../utils/PixiEx';
 import { Col } from '../model/Color';
 import { animk } from './../Animk';
-import { TrackInfoEvent } from './../const';
+import { BaseEvent, TrackInfoEvent } from './../const';
 import { FrameInfo } from './../model/FrameInfo';
 import { TrackInfo } from './../model/TrackInfo';
 import { Clip } from './Clip';
@@ -36,12 +36,17 @@ export class Stacker extends PIXI.Container {
 
         let nts = { fill: Col.trackText, fontSize: '15px' }
         let nt = new PIXI.Text(trackInfo.name(), nts)
+        nt.y = 5
+        nt.x = 10
         this.nameText = nt
         this.addChild(this.nameText)
 
         let cb = new CheckBox(animk)
         cb.x = 150
-        cb.y = 10
+        cb.y = 5
+        cb.on(BaseEvent.CHANGED, (v) => {
+            this.trackInfo.enable(v)
+        })
         this.addChild(cb)
 
         this.initEvent()

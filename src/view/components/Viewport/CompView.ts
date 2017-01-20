@@ -34,7 +34,7 @@ export class CompView extends PIXI.Container {
                 if (tInfo) {
                     var filename = tInfo.getFrameByCursor(frame)
                     if (filename) {
-                        this._spArr[i].visible = true
+                        this._spArr[i].visible = true && tInfo.enable()
                         console.log('udpate comp view', frame, filename, trackInfoArr.length);
                         if (!this._imgMap[filename]) {
                             loadImg(filename, (img) => {

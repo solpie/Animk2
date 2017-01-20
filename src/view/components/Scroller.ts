@@ -1,5 +1,5 @@
 import { animk } from '../Animk';
-import { ScrollEvent, ViewConst, InputEvent } from '../const';
+import { BaseEvent, ViewConst, InputEvent } from '../const';
 import { EventDispatcher } from '../../utils/EventDispatcher';
 import { setupDrag } from '../../utils/PixiEx';
 export class Scroller extends PIXI.Container {
@@ -58,7 +58,7 @@ export class Scroller extends PIXI.Container {
                     else {
                         this.lastMousePosY = e.my
                         // remote.getCurrentWebContents().sendInputEvent({type: 'mouseMove', x: 10, y: 10})
-                        this.evt.emit(ScrollEvent.CHANGED, this.value)
+                        this.evt.emit(BaseEvent.CHANGED, this.value)
                     }
 
                 }
@@ -72,7 +72,7 @@ export class Scroller extends PIXI.Container {
                         this.thumb.x = this.max - this.thumb.width
                     else {
                         this.lastMousePosX = e.mx
-                        this.evt.emit(ScrollEvent.CHANGED, this.value)
+                        this.evt.emit(BaseEvent.CHANGED, this.value)
                     }
                 }
             }

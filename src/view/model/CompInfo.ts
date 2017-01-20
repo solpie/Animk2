@@ -114,9 +114,14 @@ export class CompInfo extends EventDispatcher {
     newTrack(filename, callback?) {
         let tInfo = new TrackInfo()
         this.trackInfoArr.push(tInfo)
+        
         tInfo.on(TrackInfoEvent.SET_TRACK_START, () => {
             this.emit(CompInfoEvent.UPDATE_CURSOR, this.getCursor())
         })
+        tInfo.on(TrackInfoEvent.SET_ENABLE, () => {
+            this.emit(CompInfoEvent.UPDATE_CURSOR, this.getCursor())
+        })
+
         tInfo.name('track#' + this.trackInfoArr.length)
         cmd.emit(CompInfoEvent.NEW_TRACK, tInfo)
 

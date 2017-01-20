@@ -1,5 +1,5 @@
 import { EventDispatcher } from '../../utils/EventDispatcher';
-import { InputEvent } from '../const';
+import { BaseEvent, InputEvent } from '../const';
 import { Col } from '../model/Color';
 import { isIn, PIXI_MOUSE_EVENT, PIXI_RECT } from '../../utils/PixiEx';
 export class CheckBox extends PIXI.Container {
@@ -26,8 +26,10 @@ export class CheckBox extends PIXI.Container {
     get height() {
         return 20
     }
+    
     set checked(v) {
         this.gCheck.visible = v
+        this.emit(BaseEvent.CHANGED,v)
     }
 
     get checked() {

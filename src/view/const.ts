@@ -8,7 +8,7 @@ export const ViewConst = {
     STAGE_HEIGHT: 1080
 };
 
-export const ScrollEvent = {
+export const BaseEvent = {
     CHANGED: 'changed'
 };
 

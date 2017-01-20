@@ -119,7 +119,7 @@
 	    STAGE_WIDTH: 1920,
 	    STAGE_HEIGHT: 1080
 	};
-	exports.ScrollEvent = {
+	exports.BaseEvent = {
 	    CHANGED: 'changed'
 	};
 	exports.InputEvent = {
@@ -214,7 +214,7 @@
 	        vs.setChild(tk);
 	        vs.setBarY(720);
 	        vs.bar.addChild(tk.timestampBar);
-	        this.vSplitter.evt.on(const_1.ScrollEvent.CHANGED, function (vs) {
+	        this.vSplitter.evt.on(const_1.BaseEvent.CHANGED, function (vs) {
 	            _this.tracker.resize(vs.width, vs.child2Space);
 	        });
 	        this.initMouse();
@@ -254,7 +254,7 @@
 	    Animk.prototype.test = function () {
 	        this.projInfo.curComp.newTrack('D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png');
 	        this.tracker.vScroller.setMax(350);
-	        this.tracker.vScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
+	        this.tracker.vScroller.evt.on(const_1.BaseEvent.CHANGED, function (v) {
 	            console.log('scroll changed', v);
 	        });
 	    };
@@ -332,7 +332,7 @@
 	                if (tInfo) {
 	                    var filename = tInfo.getFrameByCursor(frame);
 	                    if (filename) {
-	                        _this._spArr[i].visible = true;
+	                        _this._spArr[i].visible = true && tInfo.enable();
 	                        console.log('udpate comp view', frame, filename, trackInfoArr.length);
 	                        if (!_this._imgMap[filename]) {
 	                            JsFunc_1.loadImg(filename, function (img) {
@@ -820,7 +820,7 @@
 	        hs.x = 200 + 15;
 	        _this.addChild(hs);
 	        _this.hScroller = hs;
-	        _this.hScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
+	        _this.hScroller.evt.on(const_1.BaseEvent.CHANGED, function (v) {
 	            console.log('scroll', v);
 	            for (var i = 0; i < _this.stackerArr.length; i++) {
 	                var s = _this.stackerArr[i];
@@ -835,7 +835,7 @@
 	        _this.vScroller = new Scroller_1.Scroller('v', 300, 0, 100);
 	        _this.vScroller.x = 200;
 	        _this.vScroller.y = _this.hScroller.height;
-	        _this.vScroller.evt.on(const_1.ScrollEvent.CHANGED, function (v) {
+	        _this.vScroller.evt.on(const_1.BaseEvent.CHANGED, function (v) {
 	        });
 	        _this.addChild(_this.vScroller);
 	        _this.addChild(_this.timestampBar);
@@ -1234,7 +1234,7 @@
 	                        _this.thumb.y = _this.max - _this.thumb.height;
 	                    else {
 	                        _this.lastMousePosY = e.my;
-	                        _this.evt.emit(const_1.ScrollEvent.CHANGED, _this.value);
+	                        _this.evt.emit(const_1.BaseEvent.CHANGED, _this.value);
 	                    }
 	                }
 	            }
@@ -1247,7 +1247,7 @@
 	                        _this.thumb.x = _this.max - _this.thumb.width;
 	                    else {
 	                        _this.lastMousePosX = e.mx;
-	                        _this.evt.emit(const_1.ScrollEvent.CHANGED, _this.value);
+	                        _this.evt.emit(const_1.BaseEvent.CHANGED, _this.value);
 	                    }
 	                }
 	            }
@@ -1334,11 +1334,16 @@
 	        _this.addChild(PixiEx_1.PIXI_RECT(0x343434, 0, 0, 200, 60));
 	        var nts = { fill: Color_1.Col.trackText, fontSize: '15px' };
 	        var nt = new PIXI.Text(trackInfo.name(), nts);
+	        nt.y = 5;
+	        nt.x = 10;
 	        _this.nameText = nt;
 	        _this.addChild(_this.nameText);
 	        var cb = new CheckBox_1.CheckBox(Animk_1.animk);
 	        cb.x = 150;
-	        cb.y = 10;
+	        cb.y = 5;
+	        cb.on(const_1.BaseEvent.CHANGED, function (v) {
+	            _this.trackInfo.enable(v);
+	        });
 	        _this.addChild(cb);
 	        _this.initEvent();
 	        _this.scroll(0);
@@ -1421,6 +1426,7 @@
 	        },
 	        set: function (v) {
 	            this.gCheck.visible = v;
+	            this.emit(const_1.BaseEvent.CHANGED, v);
 	        },
 	        enumerable: true,
 	        configurable: true
@@ -1603,6 +1609,9 @@
 	        var tInfo = new TrackInfo_1.TrackInfo();
 	        this.trackInfoArr.push(tInfo);
 	        tInfo.on(const_1.TrackInfoEvent.SET_TRACK_START, function () {
+	            _this.emit(const_1.CompInfoEvent.UPDATE_CURSOR, _this.getCursor());
+	        });
+	        tInfo.on(const_1.TrackInfoEvent.SET_ENABLE, function () {
 	            _this.emit(const_1.CompInfoEvent.UPDATE_CURSOR, _this.getCursor());
 	        });
 	        tInfo.name('track#' + this.trackInfoArr.length);
@@ -1978,7 +1987,7 @@
 	                    _this.setBarY(_this.bar.y + e.my - lastMousePosY);
 	                    lastMousePosY = e.my;
 	                    if (_this.child2) {
-	                        _this.evt.emit(const_1.ScrollEvent.CHANGED, _this);
+	                        _this.evt.emit(const_1.BaseEvent.CHANGED, _this);
 	                    }
 	                }
 	            }

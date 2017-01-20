@@ -1,7 +1,7 @@
 import { TimestampBar } from './TimestampBar';
 import { TrackInfo } from './../model/TrackInfo';
 import { cmd, CommandId } from './../model/Command';
-import { CompInfoEvent, ScrollEvent, InputEvent } from './../const';
+import { CompInfoEvent, BaseEvent, InputEvent } from './../const';
 import { Scroller } from './../components/Scroller';
 import { Stacker } from './Stacker';
 export class LayerTracker extends PIXI.Container {
@@ -21,7 +21,7 @@ export class LayerTracker extends PIXI.Container {
         // hs.y = - 15
         this.addChild(hs)
         this.hScroller = hs
-        this.hScroller.evt.on(ScrollEvent.CHANGED, (v) => {
+        this.hScroller.evt.on(BaseEvent.CHANGED, (v) => {
             console.log('scroll', v);
             for (var i = 0; i < this.stackerArr.length; i++) {
                 var s: Stacker = this.stackerArr[i];
@@ -38,7 +38,7 @@ export class LayerTracker extends PIXI.Container {
         this.vScroller = new Scroller('v', 300, 0, 100)
         this.vScroller.x = 200
         this.vScroller.y = this.hScroller.height
-        this.vScroller.evt.on(ScrollEvent.CHANGED, (v) => {
+        this.vScroller.evt.on(BaseEvent.CHANGED, (v) => {
 
         })
         this.addChild(this.vScroller)
