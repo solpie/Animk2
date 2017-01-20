@@ -41,9 +41,10 @@ export class Stacker extends PIXI.Container {
         this.nameText = nt
         this.addChild(this.nameText)
 
-        let cb = new CheckBox(animk)
+        let cb = new CheckBox()
         cb.x = 150
         cb.y = 5
+        cb.checked = true
         cb.on(BaseEvent.CHANGED, (v) => {
             this.trackInfo.enable(v)
         })

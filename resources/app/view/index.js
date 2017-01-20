@@ -998,7 +998,7 @@
 
 /***/ },
 /* 15 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	"use strict";
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -1006,7 +1006,6 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var PixiEx_1 = __webpack_require__(11);
 	var Button = (function (_super) {
 	    __extends(Button, _super);
 	    function Button(option) {
@@ -1026,8 +1025,6 @@
 	        };
 	        _this._label = new PIXI.Text(t, ts);
 	        _this.addChild(_this._label);
-	        _this.on(PixiEx_1.PIXI_MOUSE_EVENT.up, function () {
-	        });
 	        _this.resize(w, h);
 	        return _this;
 	    }
@@ -1338,9 +1335,10 @@
 	        nt.x = 10;
 	        _this.nameText = nt;
 	        _this.addChild(_this.nameText);
-	        var cb = new CheckBox_1.CheckBox(Animk_1.animk);
+	        var cb = new CheckBox_1.CheckBox();
 	        cb.x = 150;
 	        cb.y = 5;
+	        cb.checked = true;
 	        cb.on(const_1.BaseEvent.CHANGED, function (v) {
 	            _this.trackInfo.enable(v);
 	        });
@@ -1385,12 +1383,12 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var PixiEx_1 = __webpack_require__(11);
 	var const_1 = __webpack_require__(6);
 	var Color_1 = __webpack_require__(14);
-	var PixiEx_1 = __webpack_require__(11);
 	var CheckBox = (function (_super) {
 	    __extends(CheckBox, _super);
-	    function CheckBox(globalEvent) {
+	    function CheckBox() {
 	        var _this = _super.call(this) || this;
 	        var r = 3;
 	        var bg = new PIXI.Graphics().beginFill(Color_1.Col.panelBg)
@@ -1399,10 +1397,11 @@
 	        _this.addChild(bg);
 	        _this.gCheck = PixiEx_1.PIXI_RECT(0x8a8a8a, 7, 7, 6, 6);
 	        _this.addChild(_this.gCheck);
-	        globalEvent.on(const_1.InputEvent.MOUSE_UP, function (e) {
-	            if (PixiEx_1.isIn(e, _this)) {
+	        _this.checked = false;
+	        _this.interactive = true;
+	        _this.on(PixiEx_1.PIXI_MOUSE_EVENT.up, function (e) {
+	            if (PixiEx_1.isIn(e, _this))
 	                _this.checked = !_this.checked;
-	            }
 	        });
 	        return _this;
 	    }

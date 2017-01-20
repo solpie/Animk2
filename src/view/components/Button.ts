@@ -23,8 +23,6 @@ export class Button extends PIXI.Container {
         this._label = new PIXI.Text(t, ts)
         this.addChild(this._label)
 
-        this.on(PIXI_MOUSE_EVENT.up, () => {
-        })
         this.resize(w, h)
     }
     resize(width, height) {
