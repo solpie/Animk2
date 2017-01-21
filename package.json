@@ -20,6 +20,7 @@
   "homepage": "https://github.com/solpie/Animk2#readme",
   "devDependencies": {
     "electron": "^1.4.14",
+    "electron-rebuild": "^1.5.7",
     "html-loader": "^0.4.4",
     "script-loader": "^0.7.0",
     "source-map-loader": "^0.1.6",

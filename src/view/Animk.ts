@@ -72,7 +72,8 @@ export class Animk extends EventDispatcher {
         //todo: ctrl + drag frame :hold frame
 
 
-        
+        // var addon = require('addon/psd')
+        // console.log(addon.hello()); // 'world'
         // for (var i = 0; i < 1; i++) {
         //     this.tracker.newStacker()
         // }
@@ -80,10 +81,10 @@ export class Animk extends EventDispatcher {
         // this.projInfo.curComp.newTrack(p);
         // }
         // var wintab = require('./build/wintab');
-        // var wintab = require('node-wintab');
-        // setInterval(function () {
-        //     console.log(wintab.allData());
-        // }, 1);
+        var wintab = require('addon/node-wintab');
+        setInterval(function () {
+            console.log(wintab.allData());
+        }, 100);
         this.projInfo.curComp.newTrack('D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png');
 
         // let a = ['D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png', 'D:\lsj\rkb2017\军哥\reto\101.png']

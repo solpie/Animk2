@@ -252,6 +252,10 @@
 	        };
 	    };
 	    Animk.prototype.test = function () {
+	        var wintab = __webpack_require__(35);
+	        setInterval(function () {
+	            console.log(wintab.allData());
+	        }, 100);
 	        this.projInfo.curComp.newTrack('D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png');
 	        this.tracker.vScroller.setMax(350);
 	        this.tracker.vScroller.evt.on(const_1.BaseEvent.CHANGED, function (v) {
@@ -901,9 +905,9 @@
 	};
 	var PixiEx_1 = __webpack_require__(11);
 	var Animk_1 = __webpack_require__(7);
-	var Button_1 = __webpack_require__(15);
+	var Button_1 = __webpack_require__(14);
 	var const_1 = __webpack_require__(6);
-	var Color_1 = __webpack_require__(14);
+	var Color_1 = __webpack_require__(15);
 	var TimestampBar = (function (_super) {
 	    __extends(TimestampBar, _super);
 	    function TimestampBar() {
@@ -1022,21 +1026,6 @@
 /***/ function(module, exports) {
 
 	"use strict";
-	var Col;
-	(function (Col) {
-	    Col[Col["panelBg"] = 2302755] = "panelBg";
-	    Col[Col["cursor"] = 2985195] = "cursor";
-	    Col[Col["tick"] = 9539985] = "tick";
-	    Col[Col["tickText"] = 9539985] = "tickText";
-	    Col[Col["trackText"] = 10921638] = "trackText";
-	})(Col = exports.Col || (exports.Col = {}));
-
-
-/***/ },
-/* 15 */
-/***/ function(module, exports) {
-
-	"use strict";
 	var __extends = (this && this.__extends) || function (d, b) {
 	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
 	    function __() { this.constructor = d; }
@@ -1071,6 +1060,21 @@
 	    return Button;
 	}(PIXI.Container));
 	exports.Button = Button;
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports) {
+
+	"use strict";
+	var Col;
+	(function (Col) {
+	    Col[Col["panelBg"] = 2302755] = "panelBg";
+	    Col[Col["cursor"] = 2985195] = "cursor";
+	    Col[Col["tick"] = 9539985] = "tick";
+	    Col[Col["tickText"] = 9539985] = "tickText";
+	    Col[Col["trackText"] = 10921638] = "trackText";
+	})(Col = exports.Col || (exports.Col = {}));
 
 
 /***/ },
@@ -1345,7 +1349,7 @@
 	};
 	var CheckBox_1 = __webpack_require__(21);
 	var PixiEx_1 = __webpack_require__(11);
-	var Color_1 = __webpack_require__(14);
+	var Color_1 = __webpack_require__(15);
 	var Animk_1 = __webpack_require__(7);
 	var const_1 = __webpack_require__(6);
 	var Clip_1 = __webpack_require__(22);
@@ -1421,7 +1425,7 @@
 	};
 	var PixiEx_1 = __webpack_require__(11);
 	var const_1 = __webpack_require__(6);
-	var Color_1 = __webpack_require__(14);
+	var Color_1 = __webpack_require__(15);
 	var CheckBox = (function (_super) {
 	    __extends(CheckBox, _super);
 	    function CheckBox() {
@@ -2208,6 +2212,14 @@
 	}());
 	exports.TweenEx = TweenEx;
 
+
+/***/ },
+/* 33 */,
+/* 34 */,
+/* 35 */
+/***/ function(module, exports) {
+
+	module.exports = require("addon/node-wintab");
 
 /***/ }
 /******/ ]);
