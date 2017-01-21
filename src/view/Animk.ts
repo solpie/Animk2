@@ -1,3 +1,4 @@
+import { PngMaker } from '../utils/png/PngMaker';
 import { cmd } from './model/Command';
 import { Viewport } from './components/Viewport/Viewport';
 import { LayerTracker } from './LayerTrack/LayerTracker';
@@ -71,7 +72,10 @@ export class Animk extends EventDispatcher {
     test() {
         //todo: ctrl + drag frame :hold frame
 
-
+        let p = new PngMaker()
+        p.createPng(512, 512, 'd:\\test.png', () => {
+            
+        })
         // var addon = require('addon/psd')
         // console.log(addon.hello()); // 'world'
         // for (var i = 0; i < 1; i++) {

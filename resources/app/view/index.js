@@ -190,6 +190,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var PngMaker_1 = __webpack_require__(34);
 	var Viewport_1 = __webpack_require__(8);
 	var LayerTracker_1 = __webpack_require__(12);
 	var ProjectInfo_1 = __webpack_require__(23);
@@ -252,7 +253,10 @@
 	        };
 	    };
 	    Animk.prototype.test = function () {
-	        var wintab = __webpack_require__(35);
+	        var p = new PngMaker_1.PngMaker();
+	        p.createPng(512, 512, 'd:\\test.png', function () {
+	        });
+	        var wintab = __webpack_require__(33);
 	        setInterval(function () {
 	            console.log(wintab.allData());
 	        }, 100);
@@ -2214,12 +2218,260 @@
 
 
 /***/ },
-/* 33 */,
-/* 34 */,
-/* 35 */
+/* 33 */
 /***/ function(module, exports) {
 
 	module.exports = require("addon/node-wintab");
+
+/***/ },
+/* 34 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var Packer_1 = __webpack_require__(35);
+	var PngMaker = (function () {
+	    function PngMaker() {
+	    }
+	    PngMaker.prototype.createPng = function (w, h, path, callback) {
+	        var packer = new Packer_1.Packer({
+	            width: w,
+	            depthInBytes: 1,
+	            filterType: 0,
+	            height: h
+	        });
+	        var pixelData = new Buffer(w * h * 4);
+	        pixelData.fill(0);
+	        packer.pack(pixelData, w, h, 1, path, callback);
+	    };
+	    PngMaker.prototype.transPng = function (w, h, path, callback) {
+	        var packer = new Packer_1.Packer({
+	            width: w,
+	            depthInBytes: 1,
+	            filterType: 0,
+	            height: h
+	        });
+	        var pixelData = new Buffer(w * h * 4);
+	        pixelData.fill(0);
+	        var left = 20;
+	        var top = 30;
+	        var WhiteData = new Buffer(30 * 20 * 4);
+	        WhiteData.fill(255);
+	        for (var y = 0; y < h; y++) {
+	            for (var x = 0; x < w; x++) {
+	                if (x >= left && y >= top) {
+	                    var idx = (w * y + x) << 2;
+	                    var idxW = (30 * (y - top) + (x - left)) << 2;
+	                    if (idxW > -1) {
+	                        if (idxW == 0)
+	                            console.log(this, "x", x, "y", y);
+	                        pixelData[idx] = WhiteData[idxW];
+	                        pixelData[idx + 1] = WhiteData[idxW + 1];
+	                        pixelData[idx + 2] = WhiteData[idxW + 2];
+	                        pixelData[idx + 3] = WhiteData[idxW + 3];
+	                    }
+	                }
+	            }
+	        }
+	        packer.pack(pixelData, w, h, 1, path, callback);
+	    };
+	    PngMaker.transPixels = function (pixW, pixH, pix, left, top) {
+	        var w = pixW + left;
+	        var h = pixH + top;
+	        var transPixels = new Buffer((w) * (h) * 4);
+	        transPixels.fill(0);
+	        for (var y = 0; y < h; y++) {
+	            for (var x = 0; x < w; x++) {
+	                if (x >= left && y >= top) {
+	                    var idx = (w * y + x) << 2;
+	                    var idxW = (pixW * (y - top) + (x - left)) << 2;
+	                    if (idxW > -1) {
+	                        transPixels[idx] = pix[idxW];
+	                        transPixels[idx + 1] = pix[idxW + 1];
+	                        transPixels[idx + 2] = pix[idxW + 2];
+	                        transPixels[idx + 3] = pix[idxW + 3];
+	                    }
+	                }
+	            }
+	        }
+	        return transPixels;
+	    };
+	    return PngMaker;
+	}());
+	exports.PngMaker = PngMaker;
+
+
+/***/ },
+/* 35 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var zlib = __webpack_require__(36);
+	var Filter_1 = __webpack_require__(37);
+	var writeBuffer = function (path, buffer, callback) {
+	    var fs = __webpack_require__(26);
+	    fs.open(path, 'w', null, function (err, fd) {
+	        if (err) {
+	            throw err;
+	        }
+	        fs.write(fd, buffer, 0, buffer.length, null, function (err) {
+	            if (err) {
+	                throw err;
+	            }
+	            fs.close(fd, function () {
+	                callback();
+	            });
+	        });
+	    });
+	};
+	var Packer = (function () {
+	    function Packer(options) {
+	        this.PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+	        this.TYPE_IHDR = 0x49484452;
+	        this.TYPE_IDAT = 0x49444154;
+	        this.TYPE_IEND = 0x49454e44;
+	        this._options = options;
+	        options.deflateChunkSize = options.deflateChunkSize || 32 * 1024;
+	        options.deflateLevel = options.deflateLevel || 9;
+	        options.deflateStrategy = options.deflateStrategy || 3;
+	        this.initCrc();
+	    }
+	    Packer.prototype.initCrc = function () {
+	        this.crcTable = [];
+	        for (var i = 0; i < 256; i++) {
+	            var c = i;
+	            for (var j = 0; j < 8; j++) {
+	                if (c & 1) {
+	                    c = 0xedb88320 ^ (c >>> 1);
+	                }
+	                else {
+	                    c = c >>> 1;
+	                }
+	            }
+	            this.crcTable[i] = c;
+	        }
+	    };
+	    Packer.prototype.pack = function (pixelData, width, height, depthInBytes, path, callback) {
+	        var _this = this;
+	        var bufs = [];
+	        bufs.push(new Buffer(this.PNG_SIGNATURE));
+	        bufs.push(this._packIHDR(width, height, depthInBytes));
+	        var filter = new Filter_1.Filter(width, height, depthInBytes, 4, pixelData, this._options);
+	        var dataFilter = filter.filter();
+	        var deflate = zlib.createDeflate({
+	            chunkSize: this._options.deflateChunkSize,
+	            level: this._options.deflateLevel,
+	            strategy: this._options.deflateStrategy
+	        });
+	        deflate.on('data', function (data) {
+	            bufs.push(_this._packIDAT(data));
+	        });
+	        deflate.on('end', function () {
+	            bufs.push(_this._packIEND());
+	            var buffer = Buffer.concat(bufs);
+	            writeBuffer(path, buffer, callback);
+	        });
+	        deflate.end(dataFilter);
+	    };
+	    Packer.prototype.write = function (path) {
+	    };
+	    Packer.prototype._packIHDR = function (width, height, depthInBytes) {
+	        var buf = new Buffer(13);
+	        buf.writeUInt32BE(width, 0);
+	        buf.writeUInt32BE(height, 4);
+	        buf[8] = depthInBytes * 8;
+	        buf[9] = 6;
+	        buf[10] = 0;
+	        buf[11] = 0;
+	        buf[12] = 0;
+	        return this._packChunk(this.TYPE_IHDR, buf);
+	    };
+	    Packer.prototype._packIDAT = function (data) {
+	        return this._packChunk(this.TYPE_IDAT, data);
+	    };
+	    Packer.prototype._packIEND = function () {
+	        return this._packChunk(this.TYPE_IEND, null);
+	    };
+	    Packer.prototype._packChunk = function (type, data) {
+	        var len = (data ? data.length : 0), buf = new Buffer(len + 12);
+	        buf.writeUInt32BE(len, 0);
+	        buf.writeUInt32BE(type, 4);
+	        if (data)
+	            data.copy(buf, 8);
+	        buf.writeInt32BE(this.crc32(buf.slice(4, buf.length - 4)), buf.length - 4);
+	        return buf;
+	    };
+	    Packer.prototype.crc32 = function (buf) {
+	        var crc = -1;
+	        for (var i = 0; i < buf.length; i++) {
+	            crc = this.crcTable[(crc ^ buf[i]) & 0xff] ^ (crc >>> 8);
+	        }
+	        return crc ^ -1;
+	    };
+	    return Packer;
+	}());
+	exports.Packer = Packer;
+
+
+/***/ },
+/* 36 */
+/***/ function(module, exports) {
+
+	module.exports = require("zlib");
+
+/***/ },
+/* 37 */
+/***/ function(module, exports) {
+
+	"use strict";
+	var Filter = (function () {
+	    function Filter(width, height, depthInBytes, Bpp, data, options) {
+	        this._width = width;
+	        this._height = height;
+	        this._depthInBytes = depthInBytes;
+	        this._data = data;
+	        this._options = options;
+	        this._line = 0;
+	        if (!('filterType' in options) || options.filterType == -1) {
+	            options.filterType = [0, 1, 2, 3, 4];
+	        }
+	        else if (typeof options.filterType == 'number') {
+	            options.filterType = [options.filterType];
+	        }
+	        this._filters = {
+	            0: this._filterNone.bind(this),
+	        };
+	    }
+	    Filter.prototype.filter = function () {
+	        var pxData = this._data, rawData = new Buffer(((this._width << (2 + this._depthInBytes - 1)) + 1) * this._height);
+	        for (var y = 0; y < this._height; y++) {
+	            var filterTypes = this._options.filterType, min = Infinity, sel = 0;
+	            for (var i = 0; i < filterTypes.length; i++) {
+	                var sum = this._filters[filterTypes[i]](pxData, y, null);
+	                if (sum < min) {
+	                    sel = filterTypes[i];
+	                    min = sum;
+	                }
+	            }
+	            this._filters[sel](pxData, y, rawData);
+	        }
+	        return rawData;
+	    };
+	    Filter.prototype._filterNone = function (pxData, y, rawData) {
+	        var pxRowLength = this._width << (2 + this._depthInBytes - 1), rawRowLength = pxRowLength + 1, sum = 0;
+	        if (!rawData) {
+	            for (var x = 0; x < pxRowLength; x++)
+	                sum += Math.abs(pxData[y * pxRowLength + x]);
+	        }
+	        else {
+	            rawData[y * rawRowLength] = 0;
+	            pxData.copy(rawData, rawRowLength * y + 1, pxRowLength * y, pxRowLength * (y + 1));
+	        }
+	        return sum;
+	    };
+	    return Filter;
+	}());
+	exports.Filter = Filter;
+
 
 /***/ }
 /******/ ]);
