@@ -1,9 +1,8 @@
-import { Col } from '../model/Color';
-import { cmd } from '../model/Command';
-import { CompInfoEvent, InputEvent } from '../const';
+import { MakeMatrixGraphics, PIXI_MOUSE_EVENT } from '../../utils/PixiEx';
 import { animk } from '../Animk';
-import { FillMatrix, MakeMatrix, PIXI_MOUSE_EVENT } from '../../utils/PixiEx';
 import { Button } from '../components/Button';
+import { CompInfoEvent, InputEvent } from '../const';
+import { Col } from '../model/Color';
 
 export class TimestampBar extends PIXI.Sprite {
     gTick: PIXI.Graphics
@@ -24,32 +23,25 @@ export class TimestampBar extends PIXI.Sprite {
         this.addChild(this.gMask)
         this.gTick.mask = this.gMask
 
-        let m = MakeMatrix(13,11,Col.cursor)
-        let m1 = [
-            [.7, 1, 1, 1, 1, 1, 1, 1, 1, 1, .7],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [.9, 1, 1, 1, 0, 0, 0, 1, 1, 1, .9],
-            [.5, 1, 1, 1, 1, 0, 1, 1, 1, 1, .5],
-            [0, .4, 1, 1, 1, 0, 1, 1, 1, .4, 0],
-            [0, .1, .8, 1, 1, 0, 1, 1, .8, .1, 0],
-            [0, 0, .3, 1, 1, 0, 1, 1, .3, 0, 0],
-            [0, 0, 0, .6, 1, 0, 1, .6, 0, 0, 0],
-            [0, 0, 0, .1, .9, 0, .9, .1, 0, 0, 0],
+        let m2 = [
+            '7.........7',
+            '...........',
+            '...........',
+            '...........',
+            '...........',
+            '...........',
+            '9...   ...9',
+            '5.... ....5',
+            ' 4... ...4 ',
+            ' 18.. ..81 ',
+            '  3.. ..3  ',
+            '   6. .6   ',
+            '   19 91   ',
         ]
-
-        for (var y = 0; y < m1.length; y++) {
-            var rowArr = m1[y];
-            for (var x = 0; x < rowArr.length; x++) {
-                var alpha = rowArr[x];
-                m[y][x].alpha = alpha
-            }
-        }
+       
         this.gCursor = new PIXI.Graphics()
-        FillMatrix(this.gCursor, m, -6, 0)
+        MakeMatrixGraphics(m2, Col.cursor, this.gCursor, -6, 0)
+
         this.gCursor
             .lineStyle(1, Col.cursor)
             .moveTo(0, 15)

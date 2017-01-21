@@ -69,14 +69,23 @@ export class Animk extends EventDispatcher {
     }
 
     test() {
+        //todo: ctrl + drag frame :hold frame
+
+
+        
         // for (var i = 0; i < 1; i++) {
         //     this.tracker.newStacker()
         // }
         // for (var p of ['D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png', 'D:\lsj\rkb2017\军哥\reto\101.png']) {
         // this.projInfo.curComp.newTrack(p);
         // }
+        // var wintab = require('./build/wintab');
+        // var wintab = require('node-wintab');
+        // setInterval(function () {
+        //     console.log(wintab.allData());
+        // }, 1);
         this.projInfo.curComp.newTrack('D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png');
-        
+
         // let a = ['D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png', 'D:\lsj\rkb2017\军哥\reto\101.png']
         // let loadTrack = (pathArr: Array<string>) => {
         //     let p = pathArr.shift()

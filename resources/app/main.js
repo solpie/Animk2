@@ -1,8 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
-// app.commandLine.appendSwitch('--enable-npapi')
-app.commandLine.appendSwitch('enable-npapi')
 var path = require('path');
 var process = require('process');
+
 console.log(process.execPath);
 var win
 var isDev;
