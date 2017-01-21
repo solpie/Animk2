@@ -45,6 +45,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	var AppInfo_1 = __webpack_require__(39);
 	__webpack_require__(1);
 	__webpack_require__(4);
 	var const_1 = __webpack_require__(6);
@@ -62,7 +63,7 @@
 	    renderer.renderStage();
 	    return renderer.stage;
 	};
-	Animk_1.animk.init(main());
+	Animk_1.animk.init(main(), AppInfo_1.appInfo);
 
 
 /***/ },
@@ -130,22 +131,6 @@
 	exports.COLOR = {
 	    PLAYER_EDIT: 'edit player',
 	};
-	var ProjectInfoEvent = (function () {
-	    function ProjectInfoEvent() {
-	    }
-	    return ProjectInfoEvent;
-	}());
-	ProjectInfoEvent.NEW_PROJ = "NEW_PROJ";
-	exports.ProjectInfoEvent = ProjectInfoEvent;
-	var SettingInfoEvent = (function () {
-	    function SettingInfoEvent() {
-	    }
-	    return SettingInfoEvent;
-	}());
-	SettingInfoEvent.SET_TMP_PATH = "SET_TMP_PATH";
-	SettingInfoEvent.SET_DRAW_APP1 = "SET_DRAW_APP1";
-	SettingInfoEvent.SET_DRAW_APP2 = "SET_DRAW_APP2";
-	exports.SettingInfoEvent = SettingInfoEvent;
 	exports.CompInfoEvent = {
 	    NEW_COMP: "new comp",
 	    NEW_TRACK: "new track",
@@ -193,21 +178,18 @@
 	var PngMaker_1 = __webpack_require__(34);
 	var Viewport_1 = __webpack_require__(8);
 	var LayerTracker_1 = __webpack_require__(12);
-	var ProjectInfo_1 = __webpack_require__(23);
-	var EventDispatcher_1 = __webpack_require__(18);
 	var const_1 = __webpack_require__(6);
 	var Splitter_1 = __webpack_require__(31);
 	var Animk = (function (_super) {
 	    __extends(Animk, _super);
 	    function Animk() {
-	        return _super !== null && _super.apply(this, arguments) || this;
+	        return _super.call(this) || this;
 	    }
-	    Animk.prototype.init = function (stage) {
+	    Animk.prototype.initUI = function () {
 	        var _this = this;
-	        this.projInfo = new ProjectInfo_1.ProjectInfo();
 	        var vs = new Splitter_1.Splitter('v', 1600, 1000);
 	        this.vSplitter = vs;
-	        stage.addChild(vs);
+	        this.addChild(vs);
 	        var vp = new Viewport_1.Viewport();
 	        vs.setChild(vp);
 	        var tk = new LayerTracker_1.LayerTracker();
@@ -215,9 +197,14 @@
 	        vs.setChild(tk);
 	        vs.setBarY(720);
 	        vs.bar.addChild(tk.timestampBar);
-	        this.vSplitter.evt.on(const_1.BaseEvent.CHANGED, function (vs) {
+	        this.vSplitter.on(const_1.BaseEvent.CHANGED, function (vs) {
 	            _this.tracker.resize(vs.width, vs.child2Space);
 	        });
+	    };
+	    Animk.prototype.init = function (stage, appInfo) {
+	        this.projInfo = appInfo.newProject();
+	        this.initUI();
+	        stage.addChild(this);
 	        this.initMouse();
 	        this.initEvent();
 	        this.onload();
@@ -267,7 +254,7 @@
 	        });
 	    };
 	    return Animk;
-	}(EventDispatcher_1.EventDispatcher));
+	}(PIXI.Container));
 	exports.Animk = Animk;
 	exports.animk = new Animk();
 
@@ -552,6 +539,15 @@
 	        if (new RegExp("(" + k + ")").test(fmt))
 	            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
 	    return fmt;
+	};
+	exports.prop = function (obj, paramName, v, callback) {
+	    if (v != undefined) {
+	        obj[paramName] = v;
+	        if (callback)
+	            callback();
+	    }
+	    else
+	        return obj[paramName];
 	};
 
 
@@ -1552,9 +1548,19 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var JSONFile_1 = __webpack_require__(38);
+	var TrackInfo_1 = __webpack_require__(29);
 	var const_1 = __webpack_require__(6);
 	var CompInfo_1 = __webpack_require__(24);
 	var EventDispatcher_1 = __webpack_require__(18);
+	var M_path = __webpack_require__(27);
+	var ProjectInfoEvent = (function () {
+	    function ProjectInfoEvent() {
+	    }
+	    return ProjectInfoEvent;
+	}());
+	ProjectInfoEvent.NEW_PROJ = "NEW_PROJ";
+	exports.ProjectInfoEvent = ProjectInfoEvent;
 	var ProjectInfo = (function (_super) {
 	    __extends(ProjectInfo, _super);
 	    function ProjectInfo() {
@@ -1564,6 +1570,69 @@
 	        _this.newComp(1280, 720, 30);
 	        return _this;
 	    }
+	    ProjectInfo.prototype.open = function (path) {
+	        var _this = this;
+	        console.log(this, "open project", path);
+	        JSONFile_1.jsonfile.readFile(path, null, function (err, projData) {
+	            console.log(_this, "open project ver:", projData.linAnil.version);
+	            _this.version = projData.linAnil.version;
+	            for (var i = 0; i < projData.linAnil.composition.length; i++) {
+	                var compData = projData.linAnil.composition[i];
+	                var compInfo = _this.newComp(compData.width, compData.height, compData.framerate);
+	                for (var j = 0; j < compData.tracks.length; j++) {
+	                    var trackData = compData.tracks[j];
+	                    var path = trackData.path;
+	                    for (var k = 0; k < trackData.frames.length; k++) {
+	                        var frameData = trackData.frames[k];
+	                        frameData.filename = M_path.join(path, frameData.filename);
+	                    }
+	                    compInfo.newTrackByTrackData(trackData);
+	                }
+	            }
+	        });
+	    };
+	    ProjectInfo.prototype.save = function (path) {
+	        this.saveFilename = path;
+	        var projData = {
+	            linAnil: {
+	                version: this.version,
+	                setting: {
+	                    tmp: "c:/tmp",
+	                },
+	                composition: []
+	            }
+	        };
+	        for (var i = 0; i < this.comps.length; i++) {
+	            var compInfo = this.comps[i];
+	            if (!compInfo)
+	                continue;
+	            var compData = {
+	                name: compInfo.name(),
+	                framerate: compInfo.framerate,
+	                framewidth: compInfo.frameWidth,
+	                height: compInfo.height,
+	                width: compInfo.width,
+	                tracks: []
+	            };
+	            projData.linAnil.composition.push(compData);
+	            for (var j = 0; j < compInfo.trackInfoArr.length; j++) {
+	                var trackInfo = compInfo.trackInfoArr[j];
+	                if (!trackInfo)
+	                    continue;
+	                console.log(this, "get TrackData", j, trackInfo.trackData());
+	                var trackData = TrackInfo_1.TrackData.clone(trackInfo.trackData());
+	                compData.tracks.push(trackData);
+	                for (var k = 0; k < trackData.frames.length; k++) {
+	                    var frameData = trackData.frames[k];
+	                    if (!frameData)
+	                        continue;
+	                    frameData.filename = M_path.basename(frameData.filename);
+	                }
+	            }
+	        }
+	        JSONFile_1.jsonfile.writeFile(path, projData, null, function (err) {
+	        });
+	    };
 	    ProjectInfo.prototype.frameWidth = function () {
 	        return this.curComp.frameWidth;
 	    };
@@ -1591,6 +1660,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var JsFunc_1 = __webpack_require__(10);
 	var NodeFunc_1 = __webpack_require__(25);
 	var Command_1 = __webpack_require__(17);
 	var const_1 = __webpack_require__(6);
@@ -1604,6 +1674,7 @@
 	    };
 	    return CompositionData;
 	}());
+	exports.CompositionData = CompositionData;
 	var CompInfo = (function (_super) {
 	    __extends(CompInfo, _super);
 	    function CompInfo(width, height, framerate) {
@@ -1645,7 +1716,7 @@
 	        return this._cursorPos;
 	    };
 	    CompInfo.prototype.name = function (v) {
-	        this._compData.name = v;
+	        return JsFunc_1.prop(this._compData, 'name', v);
 	    };
 	    CompInfo.prototype.newTrack = function (filename, callback) {
 	        var _this = this;
@@ -1679,6 +1750,46 @@
 	        if (v > this._maxPos)
 	            this._maxPos = v;
 	        console.log('maxPos', this._maxPos);
+	    };
+	    CompInfo.prototype.newTrackByTrackData = function (trackData) {
+	        var trackInfo = new TrackInfo_1.TrackInfo(trackData);
+	        if (trackData.type == TrackInfo_1.TrackType.AUDIO) {
+	        }
+	        else {
+	            trackInfo.newImage(trackData.frames);
+	        }
+	        trackInfo.idx2(this.trackInfoArr.length);
+	        trackInfo.layerIdx(this.trackInfoArr.length);
+	        this.appendTrackInfo(trackInfo);
+	        this.emit(const_1.CompInfoEvent.NEW_TRACK, trackInfo);
+	    };
+	    CompInfo.prototype.appendTrackInfo = function (trackInfo) {
+	        this.trackInfoArr.push(trackInfo);
+	        this._updateCompTrackArr();
+	    };
+	    CompInfo.prototype._updateCompTrackArr = function () {
+	        var compare = function (prop) {
+	            return function (obj1, obj2) {
+	                var val1 = obj1[prop];
+	                var val2 = obj2[prop];
+	                if (val1 < val2) {
+	                    return -1;
+	                }
+	                else if (val1 > val2) {
+	                    return 1;
+	                }
+	                else {
+	                    return 0;
+	                }
+	            };
+	        };
+	        var a = [];
+	        this.trackInfoArr.map(function (tInfo) {
+	            if (tInfo)
+	                a.push(tInfo);
+	        });
+	        a.sort(compare("_layerIdx"));
+	        this._compTrackInfoArr = a;
 	    };
 	    return CompInfo;
 	}(EventDispatcher_1.EventDispatcher));
@@ -1796,6 +1907,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var JsFunc_1 = __webpack_require__(10);
 	var const_1 = __webpack_require__(6);
 	var FrameInfo_1 = __webpack_require__(30);
 	var EventDispatcher_1 = __webpack_require__(18);
@@ -1804,19 +1916,19 @@
 	    TrackLoopType[TrackLoopType["NONE"] = 0] = "NONE";
 	    TrackLoopType[TrackLoopType["HOLD"] = 1] = "HOLD";
 	    TrackLoopType[TrackLoopType["REPEAT"] = 2] = "REPEAT";
-	})(TrackLoopType || (TrackLoopType = {}));
+	})(TrackLoopType = exports.TrackLoopType || (exports.TrackLoopType = {}));
 	var TrackType;
 	(function (TrackType) {
 	    TrackType[TrackType["IMAGE"] = 1] = "IMAGE";
 	    TrackType[TrackType["COMP"] = 2] = "COMP";
 	    TrackType[TrackType["AUDIO"] = 3] = "AUDIO";
-	})(TrackType || (TrackType = {}));
+	})(TrackType = exports.TrackType || (exports.TrackType = {}));
 	var ImageTrackActType;
 	(function (ImageTrackActType) {
 	    ImageTrackActType[ImageTrackActType["NORMAL"] = 1] = "NORMAL";
 	    ImageTrackActType[ImageTrackActType["REF"] = 2] = "REF";
 	    ImageTrackActType[ImageTrackActType["NOEDIT"] = 3] = "NOEDIT";
-	})(ImageTrackActType || (ImageTrackActType = {}));
+	})(ImageTrackActType = exports.ImageTrackActType || (exports.ImageTrackActType = {}));
 	var TrackData = (function () {
 	    function TrackData() {
 	        this.opacity = 1;
@@ -1846,15 +1958,21 @@
 	exports.TrackData = TrackData;
 	var TrackInfo = (function (_super) {
 	    __extends(TrackInfo, _super);
-	    function TrackInfo() {
+	    function TrackInfo(trackData) {
 	        var _this = _super.call(this) || this;
 	        _this._hold = 1;
 	        _this._isSel = false;
-	        _this._trackData = new TrackData;
+	        trackData ? _this._trackData = trackData : _this._trackData = new TrackData;
 	        _this.frameInfoArr = [];
 	        _this.removedFrameArr = [];
 	        return _this;
 	    }
+	    TrackInfo.prototype.idx2 = function (v) {
+	        return JsFunc_1.prop(this, '_idx', v);
+	    };
+	    TrackInfo.prototype.layerIdx = function (v) {
+	        return JsFunc_1.prop(this, "_layerIdx", v);
+	    };
 	    TrackInfo.prototype.name = function (v) {
 	        if (v != undefined)
 	            this._trackData.name = v;
@@ -1867,10 +1985,58 @@
 	        frameInfo.setStart(this.frameInfoArr.length);
 	        this.emit(const_1.TrackInfoEvent.PUSH_FRAME, frameInfo);
 	    };
+	    TrackInfo.prototype.onImgLoaded = function () {
+	        this._loadCount--;
+	        if (this._loadCount > 0) {
+	        }
+	        else {
+	            this.emit(const_1.TrackInfoEvent.LOADED);
+	        }
+	    };
+	    TrackInfo.prototype.newImage = function (frameDataArr) {
+	        var _this = this;
+	        var newFrame;
+	        var frameData;
+	        this._loadCount = frameDataArr.length;
+	        var holdCount = frameDataArr.length;
+	        for (var i = 0; i < frameDataArr.length; i++) {
+	            frameData = frameDataArr[i];
+	            newFrame = new FrameInfo_1.FrameInfo(frameData.filename);
+	            newFrame.imageInfo.img.addEventListener("load", function () {
+	                _this.onImgLoaded();
+	            });
+	            if (frameData.start) {
+	                newFrame.setStart(frameData.start);
+	                newFrame.setHold(frameData.hold);
+	                holdCount += (frameData.hold - 1);
+	            }
+	            else {
+	                newFrame.setStart(i + 1);
+	                newFrame.setHold(1);
+	            }
+	            newFrame.setIdx(this.frameInfoArr.length);
+	            this.frameInfoArr.push(newFrame);
+	        }
+	        this._hold = holdCount;
+	    };
 	    TrackInfo.prototype.loopType = function (v) {
 	        if (v != undefined)
 	            this._trackData.loopType = v;
 	        return this._trackData.loopType;
+	    };
+	    TrackInfo.prototype.actType = function (v) {
+	        if (v != undefined) {
+	            this._trackData.act = v;
+	            this.emit(const_1.TrackInfoEvent.SET_ACT_TYPE, v);
+	        }
+	        return this._trackData.act;
+	    };
+	    TrackInfo.prototype.opacity = function (v) {
+	        if (v != undefined) {
+	            this._trackData.opacity = v;
+	            this.emit(const_1.TrackInfoEvent.SET_OPACITY, v);
+	        }
+	        return this._trackData.opacity;
 	    };
 	    TrackInfo.prototype.start = function (v) {
 	        if (v != undefined) {
@@ -1898,6 +2064,12 @@
 	            return frameInfo.filename;
 	        }
 	        return null;
+	    };
+	    TrackInfo.prototype.trackData = function () {
+	        return this._trackData;
+	    };
+	    TrackInfo.prototype.getCurImg = function (frameIdx) {
+	        return this.getFrameByCursor(frameIdx);
 	    };
 	    return TrackInfo;
 	}(EventDispatcher_1.EventDispatcher));
@@ -1997,17 +2169,15 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var PixiEx_1 = __webpack_require__(11);
 	var TweenEx_1 = __webpack_require__(32);
 	var Animk_1 = __webpack_require__(7);
 	var const_1 = __webpack_require__(6);
-	var EventDispatcher_1 = __webpack_require__(18);
-	var PixiEx_1 = __webpack_require__(11);
 	var Splitter = (function (_super) {
 	    __extends(Splitter, _super);
 	    function Splitter(dir, width, height) {
 	        var _this = _super.call(this) || this;
 	        _this.barSpace = 40;
-	        _this.evt = new EventDispatcher_1.EventDispatcher;
 	        _this.colBg = 0x232323;
 	        _this._w = width;
 	        _this._h = height;
@@ -2030,7 +2200,7 @@
 	                    _this.setBarY(_this.bar.y + e.my - lastMousePosY);
 	                    lastMousePosY = e.my;
 	                    if (_this.child2) {
-	                        _this.evt.emit(const_1.BaseEvent.CHANGED, _this);
+	                        _this.emit(const_1.BaseEvent.CHANGED, _this);
 	                    }
 	                }
 	            }
@@ -2471,6 +2641,197 @@
 	    return Filter;
 	}());
 	exports.Filter = Filter;
+
+
+/***/ },
+/* 38 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var fs = __webpack_require__(26);
+	function readFile(file, options, callback) {
+	    if (callback == null) {
+	        callback = options;
+	        options = {};
+	    }
+	    fs.readFile(file, options, function (err, data) {
+	        if (err)
+	            return callback(err);
+	        var obj;
+	        try {
+	            obj = JSON.parse(data, options ? options.reviver : null);
+	        }
+	        catch (err2) {
+	            return callback(err2);
+	        }
+	        callback(null, obj);
+	    });
+	}
+	function readFileSync(file, options) {
+	    options = options || {};
+	    if (typeof options === 'string') {
+	        options = { encoding: options };
+	    }
+	    var shouldThrow = 'throws' in options ? options.throw : true;
+	    if (shouldThrow) {
+	        return JSON.parse(fs.readFileSync(file, options), options.reviver);
+	    }
+	    else {
+	        try {
+	            return JSON.parse(fs.readFileSync(file, options), options.reviver);
+	        }
+	        catch (err) {
+	            return null;
+	        }
+	    }
+	}
+	function writeFile(file, obj, options, callback) {
+	    if (callback == null) {
+	        callback = options;
+	        options = {};
+	    }
+	    var spaces = typeof options === 'object' && options !== null
+	        ? 'spaces' in options
+	            ? options.spaces : this.spaces
+	        : this.spaces;
+	    var str = '';
+	    try {
+	        str = JSON.stringify(obj, options ? options.replacer : null, spaces) + '\n';
+	    }
+	    catch (err) {
+	        if (callback)
+	            return callback(err, null);
+	    }
+	    fs.writeFile(file, str, options, callback);
+	}
+	function writeFileSync(file, obj, options) {
+	    options = options || {};
+	    var spaces = typeof options === 'object' && options !== null
+	        ? 'spaces' in options
+	            ? options.spaces : this.spaces
+	        : this.spaces;
+	    var str = JSON.stringify(obj, options.replacer, spaces) + '\n';
+	    return fs.writeFileSync(file, str, options);
+	}
+	exports.jsonfile = {
+	    spaces: null,
+	    readFile: readFile,
+	    readFileSync: readFileSync,
+	    writeFile: writeFile,
+	    writeFileSync: writeFileSync
+	};
+
+
+/***/ },
+/* 39 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var SettingInfo_1 = __webpack_require__(40);
+	var JsFunc_1 = __webpack_require__(10);
+	var ProjectInfo_1 = __webpack_require__(23);
+	var EventDispatcher_1 = __webpack_require__(18);
+	var AppData = (function () {
+	    function AppData() {
+	        this.winWidth = 1660;
+	        this.winHeight = 1024;
+	    }
+	    return AppData;
+	}());
+	var AppInfo = (function (_super) {
+	    __extends(AppInfo, _super);
+	    function AppInfo() {
+	        var _this = _super.call(this) || this;
+	        _this.appData = new AppData();
+	        _this.settingInfo = new SettingInfo_1.SettingInfo();
+	        return _this;
+	    }
+	    AppInfo.prototype.width = function (v) {
+	        return JsFunc_1.prop(this.appData, "winWidth", v);
+	    };
+	    AppInfo.prototype.height = function (v) {
+	        return JsFunc_1.prop(this.appData, "winHeight", v);
+	    };
+	    AppInfo.prototype.newProject = function () {
+	        this.projectInfo = new ProjectInfo_1.ProjectInfo();
+	        this.emit(ProjectInfo_1.ProjectInfoEvent.NEW_PROJ);
+	        this.projectInfo.newComp(1280, 720, 24);
+	        this.projectInfo.curComp.setCursor(1);
+	        return this.projectInfo;
+	    };
+	    AppInfo.prototype.openProject = function (path) {
+	        this.projectInfo = new ProjectInfo_1.ProjectInfo();
+	        this.emit(ProjectInfo_1.ProjectInfoEvent.NEW_PROJ);
+	        this.projectInfo.open(path);
+	    };
+	    AppInfo.prototype.frameWidth = function () {
+	        return this.projectInfo.curComp.frameWidth;
+	    };
+	    AppInfo.prototype.curComp = function () {
+	        return this.projectInfo.curComp;
+	    };
+	    return AppInfo;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.AppInfo = AppInfo;
+	exports.appInfo = new AppInfo();
+
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var JsFunc_1 = __webpack_require__(10);
+	var EventDispatcher_1 = __webpack_require__(18);
+	var SettingData = (function () {
+	    function SettingData() {
+	        this.tmpPath = "c:/tmp";
+	        this.drawApp1Path = "C:\\Program Files\\CELSYS\\CLIP STUDIO 1.5\\CLIP STUDIO PAINT\\CLIPStudioPaint.exe";
+	        this.drawApp2Path = "";
+	    }
+	    return SettingData;
+	}());
+	var SettingInfoEvent = (function () {
+	    function SettingInfoEvent() {
+	    }
+	    return SettingInfoEvent;
+	}());
+	SettingInfoEvent.SET_TMP_PATH = "SET_TMP_PATH";
+	SettingInfoEvent.SET_DRAW_APP1 = "SET_DRAW_APP1";
+	SettingInfoEvent.SET_DRAW_APP2 = "SET_DRAW_APP2";
+	exports.SettingInfoEvent = SettingInfoEvent;
+	var SettingInfo = (function (_super) {
+	    __extends(SettingInfo, _super);
+	    function SettingInfo() {
+	        var _this = _super.call(this) || this;
+	        _this.settingData = new SettingData();
+	        return _this;
+	    }
+	    SettingInfo.prototype.tmpPath = function (v) {
+	        var _this = this;
+	        return JsFunc_1.prop(this.settingData, "tmpPath", v, function () {
+	            _this.emit(SettingInfoEvent.SET_TMP_PATH);
+	        });
+	    };
+	    SettingInfo.prototype.drawApp1Path = function (v) {
+	        var _this = this;
+	        return JsFunc_1.prop(this.settingData, "drawApp1Path", v, function () {
+	            _this.emit(SettingInfoEvent.SET_DRAW_APP1);
+	        });
+	    };
+	    return SettingInfo;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.SettingInfo = SettingInfo;
 
 
 /***/ }

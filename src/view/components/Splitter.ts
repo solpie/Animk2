@@ -1,10 +1,7 @@
+import { PIXI_RECT, setupDrag } from '../../utils/PixiEx';
 import { TweenEx } from '../../utils/TweenEx';
-// import { TimestampBar } from '../LayerTracker';
 import { animk } from '../Animk';
 import { BaseEvent, InputEvent } from '../const';
-import { EventDispatcher } from '../../utils/EventDispatcher';
-import { PIXI_MOUSE_EVENT, PIXI_RECT, setupDrag } from '../../utils/PixiEx';
-// import { dirname } from 'path';
 export class Splitter extends PIXI.Container {
     bar: PIXI.Sprite
     child1: any;
@@ -14,7 +11,6 @@ export class Splitter extends PIXI.Container {
     child2Space
     barSpace = 40
 
-    evt: EventDispatcher = new EventDispatcher
     mask1: PIXI.Graphics
     mask2: PIXI.Graphics
     _w
@@ -50,7 +46,7 @@ export class Splitter extends PIXI.Container {
                     this.setBarY(this.bar.y + e.my - lastMousePosY)
                     lastMousePosY = e.my
                     if (this.child2) {
-                        this.evt.emit(BaseEvent.CHANGED, this)
+                        this.emit(BaseEvent.CHANGED, this)
                     }
                 }
             }
@@ -69,10 +65,10 @@ export class Splitter extends PIXI.Container {
             lastMousePosY = -1
             this.bar.getChildAt(0).alpha = 1
         }
+
         animk.on(InputEvent.MOUSE_UP, (e) => {
             onUp(e)
         })
-
 
         this.addChild(this.bar)
         this.mask1 = new PIXI.Graphics().drawRect(0, 0, 1100, 1000)

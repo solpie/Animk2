@@ -1,13 +1,14 @@
+import { prop } from '../../utils/JsFunc';
 import { walkDir } from '../../utils/NodeFunc';
 import { cmd } from './Command';
 import { basename } from 'path';
 import { FrameData } from './FrameInfo';
 import { CompInfoEvent, FrameTimerEvent, TrackInfoEvent } from '../const';
 import { FrameTimer } from './FrameTimer';
-import { TrackData, TrackInfo } from './TrackInfo';
+import { TrackData, TrackInfo, TrackType } from './TrackInfo';
 import { EventDispatcher } from '../../utils/EventDispatcher';
 
-class CompositionData {
+export class CompositionData {
     name: string;
     framerate: number;
     framewidth: number;
@@ -21,6 +22,8 @@ class CompositionData {
 }
 export class CompInfo extends EventDispatcher {
     framerate: number = 24;
+    _compTrackInfoArr: Array<TrackInfo>;
+
     trackInfoArr: Array<TrackInfo>;
     frameWidth: number = 40
     width: number;
@@ -71,7 +74,8 @@ export class CompInfo extends EventDispatcher {
     }
 
     name(v?) {
-        this._compData.name = v
+        return prop(this._compData, 'name', v)
+        // this._compData.name = v
     }
     // walkFile(start) {
     //     var fileCount = 0,
@@ -114,7 +118,7 @@ export class CompInfo extends EventDispatcher {
     newTrack(filename, callback?) {
         let tInfo = new TrackInfo()
         this.trackInfoArr.push(tInfo)
-        
+
         tInfo.on(TrackInfoEvent.SET_TRACK_START, () => {
             this.emit(CompInfoEvent.UPDATE_CURSOR, this.getCursor())
         })
@@ -198,4 +202,49 @@ export class CompInfo extends EventDispatcher {
         console.log('maxPos', this._maxPos);
 
     }
+
+    newTrackByTrackData(trackData: TrackData) {
+        var trackInfo: TrackInfo = new TrackInfo(trackData);
+        if (trackData.type == TrackType.AUDIO) {
+
+        }
+        else {
+            trackInfo.newImage(trackData.frames);
+        }
+        //trackInfo.path(trackData.path);
+        //trackInfo.start(trackData.start);
+        trackInfo.idx2(this.trackInfoArr.length);
+        trackInfo.layerIdx(this.trackInfoArr.length);
+        this.appendTrackInfo(trackInfo);
+        this.emit(CompInfoEvent.NEW_TRACK, trackInfo);
+    }
+    appendTrackInfo(trackInfo: TrackInfo) {
+        this.trackInfoArr.push(trackInfo);
+        this._updateCompTrackArr();
+    }
+
+    _updateCompTrackArr() {
+        var compare = function (prop) {
+            return function (obj1, obj2) {
+                var val1 = obj1[prop];
+                var val2 = obj2[prop];
+                if (val1 < val2) {
+                    return -1;
+                } else if (val1 > val2) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+        };
+        var a = [];
+        this.trackInfoArr.map((tInfo) => {
+            if (tInfo)
+                a.push(tInfo);
+        });
+        a.sort(compare("_layerIdx"));
+        this._compTrackInfoArr = a;
+    }
+
+
 }

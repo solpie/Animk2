@@ -1,17 +1,19 @@
+import { prop } from '../../utils/JsFunc';
+import { ImageInfo } from './ImageInfo';
 import { TrackInfoEvent } from '../const';
 import { cmd } from './Command';
 import { FrameData, FrameInfo } from './FrameInfo';
 import { EventDispatcher } from '../../utils/EventDispatcher';
 
-enum TrackLoopType {
+export enum TrackLoopType {
     NONE, HOLD, REPEAT
 }
-enum TrackType {
+export enum TrackType {
     IMAGE = 1,
     COMP,
     AUDIO,
 }
-enum ImageTrackActType {
+export enum ImageTrackActType {
     NORMAL = 1,//in psd ,render
     REF,// in psd ,no render
     NOEDIT,//not in psd in psd but render
@@ -56,11 +58,19 @@ export class TrackInfo extends EventDispatcher {
     _isSel: Boolean = false;
     removedFrameArr: Array<FrameInfo>;
     _layerIdx: number;
-    constructor() {
+    constructor(trackData?: TrackData) {
         super()
-        this._trackData = new TrackData;
+        trackData ? this._trackData = trackData : this._trackData = new TrackData;
         this.frameInfoArr = [];
         this.removedFrameArr = [];
+    }
+
+    idx2(v?) {
+        return prop(this, '_idx', v)
+    }
+    
+    layerIdx(v?) {
+        return prop(this, "_layerIdx", v);
     }
 
     name(v?) {
@@ -76,11 +86,65 @@ export class TrackInfo extends EventDispatcher {
         frameInfo.setStart(this.frameInfoArr.length)
         this.emit(TrackInfoEvent.PUSH_FRAME, frameInfo)
     }
+    _loadCount;
+
+    onImgLoaded() {
+        //console.log(this, "load test");
+        //img.removeEventListener("load", this._onLoadFunc);
+        this._loadCount--;
+        if (this._loadCount > 0) {
+        }
+        else {
+            this.emit(TrackInfoEvent.LOADED);
+        }
+    }
+    newImage(frameDataArr: Array<FrameData>) {
+        var newFrame;
+        var frameData: FrameData;
+        this._loadCount = frameDataArr.length;
+        var holdCount = frameDataArr.length;
+        for (var i = 0; i < frameDataArr.length; i++) {
+            frameData = frameDataArr[i];
+            newFrame = new FrameInfo(frameData.filename);
+            //todo delete img listener
+            newFrame.imageInfo.img.addEventListener("load", () => {
+                this.onImgLoaded();
+            });
+            if (frameData.start) {
+                newFrame.setStart(frameData.start);
+                newFrame.setHold(frameData.hold);
+                holdCount += (frameData.hold - 1);
+            }
+            else {
+                newFrame.setStart(i + 1);
+                newFrame.setHold(1);
+            }
+            newFrame.setIdx(this.frameInfoArr.length);
+            this.frameInfoArr.push(newFrame);
+        }
+        this._hold = holdCount;
+    }
 
     loopType(v?) {
         if (v != undefined)
             this._trackData.loopType = v;
         return this._trackData.loopType;
+    }
+
+    actType(v?) {
+        if (v != undefined) {
+            this._trackData.act = v;
+            this.emit(TrackInfoEvent.SET_ACT_TYPE, v)
+        }
+        return this._trackData.act;
+    }
+
+    opacity(v?) {
+        if (v != undefined) {
+            this._trackData.opacity = v;
+            this.emit(TrackInfoEvent.SET_OPACITY, v)
+        }
+        return this._trackData.opacity;
     }
 
     start(v?) {
@@ -111,5 +175,13 @@ export class TrackInfo extends EventDispatcher {
             return frameInfo.filename;
         }
         return null;
+    }
+    trackData(): TrackData {
+        return this._trackData;
+    }
+
+    getCurImg(frameIdx: number) {
+        //todo clean
+        return this.getFrameByCursor(frameIdx)
     }
 }

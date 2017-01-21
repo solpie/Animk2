@@ -23,14 +23,7 @@ export const COLOR = {
 };
 
 ///   model  events
-export class ProjectInfoEvent {
-    static NEW_PROJ: string = "NEW_PROJ";
-}
-export class SettingInfoEvent {
-    static SET_TMP_PATH: string = "SET_TMP_PATH";
-    static SET_DRAW_APP1: string = "SET_DRAW_APP1";
-    static SET_DRAW_APP2: string = "SET_DRAW_APP2";
-}
+
 export const CompInfoEvent = {
     NEW_COMP: "new comp",
     NEW_TRACK: "new track",

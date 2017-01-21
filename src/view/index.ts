@@ -1,3 +1,4 @@
+import { appInfo } from './model/AppInfo';
 require(`script!./../libs/pixi.min.js`);
 require(`script!./../libs/Tween.min.js`);
 import { ViewConst } from './const';
@@ -20,4 +21,4 @@ let main = () => {
     return renderer.stage;
 }
 
-animk.init(main())
+animk.init(main(),appInfo)

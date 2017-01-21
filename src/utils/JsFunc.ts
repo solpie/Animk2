@@ -187,3 +187,14 @@ export let DateFormat = function (date, fmt) { //author: meizz
             fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
     return fmt;
 };
+
+
+export const prop = function (obj, paramName, v, callback?) {
+    if (v != undefined) {
+        obj[paramName] = v;
+        if (callback)
+            callback();
+    }
+    else
+        return obj[paramName]
+};

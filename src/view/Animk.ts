@@ -1,3 +1,4 @@
+import { AppInfo } from './model/AppInfo';
 import { PngMaker } from '../utils/png/PngMaker';
 import { cmd } from './model/Command';
 import { Viewport } from './components/Viewport/Viewport';
@@ -6,18 +7,22 @@ import { ProjectInfo } from './model/ProjectInfo';
 import { EventDispatcher } from '../utils/EventDispatcher';
 import { CompInfoEvent, InputEvent, BaseEvent } from './const';
 import { Splitter } from './components/Splitter';
-export class Animk extends EventDispatcher {
+export class Animk extends PIXI.Container {
     projInfo: ProjectInfo
     vSplitter: Splitter
     tracker: LayerTracker
     viewport: Viewport
+    ctn: PIXI.Container
     // frameWidth = 40
-    init(stage: PIXI.Container) {
-        this.projInfo = new ProjectInfo()
+    constructor() {
+        super()
+    }
+
+    initUI() {
+        // this.ctn = new PIXI.Container()
         let vs = new Splitter('v', 1600, 1000)
         this.vSplitter = vs
-
-        stage.addChild(vs)
+        this.addChild(vs)
 
         // let c1 = new PIXI.Graphics().beginFill(0xff0000).drawRect(0, 0, 400, 200)
         // vs.setChild(c1)
@@ -30,15 +35,22 @@ export class Animk extends EventDispatcher {
         vs.setChild(tk)
         vs.setBarY(720)
         vs.bar.addChild(tk.timestampBar)
-        this.vSplitter.evt.on(BaseEvent.CHANGED, (vs: Splitter) => {
+        this.vSplitter.on(BaseEvent.CHANGED, (vs: Splitter) => {
             this.tracker.resize(vs.width, vs.child2Space)
         })
+    }
+
+    init(stage: PIXI.Container, appInfo: AppInfo) {
+        this.projInfo = appInfo.newProject()
+        this.initUI()
+        stage.addChild(this)
 
         this.initMouse()
         this.initEvent()
         this.onload()
         this.test()
     }
+
     onload() {
         this.projInfo.curComp.setCursor(1)
     }
@@ -74,7 +86,7 @@ export class Animk extends EventDispatcher {
 
         let p = new PngMaker()
         p.createPng(512, 512, 'd:\\test.png', () => {
-            
+
         })
         // var addon = require('addon/psd')
         // console.log(addon.hello()); // 'world'
