@@ -1,9 +1,3 @@
-/// <reference path="ImageHelper.ts"/>
-/// <reference path="Descriptor.ts"/>
-/// <reference path="Handler.ts"/>
-/// <reference path="layer/Record.ts"/>
-/// <reference path="../png/Packer.ts"/>
-
 var PNG = require('pngjs').PNG,
     fs = require('fs');
 //var MODES = [
@@ -84,11 +78,11 @@ class PsdParser {
         };
 
         PSD.file.pad2 = function (i) {
-            //ÏòÉÏÈ¡Õûµ½2µÄ±¶Êý
+            //ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½2ï¿½Ä±ï¿½ï¿½ï¿½
             return (i + 1) & ~0x01;
         };
         PSD.file.pad4 = function (i) {
-            //4µÄ±¶Êý
+            //4ï¿½Ä±ï¿½ï¿½ï¿½
             return ((i + 4) & ~0x03);
         };
         PSD.file.seek = function (offset, whence) {
@@ -391,7 +385,7 @@ class PsdParser {
             for (var i = 0, l = self.channelInfo.length; i < l; i++) {
                 var channel = self.channelInfo[i];
                 if (channel.length <= 0) {
-                    this.____parseCompression(file);// Ñ¹ËõÎ»
+                    this.____parseCompression(file);// Ñ¹ï¿½ï¿½Î»
                     channel.data = [];
                     continue;
                 }

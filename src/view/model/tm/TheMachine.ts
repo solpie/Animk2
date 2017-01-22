@@ -1,21 +1,16 @@
-import { TrackInfo } from '../TrackInfo';
+import { ImageInfo } from '../ImageInfo';
+import { appInfo } from '../AppInfo';
+import { ImageTrackActType, TrackInfo } from '../TrackInfo';
 import { TheMachineEvent, TrackInfoEvent } from '../../const';
 import { FrameInfo } from '../FrameInfo';
 import { EventDispatcher } from '../../../utils/EventDispatcher';
 import { ImageLayerInfo } from './ImageLayerInfo';
 import { POI } from './POI';
-/// <reference path="../../event/ActEvent.ts"/>
-
-/// <reference path="../../util/psd/PsdFile.ts"/>
-/// <reference path="../../util/psd/PsdImage.ts"/>
-/// <reference path="ImageLayerInfo.ts"/>
-/// <reference path="../AppInfo.ts"/>
-/// <reference path="../../JQuery.ts"/>
 
 //the government has a secret system a machine,spies on you every hour of every day.
 var exec = require('child_process').exec;
 
-class TheMachine extends EventDispatcher {
+export class TheMachine extends EventDispatcher {
     ActFrameInfo:FrameInfo;
     watchPOIArr:Array<POI>;
     _updateCount:number = 0;//for clear cache
@@ -23,7 +18,6 @@ class TheMachine extends EventDispatcher {
 
     constructor() {
         super();
-        // <reference path="../../util/psd/PsdMaker.ts"/>
         this.watchPOIArr = [];
         this._onWatchArr = {};
     }
@@ -44,16 +38,16 @@ class TheMachine extends EventDispatcher {
         for (var i = trackInfoArr.length - 1; i > -1; i--) {
             var trackInfo:TrackInfo = trackInfoArr[i];
             if (trackInfo.actType() != ImageTrackActType.NOEDIT) {
-                var imageInfo:ImageInfo = trackInfo.getCurImg(appInfo.projectInfo.curComp.getCursor());
-                if (imageInfo) {
-                    var isRef = (trackInfo.actType() == ImageTrackActType.REF);
-                    var imageLayerInfo = new ImageLayerInfo();
-                    imageLayerInfo.filename = imageInfo.filename;
-                    imageLayerInfo.opacity = trackInfo.opacity();
-                    imageLayerInfo.isRef = isRef;
-                    imageLayerInfo.imageInfo = imageInfo;
-                    watchArr.push(imageLayerInfo);
-                }
+                // var imageInfo:ImageInfo = trackInfo.getCurImg(appInfo.projectInfo.curComp.getCursor());
+                // if (imageInfo) {
+                //     var isRef = (trackInfo.actType() == ImageTrackActType.REF);
+                //     var imageLayerInfo = new ImageLayerInfo();
+                //     imageLayerInfo.filename = imageInfo.filename;
+                //     imageLayerInfo.opacity = trackInfo.opacity();
+                //     imageLayerInfo.isRef = isRef;
+                //     imageLayerInfo.imageInfo = imageInfo;
+                //     watchArr.push(imageLayerInfo);
+                // }
             }
         }
         return watchArr;

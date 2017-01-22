@@ -1,35 +1,27 @@
-import { AppInfo } from './model/AppInfo';
 import { PngMaker } from '../utils/png/PngMaker';
-import { cmd } from './model/Command';
-import { Viewport } from './components/Viewport/Viewport';
-import { LayerTracker } from './LayerTrack/LayerTracker';
-import { ProjectInfo } from './model/ProjectInfo';
-import { EventDispatcher } from '../utils/EventDispatcher';
-import { CompInfoEvent, InputEvent, BaseEvent } from './const';
 import { Splitter } from './components/Splitter';
+import { Viewport } from './components/Viewport/Viewport';
+import { BaseEvent, InputEvent } from './const';
+import { LayerTracker } from './LayerTrack/LayerTracker';
+import { AppInfo } from './model/AppInfo';
+import { ProjectInfo } from './model/ProjectInfo';
 export class Animk extends PIXI.Container {
     projInfo: ProjectInfo
     vSplitter: Splitter
     tracker: LayerTracker
     viewport: Viewport
     ctn: PIXI.Container
-    // frameWidth = 40
     constructor() {
         super()
     }
 
     initUI() {
-        // this.ctn = new PIXI.Container()
         let vs = new Splitter('v', 1600, 1000)
         this.vSplitter = vs
         this.addChild(vs)
 
-        // let c1 = new PIXI.Graphics().beginFill(0xff0000).drawRect(0, 0, 400, 200)
-        // vs.setChild(c1)
         let vp = new Viewport()
         vs.setChild(vp)
-        // let c2 = new PIXI.Graphics().beginFill(0xffff00).drawRect(0,0,400,200)
-        // vs.setChild(c2)
         let tk = new LayerTracker()
         this.tracker = tk
         vs.setChild(tk)
@@ -55,17 +47,14 @@ export class Animk extends PIXI.Container {
         this.projInfo.curComp.setCursor(1)
     }
     initEvent() {
-        // this.projInfo.curComp.removeAll()
         this.on(InputEvent.KEY_DOWN, (e) => {
             let k = e.key
             if (k == 'f') {
-                console.log('forward');
                 this.projInfo.curComp.forward()
             }
             else if (k == 'd')
                 this.projInfo.curComp.backward()
         })
-        // this.projInfo.curComp.on()
     }
     initMouse() {
         document.onmouseup = (e) => {
@@ -98,9 +87,9 @@ export class Animk extends PIXI.Container {
         // }
         // var wintab = require('./build/wintab');
         var wintab = require('addon/node-wintab');
-        setInterval(function () {
-            console.log(wintab.allData());
-        }, 100);
+        // setInterval(function () {
+        //     console.log(wintab.allData());
+        // }, 100);
         this.projInfo.curComp.newTrack('D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png');
 
         // let a = ['D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png', 'D:\lsj\rkb2017\军哥\reto\101.png']

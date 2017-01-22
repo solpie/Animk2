@@ -1,3 +1,4 @@
+import { TheMachine } from './tm/TheMachine';
 import { SettingInfo } from './SettingInfo';
 import { prop } from '../../utils/JsFunc';
 import { ProjectInfo, ProjectInfoEvent } from './ProjectInfo';
@@ -8,7 +9,7 @@ class AppData {
 }
 export class AppInfo extends EventDispatcher {
     projectInfo:ProjectInfo;
-    // tm:TheMachine;
+    tm:TheMachine;
     settingInfo:SettingInfo;
     appData:AppData;
     mouseX:number;
@@ -17,7 +18,7 @@ export class AppInfo extends EventDispatcher {
     constructor() {
         super();
         this.appData = new AppData();
-        // this.tm = new TheMachine();
+        this.tm = new TheMachine();
         this.settingInfo = new SettingInfo();
     }
 

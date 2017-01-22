@@ -1,7 +1,7 @@
 
 function newLayer(l) {
     function text() {
-        //ÎÄ±¾ÄÚÈÝ
+        //ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½
         if (this.additional['TySh']) {
             return this.additional['TySh']['textData']['Txt ']
         }
@@ -12,7 +12,7 @@ function newLayer(l) {
     }
 
     function snippets() {
-        //ÎÄ±¾Í¼²ãµÄÏêÏ¸ÄÚÈÝ
+        //ï¿½Ä±ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ï¿½
         if (this.additional['TySh']) {
             //it`s an array
             console.log(this, "no need");
@@ -42,15 +42,12 @@ function newLayer(l) {
 
             case 'layerName':
                 return this.additional['luni'];
-                break;
 
             case 'text':
                 return text.call(this);
-                break;
 
             case 'wordSnippets':
                 return snippets.call(this);
-                break;
 
             default :
                 return _get.call(this, name);
@@ -69,12 +66,12 @@ class Handler {
     }
 
     saveAsPng(output) {
-        // ÕûÌåpsdËõÂÔÍ¼
+        // ï¿½ï¿½ï¿½ï¿½psdï¿½ï¿½ï¿½ï¿½Í¼
         this._psd_.imageData.saveAsPng(output);
     }
 
     getDescendants() {
-        // »ñÈ¡ ±âÆ½»¯µÄÍ¼²ã
+        // ï¿½ï¿½È¡ ï¿½ï¿½Æ½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½
         if (this._children) return this._children;
         this._children = [];
         this._childrenWithGroup = [];
@@ -88,7 +85,7 @@ class Handler {
     }
 
     getTree() {
-        // »ñÈ¡ Ê÷ÐÍÍ¼²ã
+        // ï¿½ï¿½È¡ ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½
         if (this._tree) return this._tree;
 
         if (!this._childrenWithGroup) this.getDescendants();
@@ -123,7 +120,7 @@ class Handler {
     }
 
     getSlices() {
-        // »ñÈ¡ÇÐÆ¬
+        // ï¿½ï¿½È¡ï¿½ï¿½Æ¬
         var _slice = this._psd_.imageResources.imageResourceBlock['1050'];
 
         var slices = [];

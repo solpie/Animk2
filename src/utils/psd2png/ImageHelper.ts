@@ -1,5 +1,3 @@
-/// <reference path="imageFormat/PsdRaw.ts"/>
-
 function _layerRaw(layer, file) {
     return file.read((layer.right - layer.left) * (layer.bottom - layer.top))
 }
@@ -67,11 +65,11 @@ function _psdRLE(PSD) {
     var byteCounts = parseByteCountsCh(height, channels, file);
     var channelInfo = [];
     for (var i = 0; i < channels; i++) {
-        //½« RRR GGG BBB ´¦ÀíÎªÍ¨µÀÄ£Ê½
+        //ï¿½ï¿½ RRR GGG BBB ï¿½ï¿½ï¿½ï¿½ÎªÍ¨ï¿½ï¿½Ä£Ê½
         /*
-         * ¸ù¾ÝÍ¨µÀµÄ·½Ê½´¦Àí
-         * Ã¿´ÎÖ»´¦ÀíÒ»¸öÍ¨µÀ
-         * decodeRLEÖÐ¸ù¾ÝÍ¨µÀ´¦Àí
+         * ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½Ä·ï¿½Ê½ï¿½ï¿½ï¿½ï¿½
+         * Ã¿ï¿½ï¿½Ö»ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Í¨ï¿½ï¿½
+         * decodeRLEï¿½Ð¸ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
          * */
 
         channelInfo.push({
@@ -115,7 +113,7 @@ function _imageMode(layer) {
     return pixelData
 }
 var imageFun = {
-    //image º¯Êý¼¯ºÏ
+    //image ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     layerFormat: [
         //0=Raw 1=RLE 2=ZIP without prediction 3=ZIP with prediction
         _layerRaw,

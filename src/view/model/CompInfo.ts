@@ -246,5 +246,10 @@ export class CompInfo extends EventDispatcher {
         this._compTrackInfoArr = a;
     }
 
+   getCompTrackInfoArr() {
+        if (!this._compTrackInfoArr)
+            this._updateCompTrackArr();
+        return this._compTrackInfoArr;
+    }
 
 }
