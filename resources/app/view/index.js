@@ -3128,7 +3128,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Animk_1 = __webpack_require__(30);
+	var Input_1 = __webpack_require__(31);
 	var const_1 = __webpack_require__(5);
 	var EventDispatcher_1 = __webpack_require__(7);
 	var PixiEx_1 = __webpack_require__(37);
@@ -3197,7 +3197,7 @@
 	            _this.lastMousePosY = -1;
 	            _this.thumb.alpha = 1;
 	        });
-	        Animk_1.animk.on(const_1.InputEvent.MOUSE_UP, function () {
+	        Input_1.input.on(const_1.InputEvent.MOUSE_UP, function () {
 	            _this.lastMousePosX = -1;
 	            _this.lastMousePosY = -1;
 	            _this.thumb.alpha = 1;
