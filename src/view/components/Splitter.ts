@@ -1,3 +1,4 @@
+import { input } from '../model/Input';
 import { PIXI_RECT, setupDrag } from '../../utils/PixiEx';
 import { TweenEx } from '../../utils/TweenEx';
 import { animk } from '../Animk';
@@ -66,7 +67,7 @@ export class Splitter extends PIXI.Container {
             this.bar.getChildAt(0).alpha = 1
         }
 
-        animk.on(InputEvent.MOUSE_UP, (e) => {
+        input.on(InputEvent.MOUSE_UP, (e) => {
             onUp(e)
         })
 

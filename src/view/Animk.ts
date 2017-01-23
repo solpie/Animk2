@@ -1,3 +1,4 @@
+import { input } from './model/Input';
 import { PngMaker } from '../utils/png/PngMaker';
 import { Splitter } from './components/Splitter';
 import { Viewport } from './components/Viewport/Viewport';
@@ -47,7 +48,7 @@ export class Animk extends PIXI.Container {
         this.projInfo.curComp.setCursor(1)
     }
     initEvent() {
-        this.on(InputEvent.KEY_DOWN, (e) => {
+        input.on(InputEvent.KEY_DOWN, (e) => {
             let k = e.key
             if (k == 'f') {
                 this.projInfo.curComp.forward()
@@ -57,26 +58,26 @@ export class Animk extends PIXI.Container {
         })
     }
     initMouse() {
-        document.onmouseup = (e) => {
-            e['mx'] = e.clientX
-            e['my'] = e.clientY
-            this.emit(InputEvent.MOUSE_UP, e)
-        }
-        window.onkeyup = (e) => {
-            this.emit(InputEvent.KEY_UP, e)
-        }
-        window.onkeydown = (e) => {
-            this.emit(InputEvent.KEY_DOWN, e)
-        }
+        // document.onmouseup = (e) => {
+        //     e['mx'] = e.clientX
+        //     e['my'] = e.clientY
+        //     this.emit(InputEvent.MOUSE_UP, e)
+        // }
+        // window.onkeyup = (e) => {
+        //     this.emit(InputEvent.KEY_UP, e)
+        // }
+        // window.onkeydown = (e) => {
+        //     this.emit(InputEvent.KEY_DOWN, e)
+        // }
     }
 
     test() {
         //todo: ctrl + drag frame :hold frame
 
         let p = new PngMaker()
-        p.createPng(512, 512, 'd:\\test.png', () => {
+        // p.createPng(512, 512, 'd:\\test.png', () => {
 
-        })
+        // })
         // var addon = require('addon/psd')
         // console.log(addon.hello()); // 'world'
         // for (var i = 0; i < 1; i++) {
@@ -90,7 +91,7 @@ export class Animk extends PIXI.Container {
         // setInterval(function () {
         //     console.log(wintab.allData());
         // }, 100);
-        this.projInfo.curComp.newTrack('D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png');
+        // this.projInfo.curComp.newTrack('D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png');
 
         // let a = ['D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png', 'D:\lsj\rkb2017\军哥\reto\101.png']
         // let loadTrack = (pathArr: Array<string>) => {

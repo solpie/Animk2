@@ -1,3 +1,4 @@
+import { Slider } from '../components/Slider';
 import { CheckBox } from '../components/CheckBox';
 import { newBitmap, PIXI_RECT } from '../../utils/PixiEx';
 import { Col } from '../model/Color';
@@ -49,6 +50,12 @@ export class Stacker extends PIXI.Container {
             this.trackInfo.enable(v)
         })
         this.addChild(cb)
+
+        let vs = new Slider(0, 100, 100)
+        vs.x = 50
+        vs.y = 40
+        this.addChild(vs)
+
 
         this.initEvent()
         this.scroll(0)
