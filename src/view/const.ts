@@ -12,11 +12,6 @@ export const BaseEvent = {
     CHANGED: 'changed'
 };
 
-export const InputEvent = {
-    MOUSE_UP: 'onmouseup',
-    KEY_UP: 'onkeyup',
-    KEY_DOWN: 'onkeydown',
-};
 
 export const COLOR = {
     PLAYER_EDIT: 'edit player',

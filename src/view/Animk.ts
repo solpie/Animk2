@@ -1,10 +1,10 @@
-import { input } from './model/Input';
 import { PngMaker } from '../utils/png/PngMaker';
 import { Splitter } from './components/Splitter';
 import { Viewport } from './components/Viewport/Viewport';
-import { BaseEvent, InputEvent } from './const';
+import { BaseEvent } from './const';
 import { LayerTracker } from './LayerTrack/LayerTracker';
 import { AppInfo } from './model/AppInfo';
+import { input, InputEvent } from './model/Input';
 import { ProjectInfo } from './model/ProjectInfo';
 export class Animk extends PIXI.Container {
     projInfo: ProjectInfo

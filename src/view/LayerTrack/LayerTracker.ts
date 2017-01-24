@@ -1,9 +1,9 @@
-import { TimestampBar } from './TimestampBar';
-import { TrackInfo } from './../model/TrackInfo';
-import { cmd, CommandId } from './../model/Command';
-import { CompInfoEvent, BaseEvent, InputEvent } from './../const';
 import { Scroller } from './../components/Scroller';
+import { BaseEvent, CompInfoEvent } from './../const';
+import { cmd } from './../model/Command';
+import { TrackInfo } from './../model/TrackInfo';
 import { Stacker } from './Stacker';
+import { TimestampBar } from './TimestampBar';
 export class LayerTracker extends PIXI.Container {
     timestampBar: TimestampBar
     stackerArr: Array<Stacker>

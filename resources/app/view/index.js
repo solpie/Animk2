@@ -667,11 +667,6 @@
 	exports.BaseEvent = {
 	    CHANGED: 'changed'
 	};
-	exports.InputEvent = {
-	    MOUSE_UP: 'onmouseup',
-	    KEY_UP: 'onkeyup',
-	    KEY_DOWN: 'onkeydown',
-	};
 	exports.COLOR = {
 	    PLAYER_EDIT: 'edit player',
 	};
@@ -1918,12 +1913,12 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Input_1 = __webpack_require__(31);
 	var PngMaker_1 = __webpack_require__(32);
 	var Splitter_1 = __webpack_require__(36);
 	var Viewport_1 = __webpack_require__(39);
 	var const_1 = __webpack_require__(5);
 	var LayerTracker_1 = __webpack_require__(41);
+	var Input_1 = __webpack_require__(31);
 	var Animk = (function (_super) {
 	    __extends(Animk, _super);
 	    function Animk() {
@@ -1959,7 +1954,7 @@
 	    };
 	    Animk.prototype.initEvent = function () {
 	        var _this = this;
-	        Input_1.input.on(const_1.InputEvent.KEY_DOWN, function (e) {
+	        Input_1.input.on(Input_1.InputEvent.KEY_DOWN, function (e) {
 	            var k = e.key;
 	            if (k == 'f') {
 	                _this.projInfo.curComp.forward();
@@ -1989,19 +1984,24 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var const_1 = __webpack_require__(5);
 	var EventDispatcher_1 = __webpack_require__(7);
+	exports.InputEvent = {
+	    MOUSE_DOWN: 'onmousedown',
+	    MOUSE_UP: 'onmouseup',
+	    KEY_UP: 'onkeyup',
+	    KEY_DOWN: 'onkeydown',
+	};
 	exports.input = new EventDispatcher_1.EventDispatcher();
 	window.onmouseup = function (e) {
 	    e['mx'] = e.clientX;
 	    e['my'] = e.clientY;
-	    exports.input.emit(const_1.InputEvent.MOUSE_UP, e);
+	    exports.input.emit(exports.InputEvent.MOUSE_UP, e);
 	};
 	window.onkeyup = function (e) {
-	    exports.input.emit(const_1.InputEvent.KEY_UP, e);
+	    exports.input.emit(exports.InputEvent.KEY_UP, e);
 	};
 	window.onkeydown = function (e) {
-	    exports.input.emit(const_1.InputEvent.KEY_DOWN, e);
+	    exports.input.emit(exports.InputEvent.KEY_DOWN, e);
 	};
 
 
@@ -2315,7 +2315,7 @@
 	            lastMousePosY = -1;
 	            _this.bar.getChildAt(0).alpha = 1;
 	        };
-	        Input_1.input.on(const_1.InputEvent.MOUSE_UP, function (e) {
+	        Input_1.input.on(Input_1.InputEvent.MOUSE_UP, function (e) {
 	            onUp(e);
 	        });
 	        _this.addChild(_this.bar);
@@ -2785,6 +2785,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var Input_1 = __webpack_require__(31);
 	var JsFunc_1 = __webpack_require__(4);
 	var PixiEx_1 = __webpack_require__(37);
 	var Animk_1 = __webpack_require__(30);
@@ -2797,6 +2798,11 @@
 	        _this._spArr = [];
 	        _this._bg = PixiEx_1.PIXI_RECT(0, 0, 0, const_1.ViewConst.COMP_WIDTH, const_1.ViewConst.COMP_HEIGHT);
 	        _this.addChild(_this._bg);
+	        _this._spCtn = new PIXI.Container();
+	        _this.addChild(_this._spCtn);
+	        var pc = new PIXI.Graphics();
+	        _this._paintCanvas = pc;
+	        _this.addChild(pc);
 	        _this.initEvent();
 	        return _this;
 	    }
@@ -2838,6 +2844,8 @@
 	            };
 	            renderTrack(0);
 	        });
+	        Input_1.input.on(Input_1.InputEvent.MOUSE_UP, function (e) {
+	        });
 	    };
 	    return CompView;
 	}(PIXI.Container));
@@ -2854,11 +2862,11 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var TimestampBar_1 = __webpack_require__(42);
-	var Command_1 = __webpack_require__(23);
-	var const_1 = __webpack_require__(5);
 	var Scroller_1 = __webpack_require__(46);
+	var const_1 = __webpack_require__(5);
+	var Command_1 = __webpack_require__(23);
 	var Stacker_1 = __webpack_require__(47);
+	var TimestampBar_1 = __webpack_require__(42);
 	var LayerTracker = (function (_super) {
 	    __extends(LayerTracker, _super);
 	    function LayerTracker() {
@@ -2931,6 +2939,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var Input_1 = __webpack_require__(31);
 	var PixiEx_1 = __webpack_require__(37);
 	var Animk_1 = __webpack_require__(30);
 	var Button_1 = __webpack_require__(43);
@@ -2972,7 +2981,7 @@
 	        _this.gCursor.cacheAsBitmap = true;
 	        _this.gCursor.y = 25;
 	        _this.addChild(_this.gCursor);
-	        Animk_1.animk.on(const_1.InputEvent.MOUSE_UP, function (e) {
+	        Input_1.input.on(Input_1.InputEvent.MOUSE_UP, function (e) {
 	            var a = e.mx - _this.x - _this.gTick.x;
 	            var thisPos = _this.toGlobal(new PIXI.Point(_this.x, _this.y));
 	            var fw = Animk_1.animk.projInfo.frameWidth();
@@ -3197,7 +3206,7 @@
 	            _this.lastMousePosY = -1;
 	            _this.thumb.alpha = 1;
 	        });
-	        Input_1.input.on(const_1.InputEvent.MOUSE_UP, function () {
+	        Input_1.input.on(Input_1.InputEvent.MOUSE_UP, function () {
 	            _this.lastMousePosX = -1;
 	            _this.lastMousePosY = -1;
 	            _this.thumb.alpha = 1;
@@ -3394,6 +3403,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var Input_1 = __webpack_require__(31);
 	var PixiEx_1 = __webpack_require__(37);
 	var Animk_1 = __webpack_require__(30);
 	var const_1 = __webpack_require__(5);
@@ -3429,7 +3439,7 @@
 	        }, function () {
 	            lastX = null;
 	        });
-	        Animk_1.animk.on(const_1.InputEvent.MOUSE_UP, function () {
+	        Input_1.input.on(Input_1.InputEvent.MOUSE_UP, function () {
 	            lastX = null;
 	        });
 	        trackInfo.on(const_1.TrackInfoEvent.SET_TRACK_START, function (start) {
@@ -3506,7 +3516,7 @@
 	            }
 	            lastX = null;
 	        });
-	        Input_1.input.on(const_1.InputEvent.MOUSE_UP, function (e) {
+	        Input_1.input.on(Input_1.InputEvent.MOUSE_UP, function (e) {
 	            lastX = null;
 	        });
 	        return _this;

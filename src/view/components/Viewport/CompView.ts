@@ -1,3 +1,4 @@
+import { input , InputEvent} from '../../model/Input';
 import { loadImg } from '../../../utils/JsFunc';
 import { imgToTex, PIXI_RECT } from '../../../utils/PixiEx';
 import { animk } from '../../Animk';
@@ -7,13 +8,22 @@ export class CompView extends PIXI.Container {
     _bg: PIXI.Graphics
     _spArr: Array<PIXI.Sprite>
     _imgMap = {}
+    _paintCanvas: PIXI.Graphics
+    _spCtn 
     constructor(width, height) {
         super()
+
+     
         this._spArr = []
 
         this._bg = PIXI_RECT(0, 0, 0, ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
         this.addChild(this._bg)
+this._spCtn = new PIXI.Container()
+this.addChild(this._spCtn)
 
+   let pc = new PIXI.Graphics()
+   this._paintCanvas = pc
+this.addChild(pc)        
         this.initEvent()
     }
 
@@ -55,6 +65,10 @@ export class CompView extends PIXI.Container {
                 }
             }
             renderTrack(0)
+        })
+
+        input.on(InputEvent.MOUSE_UP, (e) => {
+            
         })
     }
 }

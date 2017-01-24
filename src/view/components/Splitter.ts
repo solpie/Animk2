@@ -1,8 +1,8 @@
-import { input } from '../model/Input';
+import { input, InputEvent } from '../model/Input';
 import { PIXI_RECT, setupDrag } from '../../utils/PixiEx';
 import { TweenEx } from '../../utils/TweenEx';
 import { animk } from '../Animk';
-import { BaseEvent, InputEvent } from '../const';
+import { BaseEvent } from '../const';
 export class Splitter extends PIXI.Container {
     bar: PIXI.Sprite
     child1: any;

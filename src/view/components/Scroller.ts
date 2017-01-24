@@ -1,6 +1,6 @@
-import { input } from '../model/Input';
+import { input , InputEvent} from '../model/Input';
 import { animk } from '../Animk';
-import { BaseEvent, ViewConst, InputEvent } from '../const';
+import { BaseEvent, ViewConst } from '../const';
 import { EventDispatcher } from '../../utils/EventDispatcher';
 import { setupDrag } from '../../utils/PixiEx';
 export class Scroller extends PIXI.Container {

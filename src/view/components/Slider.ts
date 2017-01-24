@@ -1,5 +1,5 @@
-import { input } from '../model/Input';
-import { BaseEvent, InputEvent } from '../const';
+import { input, InputEvent } from '../model/Input';
+import { BaseEvent } from '../const';
 import { Col, newStyle } from '../model/Color';
 import { isIn, PIXI_RECT, setupDrag } from '../../utils/PixiEx';
 export class Slider extends PIXI.Container {

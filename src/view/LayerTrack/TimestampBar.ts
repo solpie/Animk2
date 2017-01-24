@@ -1,7 +1,8 @@
+import { input , InputEvent} from '../model/Input';
 import { MakeMatrixGraphics, PIXI_MOUSE_EVENT } from '../../utils/PixiEx';
 import { animk } from '../Animk';
 import { Button } from '../components/Button';
-import { CompInfoEvent, InputEvent } from '../const';
+import { CompInfoEvent } from '../const';
 import { Col } from '../model/Color';
 
 export class TimestampBar extends PIXI.Sprite {
@@ -53,7 +54,7 @@ export class TimestampBar extends PIXI.Sprite {
         ///
 
 
-        animk.on(InputEvent.MOUSE_UP, (e) => {
+        input.on(InputEvent.MOUSE_UP, (e) => {
             let a = e.mx - this.x - this.gTick.x
             let thisPos = this.toGlobal(new PIXI.Point(this.x, this.y))
             let fw = animk.projInfo.frameWidth()

@@ -1,7 +1,8 @@
+import { input, InputEvent } from '../model/Input';
 import { TrackInfo } from '../model/TrackInfo';
 import { PIXI_RECT, setupDrag } from '../../utils/PixiEx';
 import { animk } from '../Animk';
-import { InputEvent, TrackInfoEvent } from '../const';
+import { TrackInfoEvent } from '../const';
 export class Clip extends PIXI.Container {
     header: PIXI.Graphics
     bg: PIXI.Graphics
@@ -40,7 +41,7 @@ export class Clip extends PIXI.Container {
         }, () => {
             lastX = null
         })
-        animk.on(InputEvent.MOUSE_UP, () => {
+        input.on(InputEvent.MOUSE_UP, () => {
             lastX = null
         })
 
