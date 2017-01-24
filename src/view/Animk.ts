@@ -81,7 +81,7 @@ export class Animk extends PIXI.Container {
         // this.projInfo.curComp.newTrack(p);
         // }
         // var wintab = require('./build/wintab');
-        var wintab = require('addon/node-wintab');
+        // var wintab = require('addon/node-wintab');
         // setInterval(function () {
         //     console.log(wintab.allData());
         // }, 100);

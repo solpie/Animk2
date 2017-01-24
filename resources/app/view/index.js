@@ -3579,14 +3579,13 @@
 	        this.nextDrawAry = [];
 	        this.middleAry = [];
 	        this.confing = {
-	            lineWidth: 1,
-	            lineColor: "blue",
-	            shadowBlur: 0
+	            lineWidth: 6,
+	            lineColor: "red",
+	            shadowBlur: 0.5
 	        };
 	        this.canvas = document.getElementById('paintCanvas');
 	        this.context = this.canvas.getContext('2d');
-	        this.canvas.width = 1280;
-	        this.canvas.height = 720;
+	        this.resize(1280, 720);
 	        this.context.lineJoin = 'round';
 	        this.context.lineCap = 'round';
 	        this._initDraw();
@@ -3606,22 +3605,48 @@
 	            }
 	        });
 	    }
+	    Object.defineProperty(PaintCanvas.prototype, "width", {
+	        get: function () {
+	            return this.canvas.width;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(PaintCanvas.prototype, "height", {
+	        get: function () {
+	            return this.canvas.height;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    PaintCanvas.prototype.resize = function (width, height) {
+	        this.canvas.width = width;
+	        this.canvas.height = height;
+	    };
 	    PaintCanvas.prototype._initDraw = function () {
-	        var preData = this.context.getImageData(0, 0, 1280, 720);
+	        var preData = this.context.getImageData(0, 0, this.width, this.height);
 	        this.middleAry.push(preData);
 	    };
 	    PaintCanvas.prototype._draw = function (oCanvas, context) {
 	        var _this1 = this;
+	        var pressure;
+	        var wintab = __webpack_require__(50);
 	        oCanvas.onmousedown = function (e) {
 	            var x = e.clientX, y = e.clientY, left = this.parentNode.offsetLeft, top = this.parentNode.offsetTop, canvasX = x, canvasY = y;
 	            console.log('down', x, y);
 	            _this1._setCanvasStyle();
+	            if (wintab.allData().pressure) {
+	                _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure;
+	            }
 	            _this1.context.beginPath();
 	            _this1.context.moveTo(canvasX, canvasY);
-	            var preData = _this1.context.getImageData(0, 0, 1280, 720);
+	            var preData = _this1.context.getImageData(0, 0, this.width, this.height);
 	            _this1.preDrawAry.push(preData);
 	            oCanvas.onmousemove = function (e) {
 	                var x2 = e.clientX, y2 = e.clientY, t = e.target, canvasX2 = x2, canvasY2 = y2;
+	                if (wintab.allData().pressure) {
+	                    _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure;
+	                }
 	                if (t == oCanvas) {
 	                    _this1.context.lineTo(canvasX2, canvasY2);
 	                    _this1.context.stroke();
@@ -3633,7 +3658,7 @@
 	            oCanvas.onmouseup = function (e) {
 	                var t = e.target;
 	                if (t == oCanvas) {
-	                    var preData = _this1.context.getImageData(0, 0, 1280, 720);
+	                    var preData = _this1.context.getImageData(0, 0, this.width, this.height);
 	                    if (_this1.nextDrawAry.length == 0) {
 	                        _this1.middleAry.push(preData);
 	                    }
@@ -3674,8 +3699,6 @@
 	    };
 	    PaintCanvas.prototype._setCanvasStyle = function () {
 	        this.context.lineWidth = this.confing.lineWidth;
-	        this.context.shadowBlur = this.confing.shadowBlur;
-	        this.context.shadowColor = this.confing.lineColor;
 	        this.context.strokeStyle = this.confing.lineColor;
 	    };
 	    return PaintCanvas;

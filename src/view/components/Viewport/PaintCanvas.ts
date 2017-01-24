@@ -13,22 +13,23 @@ export class PaintCanvas {
     middleAry = []
     //配置参数
     confing = {
-        lineWidth: 1,
-        lineColor: "blue",
-        shadowBlur: 0
+        lineWidth: 6,
+        lineColor: "red",
+        shadowBlur: 0.5
     }
     canvas: any
     context: any
+
+    get width() {
+        return this.canvas.width
+    }
+    get height() {
+        return this.canvas.height
+    }
     constructor() {
         this.canvas = document.getElementById('paintCanvas')
         this.context = this.canvas.getContext('2d');
-        this.canvas.width = 1280
-        this.canvas.height = 720
-        // this.colorDiv = oColor;
-        // this.brushDiv = oBrush;
-        // this.controlDiv = oControl;
-        // this.drawImageDiv = oDrawImage;
-
+        this.resize(1280, 720)
 
         this.context.lineJoin = 'round';
         this.context.lineCap = 'round';
@@ -58,9 +59,12 @@ export class PaintCanvas {
             }
         })
     }
-
+    resize(width, height) {
+        this.canvas.width = width
+        this.canvas.height = height
+    }
     _initDraw() {
-        var preData = this.context.getImageData(0, 0, 1280, 720);
+        var preData = this.context.getImageData(0, 0, this.width, this.height);
         //空绘图表面进栈
         this.middleAry.push(preData);
     }
@@ -68,6 +72,8 @@ export class PaintCanvas {
     //涂鸦主程序
     _draw(oCanvas, context) {
         var _this1 = this;
+        var pressure;
+        var wintab = require('addon/node-wintab');
         oCanvas.onmousedown = function (e) {
             var x = e.clientX,
                 y = e.clientY,
@@ -77,11 +83,14 @@ export class PaintCanvas {
                 canvasY = y;
             console.log('down', x, y)
             _this1._setCanvasStyle();
+               if (wintab.allData().pressure) {
+                    _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure
+                }
             //清除子路径
             _this1.context.beginPath();
             _this1.context.moveTo(canvasX, canvasY);
             //当前绘图表面状态
-            var preData = _this1.context.getImageData(0, 0, 1280, 720);
+            var preData = _this1.context.getImageData(0, 0, this.width, this.height);
             //当前绘图表面进栈
             _this1.preDrawAry.push(preData);
             oCanvas.onmousemove = function (e) {
@@ -90,7 +99,11 @@ export class PaintCanvas {
                     t = e.target,
                     canvasX2 = x2,// - left,
                     canvasY2 = y2 //- top;
+                if (wintab.allData().pressure) {
+                    _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure
+                }
                 if (t == oCanvas) {
+
                     _this1.context.lineTo(canvasX2, canvasY2);
                     _this1.context.stroke();
                 } else {
@@ -101,7 +114,7 @@ export class PaintCanvas {
                 var t = e.target;
                 if (t == oCanvas) {
                     //当前绘图表面状态
-                    var preData = _this1.context.getImageData(0, 0, 1280, 720);
+                    var preData = _this1.context.getImageData(0, 0, this.width, this.height);
                     if (_this1.nextDrawAry.length == 0) {
                         //当前绘图表面进栈
                         _this1.middleAry.push(preData);
@@ -110,11 +123,7 @@ export class PaintCanvas {
                         _this1.middleAry = _this1.middleAry.concat(_this1.preDrawAry);
                         _this1.middleAry.push(preData);
                         _this1.nextDrawAry = [];
-                        // $('.js-next-control').addClass('next-control');
-                        // $('.next-control').removeClass('js-next-control');
                     }
-
-                    // _this._isDraw();
                 }
                 this.onmousemove = null;
             }
@@ -146,11 +155,12 @@ export class PaintCanvas {
         this.nextDrawAry = [];
         this.middleAry = [this.middleAry[0]];
     }
-    
+
     _setCanvasStyle() {
+
         this.context.lineWidth = this.confing.lineWidth;
-        this.context.shadowBlur = this.confing.shadowBlur;
-        this.context.shadowColor = this.confing.lineColor;
+        // this.context.shadowBlur = this.confing.shadowBlur;
+        // this.context.shadowColor = this.confing.lineColor;
         this.context.strokeStyle = this.confing.lineColor;
     }
 }
