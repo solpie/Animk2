@@ -1,3 +1,5 @@
+import { PaintView } from './components/Viewport/PaintView';
+import { PaintCanvas } from './components/Viewport/PaintCanvas';
 import { PngMaker } from '../utils/png/PngMaker';
 import { Splitter } from './components/Splitter';
 import { Viewport } from './components/Viewport/Viewport';
@@ -12,8 +14,12 @@ export class Animk extends PIXI.Container {
     tracker: LayerTracker
     viewport: Viewport
     ctn: PIXI.Container
+
+    paintCanvas:PaintCanvas
     constructor() {
         super()
+
+        this.paintCanvas = new PaintCanvas()
     }
 
     initUI() {

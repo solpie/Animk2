@@ -9,15 +9,18 @@
             overflow: hidden;
             margin: 0;
         }
+        #paintCanvas{
+            position: fixed;
+            top:50px;
+            left: 50px;
+            width:1280px;
+            height:720px;
+        }
     </style>
 </head>
 
 <body>
-    <!--<object id="wtPlugin" type="application/x-wacomtabletplugin">
-      <param name="onload" value="pluginLoaded" />
-    </object>-->
-    <div id="app">
-    </div>
+    <canvas id="paintCanvas"></canvas>
     <script>
         function buildMenu() {
             const {

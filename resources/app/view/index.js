@@ -52,7 +52,7 @@
 	var Animk_1 = __webpack_require__(30);
 	var main = function () {
 	    var renderer = PIXI.autoDetectRenderer(const_1.ViewConst.STAGE_WIDTH, const_1.ViewConst.STAGE_HEIGHT, { antialias: false, transparent: true, resolution: 1 });
-	    document.body.insertBefore(renderer.view, document.getElementById("app"));
+	    document.body.insertBefore(renderer.view, document.getElementById("paintCanvas"));
 	    renderer.stage = new PIXI.Container();
 	    renderer.backgroundColor = 0x00000000;
 	    renderer.renderStage = function (time) {
@@ -1913,6 +1913,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var PaintCanvas_1 = __webpack_require__(53);
 	var PngMaker_1 = __webpack_require__(32);
 	var Splitter_1 = __webpack_require__(36);
 	var Viewport_1 = __webpack_require__(39);
@@ -1922,7 +1923,9 @@
 	var Animk = (function (_super) {
 	    __extends(Animk, _super);
 	    function Animk() {
-	        return _super.call(this) || this;
+	        var _this = _super.call(this) || this;
+	        _this.paintCanvas = new PaintCanvas_1.PaintCanvas();
+	        return _this;
 	    }
 	    Animk.prototype.initUI = function () {
 	        var _this = this;
@@ -1987,11 +1990,22 @@
 	var EventDispatcher_1 = __webpack_require__(7);
 	exports.InputEvent = {
 	    MOUSE_DOWN: 'onmousedown',
+	    MOUSE_MOVE: 'onmousemove',
 	    MOUSE_UP: 'onmouseup',
 	    KEY_UP: 'onkeyup',
 	    KEY_DOWN: 'onkeydown',
 	};
 	exports.input = new EventDispatcher_1.EventDispatcher();
+	window.onmousedown = function (e) {
+	    e['mx'] = e.clientX;
+	    e['my'] = e.clientY;
+	    exports.input.emit(exports.InputEvent.MOUSE_DOWN, e);
+	};
+	window.onmousemove = function (e) {
+	    e['mx'] = e.clientX;
+	    e['my'] = e.clientY;
+	    exports.input.emit(exports.InputEvent.MOUSE_MOVE, e);
+	};
 	window.onmouseup = function (e) {
 	    e['mx'] = e.clientX;
 	    e['my'] = e.clientY;
@@ -2785,11 +2799,11 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Input_1 = __webpack_require__(31);
 	var JsFunc_1 = __webpack_require__(4);
 	var PixiEx_1 = __webpack_require__(37);
 	var Animk_1 = __webpack_require__(30);
 	var const_1 = __webpack_require__(5);
+	var PaintView_1 = __webpack_require__(52);
 	var CompView = (function (_super) {
 	    __extends(CompView, _super);
 	    function CompView(width, height) {
@@ -2800,7 +2814,7 @@
 	        _this.addChild(_this._bg);
 	        _this._spCtn = new PIXI.Container();
 	        _this.addChild(_this._spCtn);
-	        var pc = new PIXI.Graphics();
+	        var pc = new PaintView_1.PaintView();
 	        _this._paintCanvas = pc;
 	        _this.addChild(pc);
 	        _this.initEvent();
@@ -2843,8 +2857,6 @@
 	                }
 	            };
 	            renderTrack(0);
-	        });
-	        Input_1.input.on(Input_1.InputEvent.MOUSE_UP, function (e) {
 	        });
 	    };
 	    return CompView;
@@ -3549,6 +3561,133 @@
 	    return Slider;
 	}(PIXI.Container));
 	exports.Slider = Slider;
+
+
+/***/ },
+/* 52 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var Input_1 = __webpack_require__(31);
+	var PaintView = (function (_super) {
+	    __extends(PaintView, _super);
+	    function PaintView() {
+	        var _this = _super.call(this) || this;
+	        _this._lineArr = [];
+	        _this.beginFill(0xeeeeee, 0.8);
+	        _this.drawRect(0, 0, 1000, 700);
+	        _this.endFill();
+	        _this.lineStyle(10, 0xff0000);
+	        _this.moveTo(50, 50);
+	        _this.lineTo(500, 500);
+	        var line = [];
+	        var lastPos = null, isPress = false;
+	        Input_1.input.on(Input_1.InputEvent.MOUSE_DOWN, function (e) {
+	            lastPos = _this.inPos(e);
+	            _this.moveTo(lastPos.x, lastPos.y);
+	            _this.lineTo(lastPos.x, lastPos.y);
+	            isPress = true;
+	            if (line.length) {
+	            }
+	        });
+	        Input_1.input.on(Input_1.InputEvent.MOUSE_MOVE, function (e) {
+	            lastPos = _this.inPos(e);
+	            if (isPress) {
+	                _this.lineTo(lastPos.x, lastPos.y);
+	                console.log("line", lastPos);
+	            }
+	        });
+	        Input_1.input.on(Input_1.InputEvent.MOUSE_UP, function (e) {
+	            isPress = false;
+	            if (line.length) {
+	            }
+	        });
+	        return _this;
+	    }
+	    PaintView.prototype.inPos = function (e) {
+	        var p = this.toGlobal(new PIXI.Point(0, 0));
+	        return { x: e.mx - p.x, y: e.my - p.y };
+	    };
+	    return PaintView;
+	}(PIXI.Graphics));
+	exports.PaintView = PaintView;
+
+
+/***/ },
+/* 53 */
+/***/ function(module, exports) {
+
+	"use strict";
+	var PaintCanvas = (function () {
+	    function PaintCanvas() {
+	        this.preDrawAry = [];
+	        this.nextDrawAry = [];
+	        this.middleAry = [];
+	        this.confing = {
+	            lineWidth: 1,
+	            lineColor: "blue",
+	            shadowBlur: 1
+	        };
+	        this.canvas = document.getElementById('paintCanvas');
+	        this.context = this.canvas.getContext('2d');
+	        this._initDraw();
+	        this._draw(this.canvas, this.context);
+	    }
+	    PaintCanvas.prototype._initDraw = function () {
+	        var preData = this.context.getImageData(0, 0, 1280, 720);
+	        this.middleAry.push(preData);
+	    };
+	    PaintCanvas.prototype._draw = function (oCanvas, context) {
+	        var _this = this;
+	        oCanvas.onmousedown = function (e) {
+	            var x = e.clientX, y = e.clientY, left = this.parentNode.offsetLeft, top = this.parentNode.offsetTop, canvasX = x - left, canvasY = y - top;
+	            _this._setCanvasStyle();
+	            _this.context.beginPath();
+	            _this.context.moveTo(canvasX, canvasY);
+	            var preData = _this.context.getImageData(0, 0, 1280, 720);
+	            _this.preDrawAry.push(preData);
+	            oCanvas.onmousemove = function (e) {
+	                var x2 = e.clientX, y2 = e.clientY, t = e.target, canvasX2 = x2, canvasY2 = y2;
+	                if (t == oCanvas) {
+	                    _this.context.lineTo(canvasX2, canvasY2);
+	                    _this.context.stroke();
+	                }
+	                else {
+	                    _this.context.beginPath();
+	                }
+	            };
+	            oCanvas.onmouseup = function (e) {
+	                var t = e.target;
+	                if (t == oCanvas) {
+	                    var preData = _this.context.getImageData(0, 0, 1280, 720);
+	                    if (_this.nextDrawAry.length == 0) {
+	                        _this.middleAry.push(preData);
+	                    }
+	                    else {
+	                        _this.middleAry = [];
+	                        _this.middleAry = _this.middleAry.concat(_this.preDrawAry);
+	                        _this.middleAry.push(preData);
+	                        _this.nextDrawAry = [];
+	                    }
+	                }
+	                this.onmousemove = null;
+	            };
+	        };
+	    };
+	    PaintCanvas.prototype._setCanvasStyle = function () {
+	        this.context.lineWidth = this.confing.lineWidth;
+	        this.context.shadowBlur = this.confing.shadowBlur;
+	        this.context.shadowColor = this.confing.lineColor;
+	        this.context.strokeStyle = this.confing.lineColor;
+	    };
+	    return PaintCanvas;
+	}());
+	exports.PaintCanvas = PaintCanvas;
 
 
 /***/ }

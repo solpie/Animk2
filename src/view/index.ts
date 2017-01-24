@@ -8,7 +8,7 @@ declare const TWEEN
 let main = () => {
     let renderer: any = PIXI.autoDetectRenderer(ViewConst.STAGE_WIDTH, ViewConst.STAGE_HEIGHT,
         { antialias: false, transparent: true, resolution: 1 });
-    document.body.insertBefore(renderer.view, document.getElementById("app"));
+    document.body.insertBefore(renderer.view, document.getElementById("paintCanvas"));
     renderer.stage = new PIXI.Container();
     renderer.backgroundColor = 0x00000000;
     //Loop this function 60 times per second
