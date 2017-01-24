@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "electron resources/app",
     "app": "electron resources/app",
     "server": "webpack --watch --progress --profile --colors --display-error-details --display-cached --config webpack.server.js",
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -15,7 +15,7 @@ export class Animk extends PIXI.Container {
     viewport: Viewport
     ctn: PIXI.Container
 
-    paintCanvas:PaintCanvas
+    paintCanvas: PaintCanvas
     constructor() {
         super()
 
@@ -44,7 +44,6 @@ export class Animk extends PIXI.Container {
         this.initUI()
         stage.addChild(this)
 
-        this.initMouse()
         this.initEvent()
         this.onload()
         this.test()
@@ -56,25 +55,14 @@ export class Animk extends PIXI.Container {
     initEvent() {
         input.on(InputEvent.KEY_DOWN, (e) => {
             let k = e.key
+            let isCtrl = e.ctrlKey
             if (k == 'f') {
                 this.projInfo.curComp.forward()
             }
             else if (k == 'd')
                 this.projInfo.curComp.backward()
+         
         })
-    }
-    initMouse() {
-        // document.onmouseup = (e) => {
-        //     e['mx'] = e.clientX
-        //     e['my'] = e.clientY
-        //     this.emit(InputEvent.MOUSE_UP, e)
-        // }
-        // window.onkeyup = (e) => {
-        //     this.emit(InputEvent.KEY_UP, e)
-        // }
-        // window.onkeydown = (e) => {
-        //     this.emit(InputEvent.KEY_DOWN, e)
-        // }
     }
 
     test() {

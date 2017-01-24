@@ -13,16 +13,13 @@ function onReady() {
     openWin();
 }
 
-function openWin(serverConf) {
+function openWin() {
     win = new BrowserWindow({
         width: 1700,
         height: 1024,
         // width: 500, height: 540,
         frame: true,
-        autoHideMenuBar: false,
-        webPreferences: {
-            plugins: true
-        }
+        autoHideMenuBar: false
         // webaudio: false
     });
     // win.setMenu(null);
@@ -35,7 +32,6 @@ function openWin(serverConf) {
         win = null;
     });
 }
-
 app.on('ready', onReady);
 app.on('window-all-closed', () => {
     console.log('window-all-closed');

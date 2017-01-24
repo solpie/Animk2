@@ -212,6 +212,7 @@ export let setPivot = (obj, x, y) => {
 }
 export let PIXI_MOUSE_EVENT = {
     down: 'mousedown',
+    wheel: 'mousewheel',
     move: 'mousemove',
     up: 'mouseup',
     click: 'click',

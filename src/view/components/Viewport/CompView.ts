@@ -21,9 +21,10 @@ export class CompView extends PIXI.Container {
 this._spCtn = new PIXI.Container()
 this.addChild(this._spCtn)
 
-   let pc = new PaintView()
-   this._paintCanvas = pc
-this.addChild(pc)        
+//    let pc = new PaintView()
+//    this._paintCanvas = pc
+//    this.addChild(pc)        
+        
         this.initEvent()
     }
 

@@ -1,3 +1,4 @@
+import { PIXI_MOUSE_EVENT } from '../../../utils/PixiEx';
 import { ViewConst } from '../../const';
 import { CompView } from './CompView';
 export class Viewport extends PIXI.Container {
@@ -8,6 +9,10 @@ export class Viewport extends PIXI.Container {
         this.compView.x = 20
         this.compView.y = 20
         this.addChild(this.compView)
+
+        this.on(PIXI_MOUSE_EVENT.wheel, (e) => {
+            
+        })
     }
 
 }
