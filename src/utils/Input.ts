@@ -48,6 +48,7 @@ window.onkeydown = (e) => {
 export const Curosr = {
     hand: 'hand',
     move: 'move',
+    ns: 'ns-resize',
     pointer: 'pointer'
 }
 export const setCursor = (s?) => {

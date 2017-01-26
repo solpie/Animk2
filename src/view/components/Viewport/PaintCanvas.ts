@@ -1,3 +1,4 @@
+import { isIn } from '../../../utils/PixiEx';
 import { input, InputEvent } from '../../../utils/Input';
 export const PaintEvent = {
     undo: 'undo',
@@ -29,6 +30,8 @@ export class PaintCanvas {
     }
     constructor() {
         this.canvas = document.getElementById('paintCanvas')
+        this.canvas.style['pointer-events'] = 'none'
+
         this.context = this.canvas.getContext('2d');
         this.resize(1280, 720)
 
@@ -36,14 +39,15 @@ export class PaintCanvas {
         this.context.lineCap = 'round';
         // this.imgDiv = imgDiv;
         this._initDraw();
-        this._draw(this.canvas, this.context);
+        // this._draw(this.canvas, this.context);
+        this._initPaint()
         // this.setColor();
         // this.setBrush();
         // this.preClick();
         // this.nextClick();
         // this.clearClick();
         // this.drawImage(oCanvas);
-
+        this.createPng()
         input.on(InputEvent.KEY_DOWN, (e) => {
             console.log(e)
 
@@ -52,10 +56,7 @@ export class PaintCanvas {
             let isShift = e.shiftKey
             if (k == 'z') {
                 if (isCtrl) {
-                    if (isShift)
-                        this._redo()
-                    else
-                        this._undo()
+                    isShift ? this._redo() : this._undo()
                 }
             }
         })
@@ -78,65 +79,83 @@ export class PaintCanvas {
         //空绘图表面进栈
         this.middleAry.push(preData);
     }
-
-    //涂鸦主程序
-    _draw(oCanvas, context) {
-        var _this1 = this;
-        var pressure;
+    _initPaint() {
         var wintab = require('addon/node-wintab');
-        oCanvas.onmousedown = function (e) {
-            var x = e.clientX,
-                y = e.clientY,
-                left = this.parentNode.offsetLeft,
-                top = this.parentNode.offsetTop,
-                canvasX = x-_this1._x,
-                canvasY = y-_this1._y;
+        var moveFuncID = null
+        var upFuncID = null
+        input.on(InputEvent.MOUSE_DOWN, (e) => {
+            var x = e.mx,
+                y = e.my,
+                canvasX = x - this._x,
+                canvasY = y - this._y;
             console.log('down', x, y)
-            _this1._setCanvasStyle();
+            this._setCanvasStyle();
             if (wintab.allData().pressure) {
-                _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure
+                this.context.lineWidth = this.confing.lineWidth * wintab.allData().pressure
             }
             //清除子路径
-            _this1.context.beginPath();
-            _this1.context.moveTo(canvasX, canvasY);
+            this.context.beginPath();
+            this.context.moveTo(canvasX, canvasY);
             //当前绘图表面状态
-            var preData = _this1.context.getImageData(0, 0, this.width, this.height);
+            var preData = this.context.getImageData(0, 0, this.width, this.height);
             //当前绘图表面进栈
-            _this1.preDrawAry.push(preData);
-            oCanvas.onmousemove = function (e) {
+            this.preDrawAry.push(preData);
+            moveFuncID = input.on(InputEvent.MOUSE_MOVE, (e) => {
                 var x2 = e.clientX,
                     y2 = e.clientY,
                     t = e.target,
-                    canvasX2 = x2-_this1._x,// - left,
-                    canvasY2 = y2-_this1._y //- top;
+                    canvasX2 = x2 - this._x,// - left,
+                    canvasY2 = y2 - this._y //- top;
                 if (wintab.allData().pressure) {
-                    _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure
+                    this.context.lineWidth = this.confing.lineWidth * wintab.allData().pressure
                 }
-                if (t == oCanvas) {
-                    _this1.context.lineTo(canvasX2, canvasY2);
-                    _this1.context.stroke();
+                if (canvasX2 >= 0 && canvasY2 >= 0) {
+                    this.context.lineTo(canvasX2, canvasY2);
+                    this.context.stroke();
+                }
+                else {
+                    this.context.beginPath();
+                }
+            })
+
+            upFuncID = input.on(InputEvent.MOUSE_UP, (e) => {
+                input.del(InputEvent.MOUSE_UP, upFuncID)
+                input.del(InputEvent.MOUSE_MOVE, moveFuncID)
+                //当前绘图表面状态
+                var preData = this.context.getImageData(0, 0, this.width, this.height);
+                if (this.nextDrawAry.length == 0) {
+                    //当前绘图表面进栈
+                    this.middleAry.push(preData);
                 } else {
-                    _this1.context.beginPath();
+                    this.middleAry = [];
+                    this.middleAry = this.middleAry.concat(this.preDrawAry);
+                    this.middleAry.push(preData);
+                    this.nextDrawAry = [];
                 }
-            }
-            oCanvas.onmouseup = function (e) {
-                var t = e.target;
-                if (t == oCanvas) {
-                    //当前绘图表面状态
-                    var preData = _this1.context.getImageData(0, 0, this.width, this.height);
-                    if (_this1.nextDrawAry.length == 0) {
-                        //当前绘图表面进栈
-                        _this1.middleAry.push(preData);
-                    } else {
-                        _this1.middleAry = [];
-                        _this1.middleAry = _this1.middleAry.concat(_this1.preDrawAry);
-                        _this1.middleAry.push(preData);
-                        _this1.nextDrawAry = [];
-                    }
-                }
-                this.onmousemove = null;
-            }
-        }
+            })
+        })
+    }
+    getImg() {
+        var url = this.canvas.toDataURL('image/png'),
+            img = new Image();
+        img.src = url;
+        return img
+    }
+
+    createPng() {
+        let canvas = document.createElement("canvas");
+        canvas.width = this.width
+        canvas.height = this.height
+        canvas.getContext('2d').clearRect(0, 0, this.width, this.height);
+        let img = new Image();
+        let imgData = canvas.toDataURL('image/png')
+        img.src = imgData
+        var base64Data = imgData.replace(/^data:image\/\w+;base64,/, "");
+        var dataBuffer = new Buffer(base64Data, 'base64');
+        const fs = require('fs')
+        fs.writeFile("out.png", dataBuffer, function (err) {
+        });
+        return img
     }
 
     _redo() {

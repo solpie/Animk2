@@ -32,8 +32,9 @@ export class Splitter extends PIXI.Container {
             , isPress
         setupDrag(this.bar, (e) => {
             isPress = true
+            console.log('press Splitter');
+
             TweenEx.delayedCall(200, () => {
-                console.log('mouse');
                 if (isPress) {
                     lastMousePosY = e.my
                     lastMousePosX = e.mx

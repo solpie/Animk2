@@ -1,6 +1,6 @@
 import { PaintCanvas } from './PaintCanvas';
 import { Curosr, input, InputEvent, setCursor } from '../../../utils/Input';
-import { PIXI_MOUSE_EVENT, posInObj, setPivot } from '../../../utils/PixiEx';
+import { imgToTex, PIXI_MOUSE_EVENT, posInObj, setPivot } from '../../../utils/PixiEx';
 import { ViewConst } from '../../const';
 import { CompView } from './CompView';
 export class Viewport extends PIXI.Container {
@@ -45,6 +45,11 @@ export class Viewport extends PIXI.Container {
                 panCompViewFunId = input.on(InputEvent.MOUSE_MOVE, (e) => {
                     this.panCompView(e)
                 })
+            }
+            else if (e.key == "r") {
+                console.log('render')
+                let sp = new PIXI.Sprite(imgToTex(this.paintCanvas.getImg()))
+                this.addChild(sp)
             }
         })
 
