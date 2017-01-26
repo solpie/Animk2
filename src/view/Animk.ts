@@ -15,11 +15,9 @@ export class Animk extends PIXI.Container {
     viewport: Viewport
     ctn: PIXI.Container
 
-    paintCanvas: PaintCanvas
     constructor() {
         super()
 
-        this.paintCanvas = new PaintCanvas()
     }
 
     initUI() {

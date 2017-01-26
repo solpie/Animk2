@@ -1912,7 +1912,6 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var PaintCanvas_1 = __webpack_require__(31);
 	var Splitter_1 = __webpack_require__(38);
 	var Viewport_1 = __webpack_require__(41);
 	var const_1 = __webpack_require__(5);
@@ -1921,9 +1920,7 @@
 	var Animk = (function (_super) {
 	    __extends(Animk, _super);
 	    function Animk() {
-	        var _this = _super.call(this) || this;
-	        _this.paintCanvas = new PaintCanvas_1.PaintCanvas();
-	        return _this;
+	        return _super.call(this) || this;
 	    }
 	    Animk.prototype.initUI = function () {
 	        var _this = this;
@@ -1997,6 +1994,8 @@
 	            lineColor: "red",
 	            shadowBlur: 0.5
 	        };
+	        this._x = 0;
+	        this._y = 0;
 	        this.canvas = document.getElementById('paintCanvas');
 	        this.context = this.canvas.getContext('2d');
 	        this.resize(1280, 720);
@@ -2033,6 +2032,22 @@
 	        enumerable: true,
 	        configurable: true
 	    });
+	    Object.defineProperty(PaintCanvas.prototype, "x", {
+	        set: function (v) {
+	            this._x = v;
+	            this.canvas.style.left = v + 'px';
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(PaintCanvas.prototype, "y", {
+	        set: function (v) {
+	            this._y = v;
+	            this.canvas.style.top = v + 'px';
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
 	    PaintCanvas.prototype.resize = function (width, height) {
 	        this.canvas.width = width;
 	        this.canvas.height = height;
@@ -2046,7 +2061,7 @@
 	        var pressure;
 	        var wintab = __webpack_require__(33);
 	        oCanvas.onmousedown = function (e) {
-	            var x = e.clientX, y = e.clientY, left = this.parentNode.offsetLeft, top = this.parentNode.offsetTop, canvasX = x, canvasY = y;
+	            var x = e.clientX, y = e.clientY, left = this.parentNode.offsetLeft, top = this.parentNode.offsetTop, canvasX = x - _this1._x, canvasY = y - _this1._y;
 	            console.log('down', x, y);
 	            _this1._setCanvasStyle();
 	            if (wintab.allData().pressure) {
@@ -2057,7 +2072,7 @@
 	            var preData = _this1.context.getImageData(0, 0, this.width, this.height);
 	            _this1.preDrawAry.push(preData);
 	            oCanvas.onmousemove = function (e) {
-	                var x2 = e.clientX, y2 = e.clientY, t = e.target, canvasX2 = x2, canvasY2 = y2;
+	                var x2 = e.clientX, y2 = e.clientY, t = e.target, canvasX2 = x2 - _this1._x, canvasY2 = y2 - _this1._y;
 	                if (wintab.allData().pressure) {
 	                    _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure;
 	                }
@@ -2701,6 +2716,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var PaintCanvas_1 = __webpack_require__(31);
 	var Input_1 = __webpack_require__(32);
 	var PixiEx_1 = __webpack_require__(39);
 	var const_1 = __webpack_require__(5);
@@ -2713,9 +2729,9 @@
 	        _this.lastX = null;
 	        _this.lastY = null;
 	        _this.compView = new CompView_1.CompView(const_1.ViewConst.COMP_WIDTH, const_1.ViewConst.COMP_HEIGHT);
-	        _this.compView.x = 20;
-	        _this.compView.y = 20;
 	        _this.addChild(_this.compView);
+	        _this.paintCanvas = new PaintCanvas_1.PaintCanvas();
+	        _this._pan(20, 20);
 	        Input_1.input.on(Input_1.InputEvent.MOUSE_WHEEL, function (e) {
 	            console.log('wheel', e);
 	            if (e.deltaY > 0) {
@@ -2752,10 +2768,13 @@
 	        if (!this.lastY)
 	            this.lastY = e.my;
 	        var dtX = e.mx - this.lastX, dtY = e.my - this.lastY;
-	        this.compView.x += dtX;
-	        this.compView.y += dtY;
+	        this._pan(this.compView.x + dtX, this.compView.y + dtY);
 	        this.lastX = e.mx;
 	        this.lastY = e.my;
+	    };
+	    Viewport.prototype._pan = function (x, y) {
+	        this.paintCanvas.x = this.compView.x = x;
+	        this.paintCanvas.y = this.compView.y = y;
 	    };
 	    return Viewport;
 	}(PIXI.Container));
@@ -2793,6 +2812,8 @@
 	        var sp = new PIXI.Sprite();
 	        this.addChild(sp);
 	        this._spArr.push(sp);
+	    };
+	    CompView.prototype.pan = function (x, y) {
 	    };
 	    CompView.prototype.initEvent = function () {
 	        var _this = this;

@@ -19,7 +19,8 @@ export class PaintCanvas {
     }
     canvas: any
     context: any
-
+    _x: number = 0
+    _y: number = 0
     get width() {
         return this.canvas.width
     }
@@ -59,6 +60,15 @@ export class PaintCanvas {
             }
         })
     }
+    set x(v) {
+        this._x = v
+        this.canvas.style.left = v + 'px'
+    }
+    set y(v) {
+        this._y = v
+        this.canvas.style.top = v + 'px'
+    }
+
     resize(width, height) {
         this.canvas.width = width
         this.canvas.height = height
@@ -79,13 +89,13 @@ export class PaintCanvas {
                 y = e.clientY,
                 left = this.parentNode.offsetLeft,
                 top = this.parentNode.offsetTop,
-                canvasX = x,
-                canvasY = y;
+                canvasX = x-_this1._x,
+                canvasY = y-_this1._y;
             console.log('down', x, y)
             _this1._setCanvasStyle();
-               if (wintab.allData().pressure) {
-                    _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure
-                }
+            if (wintab.allData().pressure) {
+                _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure
+            }
             //清除子路径
             _this1.context.beginPath();
             _this1.context.moveTo(canvasX, canvasY);
@@ -97,13 +107,12 @@ export class PaintCanvas {
                 var x2 = e.clientX,
                     y2 = e.clientY,
                     t = e.target,
-                    canvasX2 = x2,// - left,
-                    canvasY2 = y2 //- top;
+                    canvasX2 = x2-_this1._x,// - left,
+                    canvasY2 = y2-_this1._y //- top;
                 if (wintab.allData().pressure) {
                     _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure
                 }
                 if (t == oCanvas) {
-
                     _this1.context.lineTo(canvasX2, canvasY2);
                     _this1.context.stroke();
                 } else {
