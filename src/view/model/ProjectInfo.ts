@@ -17,7 +17,6 @@ export class ProjectInfo extends EventDispatcher {
     saveFilename: string;
     constructor() {
         super()
-        this.newComp(1280, 720, 30)
     }
 
     /////////////////////// open project

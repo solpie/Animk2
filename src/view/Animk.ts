@@ -68,7 +68,7 @@ export class Animk extends PIXI.Container {
     test() {
         //todo: ctrl + drag frame :hold frame
 
-        let p = new PngMaker()
+        // let p = new PngMaker()
         // p.createPng(512, 512, 'd:\\test.png', () => {
 
         // })
@@ -85,7 +85,7 @@ export class Animk extends PIXI.Container {
         // setInterval(function () {
         //     console.log(wintab.allData());
         // }, 100);
-        // this.projInfo.curComp.newTrack('D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png');
+        // this.projInfo.curComp.newTrack('C:\projects\Animk2\test\test30\01.png');
 
         // let a = ['D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png', 'D:\lsj\rkb2017\军哥\reto\101.png']
         // let loadTrack = (pathArr: Array<string>) => {

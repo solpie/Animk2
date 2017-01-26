@@ -252,6 +252,12 @@ export let isIn = (pos, obj): boolean => {
     let objPos = obj.toGlobal(new PIXI.Point(0, 0))
     return x > objPos.x && x < objPos.x + obj['width'] && y > objPos.y && y < objPos.y + obj['height']
 }
+const p0 = new PIXI.Point(0, 0)
+export const posInObj = (obj, e) => {
+    let p1 = obj.toGlobal(p0)
+    return { x: e.mx - p1.x, y: e.my - p1.y }
+}
+
 export const MakeMatrixGraphics = (alphaM: Array<string>, color: number, g: PIXI.Graphics, ofsX = 0, ofsY = 0) => {
     for (var i = 0; i < alphaM.length; i++) {
         var s = alphaM[i];
