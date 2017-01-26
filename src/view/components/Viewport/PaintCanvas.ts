@@ -1,4 +1,4 @@
-import { input, InputEvent } from '../../model/Input';
+import { input, InputEvent } from '../../../utils/Input';
 export const PaintEvent = {
     undo: 'undo',
     redo: 'redo'

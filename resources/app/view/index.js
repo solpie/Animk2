@@ -64,6 +64,7 @@
 	    return renderer.stage;
 	};
 	Animk_1.animk.init(main(), AppInfo_1.appInfo);
+	window['animk'] = Animk_1.animk;
 
 
 /***/ },
@@ -1912,11 +1913,11 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Splitter_1 = __webpack_require__(38);
-	var Viewport_1 = __webpack_require__(41);
+	var Splitter_1 = __webpack_require__(31);
+	var Viewport_1 = __webpack_require__(34);
 	var const_1 = __webpack_require__(5);
-	var LayerTracker_1 = __webpack_require__(43);
-	var Input_1 = __webpack_require__(32);
+	var LayerTracker_1 = __webpack_require__(38);
+	var Input_1 = __webpack_require__(48);
 	var Animk = (function (_super) {
 	    __extends(Animk, _super);
 	    function Animk() {
@@ -1929,6 +1930,7 @@
 	        this.addChild(vs);
 	        var vp = new Viewport_1.Viewport();
 	        vs.setChild(vp);
+	        this.viewport = vp;
 	        var tk = new LayerTracker_1.LayerTracker();
 	        this.tracker = tk;
 	        vs.setChild(tk);
@@ -1978,248 +1980,14 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var Input_1 = __webpack_require__(32);
-	exports.PaintEvent = {
-	    undo: 'undo',
-	    redo: 'redo'
-	};
-	var PaintCanvas = (function () {
-	    function PaintCanvas() {
-	        var _this = this;
-	        this.preDrawAry = [];
-	        this.nextDrawAry = [];
-	        this.middleAry = [];
-	        this.confing = {
-	            lineWidth: 6,
-	            lineColor: "red",
-	            shadowBlur: 0.5
-	        };
-	        this._x = 0;
-	        this._y = 0;
-	        this.canvas = document.getElementById('paintCanvas');
-	        this.context = this.canvas.getContext('2d');
-	        this.resize(1280, 720);
-	        this.context.lineJoin = 'round';
-	        this.context.lineCap = 'round';
-	        this._initDraw();
-	        this._draw(this.canvas, this.context);
-	        Input_1.input.on(Input_1.InputEvent.KEY_DOWN, function (e) {
-	            console.log(e);
-	            var k = e.key.toLowerCase();
-	            var isCtrl = e.ctrlKey;
-	            var isShift = e.shiftKey;
-	            if (k == 'z') {
-	                if (isCtrl) {
-	                    if (isShift)
-	                        _this._redo();
-	                    else
-	                        _this._undo();
-	                }
-	            }
-	        });
-	    }
-	    Object.defineProperty(PaintCanvas.prototype, "width", {
-	        get: function () {
-	            return this.canvas.width;
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(PaintCanvas.prototype, "height", {
-	        get: function () {
-	            return this.canvas.height;
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(PaintCanvas.prototype, "x", {
-	        set: function (v) {
-	            this._x = v;
-	            this.canvas.style.left = v + 'px';
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(PaintCanvas.prototype, "y", {
-	        set: function (v) {
-	            this._y = v;
-	            this.canvas.style.top = v + 'px';
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    PaintCanvas.prototype.resize = function (width, height) {
-	        this.canvas.width = width;
-	        this.canvas.height = height;
-	    };
-	    PaintCanvas.prototype._initDraw = function () {
-	        var preData = this.context.getImageData(0, 0, this.width, this.height);
-	        this.middleAry.push(preData);
-	    };
-	    PaintCanvas.prototype._draw = function (oCanvas, context) {
-	        var _this1 = this;
-	        var pressure;
-	        var wintab = __webpack_require__(33);
-	        oCanvas.onmousedown = function (e) {
-	            var x = e.clientX, y = e.clientY, left = this.parentNode.offsetLeft, top = this.parentNode.offsetTop, canvasX = x - _this1._x, canvasY = y - _this1._y;
-	            console.log('down', x, y);
-	            _this1._setCanvasStyle();
-	            if (wintab.allData().pressure) {
-	                _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure;
-	            }
-	            _this1.context.beginPath();
-	            _this1.context.moveTo(canvasX, canvasY);
-	            var preData = _this1.context.getImageData(0, 0, this.width, this.height);
-	            _this1.preDrawAry.push(preData);
-	            oCanvas.onmousemove = function (e) {
-	                var x2 = e.clientX, y2 = e.clientY, t = e.target, canvasX2 = x2 - _this1._x, canvasY2 = y2 - _this1._y;
-	                if (wintab.allData().pressure) {
-	                    _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure;
-	                }
-	                if (t == oCanvas) {
-	                    _this1.context.lineTo(canvasX2, canvasY2);
-	                    _this1.context.stroke();
-	                }
-	                else {
-	                    _this1.context.beginPath();
-	                }
-	            };
-	            oCanvas.onmouseup = function (e) {
-	                var t = e.target;
-	                if (t == oCanvas) {
-	                    var preData = _this1.context.getImageData(0, 0, this.width, this.height);
-	                    if (_this1.nextDrawAry.length == 0) {
-	                        _this1.middleAry.push(preData);
-	                    }
-	                    else {
-	                        _this1.middleAry = [];
-	                        _this1.middleAry = _this1.middleAry.concat(_this1.preDrawAry);
-	                        _this1.middleAry.push(preData);
-	                        _this1.nextDrawAry = [];
-	                    }
-	                }
-	                this.onmousemove = null;
-	            };
-	        };
-	    };
-	    PaintCanvas.prototype._redo = function () {
-	        console.log('redo');
-	        if (this.nextDrawAry.length) {
-	            var popData = this.nextDrawAry.pop();
-	            var midData = this.middleAry[this.middleAry.length - this.nextDrawAry.length - 2];
-	            this.preDrawAry.push(midData);
-	            this.context.putImageData(popData, 0, 0);
-	        }
-	    };
-	    PaintCanvas.prototype._undo = function () {
-	        if (this.preDrawAry.length > 0) {
-	            var popData = this.preDrawAry.pop();
-	            var midData = this.middleAry[this.preDrawAry.length + 1];
-	            this.nextDrawAry.push(midData);
-	            this.context.putImageData(popData, 0, 0);
-	        }
-	    };
-	    PaintCanvas.prototype._clear = function () {
-	        var data = this.middleAry[0];
-	        this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-	        this.preDrawAry = [];
-	        this.nextDrawAry = [];
-	        this.middleAry = [this.middleAry[0]];
-	    };
-	    PaintCanvas.prototype._setCanvasStyle = function () {
-	        this.context.lineWidth = this.confing.lineWidth;
-	        this.context.strokeStyle = this.confing.lineColor;
-	    };
-	    return PaintCanvas;
-	}());
-	exports.PaintCanvas = PaintCanvas;
-
-
-/***/ },
-/* 32 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
 	var __extends = (this && this.__extends) || function (d, b) {
 	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var EventDispatcher_1 = __webpack_require__(7);
-	exports.InputEvent = {
-	    MOUSE_DOWN: 'onmousedown',
-	    MOUSE_MOVE: 'onmousemove',
-	    MOUSE_WHEEL: 'onmousewheel',
-	    MOUSE_UP: 'onmouseup',
-	    KEY_UP: 'onkeyup',
-	    KEY_DOWN: 'onkeydown',
-	};
-	var Input = (function (_super) {
-	    __extends(Input, _super);
-	    function Input() {
-	        var _this = _super !== null && _super.apply(this, arguments) || this;
-	        _this.isKeyPress = false;
-	        _this.isMousePress = false;
-	        return _this;
-	    }
-	    return Input;
-	}(EventDispatcher_1.EventDispatcher));
-	exports.input = new Input();
-	window.onmousedown = function (e) {
-	    e['mx'] = e.clientX;
-	    e['my'] = e.clientY;
-	    exports.input.isMousePress = true;
-	    exports.input.emit(exports.InputEvent.MOUSE_DOWN, e);
-	};
-	window.onmousemove = function (e) {
-	    e['mx'] = e.clientX;
-	    e['my'] = e.clientY;
-	    exports.input.emit(exports.InputEvent.MOUSE_MOVE, e);
-	};
-	window.onmousewheel = function (e) {
-	    e['mx'] = e.clientX;
-	    e['my'] = e.clientY;
-	    exports.input.emit(exports.InputEvent.MOUSE_WHEEL, e);
-	};
-	window.onmouseup = function (e) {
-	    e['mx'] = e.clientX;
-	    e['my'] = e.clientY;
-	    exports.input.isMousePress = false;
-	    exports.input.emit(exports.InputEvent.MOUSE_UP, e);
-	};
-	window.onkeyup = function (e) {
-	    exports.input.isKeyPress = false;
-	    exports.input.emit(exports.InputEvent.KEY_UP, e);
-	};
-	window.onkeydown = function (e) {
-	    exports.input.isKeyPress = true;
-	    exports.input.emit(exports.InputEvent.KEY_DOWN, e);
-	};
-
-
-/***/ },
-/* 33 */
-/***/ function(module, exports) {
-
-	module.exports = require("addon/node-wintab");
-
-/***/ },
-/* 34 */,
-/* 35 */,
-/* 36 */,
-/* 37 */,
-/* 38 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var Input_1 = __webpack_require__(32);
-	var PixiEx_1 = __webpack_require__(39);
-	var TweenEx_1 = __webpack_require__(40);
+	var Input_1 = __webpack_require__(48);
+	var PixiEx_1 = __webpack_require__(32);
+	var TweenEx_1 = __webpack_require__(33);
 	var const_1 = __webpack_require__(5);
 	var Splitter = (function (_super) {
 	    __extends(Splitter, _super);
@@ -2346,7 +2114,7 @@
 
 
 /***/ },
-/* 39 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2617,7 +2385,7 @@
 
 
 /***/ },
-/* 40 */
+/* 33 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -2707,7 +2475,7 @@
 
 
 /***/ },
-/* 41 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2716,11 +2484,11 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var PaintCanvas_1 = __webpack_require__(31);
-	var Input_1 = __webpack_require__(32);
-	var PixiEx_1 = __webpack_require__(39);
+	var PaintCanvas_1 = __webpack_require__(35);
+	var Input_1 = __webpack_require__(48);
+	var PixiEx_1 = __webpack_require__(32);
 	var const_1 = __webpack_require__(5);
-	var CompView_1 = __webpack_require__(42);
+	var CompView_1 = __webpack_require__(37);
 	var Viewport = (function (_super) {
 	    __extends(Viewport, _super);
 	    function Viewport() {
@@ -2754,6 +2522,7 @@
 	        });
 	        Input_1.input.on(Input_1.InputEvent.KEY_UP, function (e) {
 	            if (panCompViewFunId) {
+	                Input_1.setCursor();
 	                _this.lastX = null;
 	                _this.lastY = null;
 	                Input_1.input.del(Input_1.InputEvent.MOUSE_MOVE, panCompViewFunId);
@@ -2762,6 +2531,8 @@
 	        });
 	        return _this;
 	    }
+	    Viewport.prototype.test = function () {
+	    };
 	    Viewport.prototype.panCompView = function (e) {
 	        if (!this.lastX)
 	            this.lastX = e.mx;
@@ -2771,6 +2542,7 @@
 	        this._pan(this.compView.x + dtX, this.compView.y + dtY);
 	        this.lastX = e.mx;
 	        this.lastY = e.my;
+	        Input_1.setCursor(Input_1.Curosr.move);
 	    };
 	    Viewport.prototype._pan = function (x, y) {
 	        this.paintCanvas.x = this.compView.x = x;
@@ -2782,7 +2554,175 @@
 
 
 /***/ },
-/* 42 */
+/* 35 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var Input_1 = __webpack_require__(48);
+	exports.PaintEvent = {
+	    undo: 'undo',
+	    redo: 'redo'
+	};
+	var PaintCanvas = (function () {
+	    function PaintCanvas() {
+	        var _this = this;
+	        this.preDrawAry = [];
+	        this.nextDrawAry = [];
+	        this.middleAry = [];
+	        this.confing = {
+	            lineWidth: 6,
+	            lineColor: "red",
+	            shadowBlur: 0.5
+	        };
+	        this._x = 0;
+	        this._y = 0;
+	        this.canvas = document.getElementById('paintCanvas');
+	        this.context = this.canvas.getContext('2d');
+	        this.resize(1280, 720);
+	        this.context.lineJoin = 'round';
+	        this.context.lineCap = 'round';
+	        this._initDraw();
+	        this._draw(this.canvas, this.context);
+	        Input_1.input.on(Input_1.InputEvent.KEY_DOWN, function (e) {
+	            console.log(e);
+	            var k = e.key.toLowerCase();
+	            var isCtrl = e.ctrlKey;
+	            var isShift = e.shiftKey;
+	            if (k == 'z') {
+	                if (isCtrl) {
+	                    if (isShift)
+	                        _this._redo();
+	                    else
+	                        _this._undo();
+	                }
+	            }
+	        });
+	    }
+	    Object.defineProperty(PaintCanvas.prototype, "width", {
+	        get: function () {
+	            return this.canvas.width;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(PaintCanvas.prototype, "height", {
+	        get: function () {
+	            return this.canvas.height;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(PaintCanvas.prototype, "x", {
+	        set: function (v) {
+	            this._x = v;
+	            this.canvas.style.left = v + 'px';
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(PaintCanvas.prototype, "y", {
+	        set: function (v) {
+	            this._y = v;
+	            this.canvas.style.top = v + 'px';
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    PaintCanvas.prototype.resize = function (width, height) {
+	        this.canvas.width = width;
+	        this.canvas.height = height;
+	    };
+	    PaintCanvas.prototype._initDraw = function () {
+	        var preData = this.context.getImageData(0, 0, this.width, this.height);
+	        this.middleAry.push(preData);
+	    };
+	    PaintCanvas.prototype._draw = function (oCanvas, context) {
+	        var _this1 = this;
+	        var pressure;
+	        var wintab = __webpack_require__(36);
+	        oCanvas.onmousedown = function (e) {
+	            var x = e.clientX, y = e.clientY, left = this.parentNode.offsetLeft, top = this.parentNode.offsetTop, canvasX = x - _this1._x, canvasY = y - _this1._y;
+	            console.log('down', x, y);
+	            _this1._setCanvasStyle();
+	            if (wintab.allData().pressure) {
+	                _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure;
+	            }
+	            _this1.context.beginPath();
+	            _this1.context.moveTo(canvasX, canvasY);
+	            var preData = _this1.context.getImageData(0, 0, this.width, this.height);
+	            _this1.preDrawAry.push(preData);
+	            oCanvas.onmousemove = function (e) {
+	                var x2 = e.clientX, y2 = e.clientY, t = e.target, canvasX2 = x2 - _this1._x, canvasY2 = y2 - _this1._y;
+	                if (wintab.allData().pressure) {
+	                    _this1.context.lineWidth = _this1.confing.lineWidth * wintab.allData().pressure;
+	                }
+	                if (t == oCanvas) {
+	                    _this1.context.lineTo(canvasX2, canvasY2);
+	                    _this1.context.stroke();
+	                }
+	                else {
+	                    _this1.context.beginPath();
+	                }
+	            };
+	            oCanvas.onmouseup = function (e) {
+	                var t = e.target;
+	                if (t == oCanvas) {
+	                    var preData = _this1.context.getImageData(0, 0, this.width, this.height);
+	                    if (_this1.nextDrawAry.length == 0) {
+	                        _this1.middleAry.push(preData);
+	                    }
+	                    else {
+	                        _this1.middleAry = [];
+	                        _this1.middleAry = _this1.middleAry.concat(_this1.preDrawAry);
+	                        _this1.middleAry.push(preData);
+	                        _this1.nextDrawAry = [];
+	                    }
+	                }
+	                this.onmousemove = null;
+	            };
+	        };
+	    };
+	    PaintCanvas.prototype._redo = function () {
+	        console.log('redo');
+	        if (this.nextDrawAry.length) {
+	            var popData = this.nextDrawAry.pop();
+	            var midData = this.middleAry[this.middleAry.length - this.nextDrawAry.length - 2];
+	            this.preDrawAry.push(midData);
+	            this.context.putImageData(popData, 0, 0);
+	        }
+	    };
+	    PaintCanvas.prototype._undo = function () {
+	        if (this.preDrawAry.length > 0) {
+	            var popData = this.preDrawAry.pop();
+	            var midData = this.middleAry[this.preDrawAry.length + 1];
+	            this.nextDrawAry.push(midData);
+	            this.context.putImageData(popData, 0, 0);
+	        }
+	    };
+	    PaintCanvas.prototype._clear = function () {
+	        var data = this.middleAry[0];
+	        this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+	        this.preDrawAry = [];
+	        this.nextDrawAry = [];
+	        this.middleAry = [this.middleAry[0]];
+	    };
+	    PaintCanvas.prototype._setCanvasStyle = function () {
+	        this.context.lineWidth = this.confing.lineWidth;
+	        this.context.strokeStyle = this.confing.lineColor;
+	    };
+	    return PaintCanvas;
+	}());
+	exports.PaintCanvas = PaintCanvas;
+
+
+/***/ },
+/* 36 */
+/***/ function(module, exports) {
+
+	module.exports = require("addon/node-wintab");
+
+/***/ },
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2792,7 +2732,7 @@
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var JsFunc_1 = __webpack_require__(4);
-	var PixiEx_1 = __webpack_require__(39);
+	var PixiEx_1 = __webpack_require__(32);
 	var Animk_1 = __webpack_require__(30);
 	var const_1 = __webpack_require__(5);
 	var CompView = (function (_super) {
@@ -2855,7 +2795,7 @@
 
 
 /***/ },
-/* 43 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2864,11 +2804,11 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Scroller_1 = __webpack_require__(44);
+	var Scroller_1 = __webpack_require__(39);
 	var const_1 = __webpack_require__(5);
 	var Command_1 = __webpack_require__(23);
-	var Stacker_1 = __webpack_require__(45);
-	var TimestampBar_1 = __webpack_require__(50);
+	var Stacker_1 = __webpack_require__(40);
+	var TimestampBar_1 = __webpack_require__(45);
 	var LayerTracker = (function (_super) {
 	    __extends(LayerTracker, _super);
 	    function LayerTracker() {
@@ -2932,7 +2872,7 @@
 
 
 /***/ },
-/* 44 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2941,10 +2881,10 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Input_1 = __webpack_require__(32);
+	var Input_1 = __webpack_require__(48);
 	var const_1 = __webpack_require__(5);
 	var EventDispatcher_1 = __webpack_require__(7);
-	var PixiEx_1 = __webpack_require__(39);
+	var PixiEx_1 = __webpack_require__(32);
 	var Scroller = (function (_super) {
 	    __extends(Scroller, _super);
 	    function Scroller(dir, max, minValue, maxValue) {
@@ -3055,7 +2995,7 @@
 
 
 /***/ },
-/* 45 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3064,13 +3004,13 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Slider_1 = __webpack_require__(46);
-	var CheckBox_1 = __webpack_require__(48);
-	var PixiEx_1 = __webpack_require__(39);
-	var Color_1 = __webpack_require__(47);
+	var Slider_1 = __webpack_require__(41);
+	var CheckBox_1 = __webpack_require__(43);
+	var PixiEx_1 = __webpack_require__(32);
+	var Color_1 = __webpack_require__(42);
 	var Animk_1 = __webpack_require__(30);
 	var const_1 = __webpack_require__(5);
-	var Clip_1 = __webpack_require__(49);
+	var Clip_1 = __webpack_require__(44);
 	var Stacker = (function (_super) {
 	    __extends(Stacker, _super);
 	    function Stacker(trackInfo) {
@@ -3136,7 +3076,7 @@
 
 
 /***/ },
-/* 46 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3145,10 +3085,10 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Input_1 = __webpack_require__(32);
+	var Input_1 = __webpack_require__(48);
 	var const_1 = __webpack_require__(5);
-	var Color_1 = __webpack_require__(47);
-	var PixiEx_1 = __webpack_require__(39);
+	var Color_1 = __webpack_require__(42);
+	var PixiEx_1 = __webpack_require__(32);
 	var Slider = (function (_super) {
 	    __extends(Slider, _super);
 	    function Slider(min, max, value) {
@@ -3224,7 +3164,7 @@
 
 
 /***/ },
-/* 47 */
+/* 42 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -3246,7 +3186,7 @@
 
 
 /***/ },
-/* 48 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3255,9 +3195,9 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var PixiEx_1 = __webpack_require__(39);
+	var PixiEx_1 = __webpack_require__(32);
 	var const_1 = __webpack_require__(5);
-	var Color_1 = __webpack_require__(47);
+	var Color_1 = __webpack_require__(42);
 	var CheckBox = (function (_super) {
 	    __extends(CheckBox, _super);
 	    function CheckBox() {
@@ -3308,7 +3248,7 @@
 
 
 /***/ },
-/* 49 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3317,8 +3257,8 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Input_1 = __webpack_require__(32);
-	var PixiEx_1 = __webpack_require__(39);
+	var Input_1 = __webpack_require__(48);
+	var PixiEx_1 = __webpack_require__(32);
 	var Animk_1 = __webpack_require__(30);
 	var const_1 = __webpack_require__(5);
 	var Clip = (function (_super) {
@@ -3372,7 +3312,7 @@
 
 
 /***/ },
-/* 50 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3381,12 +3321,12 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Input_1 = __webpack_require__(32);
-	var PixiEx_1 = __webpack_require__(39);
+	var Input_1 = __webpack_require__(48);
+	var PixiEx_1 = __webpack_require__(32);
 	var Animk_1 = __webpack_require__(30);
-	var Button_1 = __webpack_require__(51);
+	var Button_1 = __webpack_require__(46);
 	var const_1 = __webpack_require__(5);
-	var Color_1 = __webpack_require__(47);
+	var Color_1 = __webpack_require__(42);
 	var TimestampBar = (function (_super) {
 	    __extends(TimestampBar, _super);
 	    function TimestampBar() {
@@ -3441,7 +3381,7 @@
 	        var newTrackBtn = new Button_1.Button({ text: "new" });
 	        newTrackBtn.x = -100;
 	        newTrackBtn.on(PixiEx_1.PIXI_MOUSE_EVENT.up, function () {
-	            var dialog = __webpack_require__(52).remote.dialog;
+	            var dialog = __webpack_require__(47).remote.dialog;
 	            var ret = dialog.showOpenDialog({
 	                properties: ['openFile'], filters: [
 	                    { name: 'Images(png)', extensions: ['png'] },
@@ -3501,7 +3441,7 @@
 
 
 /***/ },
-/* 51 */
+/* 46 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -3542,10 +3482,82 @@
 
 
 /***/ },
-/* 52 */
+/* 47 */
 /***/ function(module, exports) {
 
 	module.exports = require("electron");
+
+/***/ },
+/* 48 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var EventDispatcher_1 = __webpack_require__(7);
+	exports.InputEvent = {
+	    MOUSE_DOWN: 'onmousedown',
+	    MOUSE_MOVE: 'onmousemove',
+	    MOUSE_WHEEL: 'onmousewheel',
+	    MOUSE_UP: 'onmouseup',
+	    KEY_UP: 'onkeyup',
+	    KEY_DOWN: 'onkeydown',
+	};
+	var Input = (function (_super) {
+	    __extends(Input, _super);
+	    function Input() {
+	        var _this = _super !== null && _super.apply(this, arguments) || this;
+	        _this.isKeyPress = false;
+	        _this.isMousePress = false;
+	        return _this;
+	    }
+	    return Input;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.input = new Input();
+	window.onmousedown = function (e) {
+	    e['mx'] = e.clientX;
+	    e['my'] = e.clientY;
+	    exports.input.isMousePress = true;
+	    exports.input.emit(exports.InputEvent.MOUSE_DOWN, e);
+	};
+	window.onmousemove = function (e) {
+	    e['mx'] = e.clientX;
+	    e['my'] = e.clientY;
+	    exports.input.emit(exports.InputEvent.MOUSE_MOVE, e);
+	};
+	window.onmousewheel = function (e) {
+	    e['mx'] = e.clientX;
+	    e['my'] = e.clientY;
+	    exports.input.emit(exports.InputEvent.MOUSE_WHEEL, e);
+	};
+	window.onmouseup = function (e) {
+	    e['mx'] = e.clientX;
+	    e['my'] = e.clientY;
+	    exports.input.isMousePress = false;
+	    exports.input.emit(exports.InputEvent.MOUSE_UP, e);
+	};
+	window.onkeyup = function (e) {
+	    exports.input.isKeyPress = false;
+	    exports.input.emit(exports.InputEvent.KEY_UP, e);
+	};
+	window.onkeydown = function (e) {
+	    exports.input.isKeyPress = true;
+	    exports.input.emit(exports.InputEvent.KEY_DOWN, e);
+	};
+	exports.Curosr = {
+	    hand: 'hand',
+	    move: 'move',
+	    pointer: 'pointer'
+	};
+	exports.setCursor = function (s) {
+	    if (!s)
+	        s = 'auto';
+	    document.body.style.cursor = s;
+	};
+
 
 /***/ }
 /******/ ]);

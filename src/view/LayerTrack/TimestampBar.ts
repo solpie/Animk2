@@ -1,4 +1,4 @@
-import { input , InputEvent} from '../model/Input';
+import { input , InputEvent} from '../../utils/Input';
 import { MakeMatrixGraphics, PIXI_MOUSE_EVENT } from '../../utils/PixiEx';
 import { animk } from '../Animk';
 import { Button } from '../components/Button';

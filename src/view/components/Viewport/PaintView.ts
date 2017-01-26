@@ -1,4 +1,4 @@
-import { input, InputEvent } from '../../model/Input';
+import { input, InputEvent } from '../../../utils/Input';
 export class PaintView extends PIXI.Graphics {
     _lineArr = []
     constructor() {

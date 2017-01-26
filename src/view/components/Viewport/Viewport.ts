@@ -1,5 +1,5 @@
 import { PaintCanvas } from './PaintCanvas';
-import { input, InputEvent } from '../../model/Input';
+import { Curosr, input, InputEvent, setCursor } from '../../../utils/Input';
 import { PIXI_MOUSE_EVENT, posInObj, setPivot } from '../../../utils/PixiEx';
 import { ViewConst } from '../../const';
 import { CompView } from './CompView';
@@ -13,7 +13,7 @@ export class Viewport extends PIXI.Container {
         this.compView = new CompView(ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
         this.addChild(this.compView)
         this.paintCanvas = new PaintCanvas()
-        this._pan(20,20)
+        this._pan(20, 20)
         // this.compView.x = 70
         // this.compView.y = 70
         // this.compView.scale.x = this.compView.scale.y = 0.5
@@ -50,6 +50,7 @@ export class Viewport extends PIXI.Container {
 
         input.on(InputEvent.KEY_UP, (e) => {
             if (panCompViewFunId) {
+                setCursor()
                 this.lastX = null
                 this.lastY = null
                 input.del(InputEvent.MOUSE_MOVE, panCompViewFunId)
@@ -57,7 +58,9 @@ export class Viewport extends PIXI.Container {
             }
         })
     }
+    test() {
 
+    }
     lastX = null
     lastY = null
     panCompView(e) {
@@ -69,6 +72,7 @@ export class Viewport extends PIXI.Container {
         this._pan(this.compView.x + dtX, this.compView.y + dtY)
         this.lastX = e.mx
         this.lastY = e.my
+        setCursor(Curosr.move)
     }
 
     _pan(x, y) {

@@ -6,7 +6,7 @@ import { Viewport } from './components/Viewport/Viewport';
 import { BaseEvent } from './const';
 import { LayerTracker } from './LayerTrack/LayerTracker';
 import { AppInfo } from './model/AppInfo';
-import { input, InputEvent } from './model/Input';
+import { input, InputEvent } from './../utils/Input';
 import { ProjectInfo } from './model/ProjectInfo';
 export class Animk extends PIXI.Container {
     projInfo: ProjectInfo
@@ -27,6 +27,8 @@ export class Animk extends PIXI.Container {
 
         let vp = new Viewport()
         vs.setChild(vp)
+        this.viewport = vp
+
         let tk = new LayerTracker()
         this.tracker = tk
         vs.setChild(tk)

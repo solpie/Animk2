@@ -1,4 +1,4 @@
-import { input, InputEvent } from '../model/Input';
+import { input, InputEvent } from '../../utils/Input';
 import { PIXI_RECT, setupDrag } from '../../utils/PixiEx';
 import { TweenEx } from '../../utils/TweenEx';
 import { animk } from '../Animk';

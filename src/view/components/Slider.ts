@@ -1,4 +1,4 @@
-import { input, InputEvent } from '../model/Input';
+import { input, InputEvent } from '../../utils/Input';
 import { BaseEvent } from '../const';
 import { Col, newStyle } from '../model/Color';
 import { isIn, PIXI_RECT, setupDrag } from '../../utils/PixiEx';

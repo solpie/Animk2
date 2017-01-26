@@ -1,4 +1,4 @@
-import { input , InputEvent} from '../model/Input';
+import { input , InputEvent} from '../../utils/Input';
 import { animk } from '../Animk';
 import { BaseEvent, ViewConst } from '../const';
 import { EventDispatcher } from '../../utils/EventDispatcher';

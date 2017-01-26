@@ -21,4 +21,5 @@ let main = () => {
     return renderer.stage;
 }
 
-animk.init(main(),appInfo)
+animk.init(main(), appInfo)
+window['animk'] = animk

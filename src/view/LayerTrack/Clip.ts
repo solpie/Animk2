@@ -1,4 +1,4 @@
-import { input, InputEvent } from '../model/Input';
+import { input, InputEvent } from '../../utils/Input';
 import { TrackInfo } from '../model/TrackInfo';
 import { PIXI_RECT, setupDrag } from '../../utils/PixiEx';
 import { animk } from '../Animk';

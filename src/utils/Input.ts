@@ -1,4 +1,4 @@
-import { EventDispatcher } from '../../utils/EventDispatcher';
+import { EventDispatcher } from './EventDispatcher';
 
 
 export const InputEvent = {
@@ -10,7 +10,7 @@ export const InputEvent = {
     KEY_DOWN: 'onkeydown',
 };
 
-class Input extends EventDispatcher{
+class Input extends EventDispatcher {
     isKeyPress = false
     isMousePress = false
 }
@@ -26,7 +26,7 @@ window.onmousemove = (e) => {
     e['my'] = e.clientY
     input.emit(InputEvent.MOUSE_MOVE, e)
 }
-window.onmousewheel  = (e) => {
+window.onmousewheel = (e) => {
     e['mx'] = e.clientX
     e['my'] = e.clientY
     input.emit(InputEvent.MOUSE_WHEEL, e)
@@ -44,4 +44,14 @@ window.onkeyup = (e) => {
 window.onkeydown = (e) => {
     input.isKeyPress = true
     input.emit(InputEvent.KEY_DOWN, e)
+}
+export const Curosr = {
+    hand: 'hand',
+    move: 'move',
+    pointer: 'pointer'
+}
+export const setCursor = (s?) => {
+    if (!s)
+        s = 'auto'
+    document.body.style.cursor = s
 }
