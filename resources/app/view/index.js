@@ -1914,10 +1914,10 @@
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var Splitter_1 = __webpack_require__(31);
-	var Viewport_1 = __webpack_require__(34);
+	var Viewport_1 = __webpack_require__(35);
 	var const_1 = __webpack_require__(5);
-	var LayerTracker_1 = __webpack_require__(38);
-	var Input_1 = __webpack_require__(48);
+	var LayerTracker_1 = __webpack_require__(39);
+	var Input_1 = __webpack_require__(32);
 	var Animk = (function (_super) {
 	    __extends(Animk, _super);
 	    function Animk() {
@@ -1985,9 +1985,9 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Input_1 = __webpack_require__(48);
-	var PixiEx_1 = __webpack_require__(32);
-	var TweenEx_1 = __webpack_require__(33);
+	var Input_1 = __webpack_require__(32);
+	var PixiEx_1 = __webpack_require__(33);
+	var TweenEx_1 = __webpack_require__(34);
 	var const_1 = __webpack_require__(5);
 	var Splitter = (function (_super) {
 	    __extends(Splitter, _super);
@@ -2115,6 +2115,79 @@
 
 /***/ },
 /* 32 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var EventDispatcher_1 = __webpack_require__(7);
+	exports.InputEvent = {
+	    MOUSE_DOWN: 'onmousedown',
+	    MOUSE_MOVE: 'onmousemove',
+	    MOUSE_WHEEL: 'onmousewheel',
+	    MOUSE_UP: 'onmouseup',
+	    KEY_UP: 'onkeyup',
+	    KEY_DOWN: 'onkeydown',
+	};
+	var Input = (function (_super) {
+	    __extends(Input, _super);
+	    function Input() {
+	        var _this = _super !== null && _super.apply(this, arguments) || this;
+	        _this.isKeyPress = false;
+	        _this.isMousePress = false;
+	        return _this;
+	    }
+	    return Input;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.input = new Input();
+	window.onmousedown = function (e) {
+	    e['mx'] = e.clientX;
+	    e['my'] = e.clientY;
+	    exports.input.isMousePress = true;
+	    exports.input.emit(exports.InputEvent.MOUSE_DOWN, e);
+	};
+	window.onmousemove = function (e) {
+	    e['mx'] = e.clientX;
+	    e['my'] = e.clientY;
+	    exports.input.emit(exports.InputEvent.MOUSE_MOVE, e);
+	};
+	window.onmousewheel = function (e) {
+	    e['mx'] = e.clientX;
+	    e['my'] = e.clientY;
+	    exports.input.emit(exports.InputEvent.MOUSE_WHEEL, e);
+	};
+	window.onmouseup = function (e) {
+	    e['mx'] = e.clientX;
+	    e['my'] = e.clientY;
+	    exports.input.isMousePress = false;
+	    exports.input.emit(exports.InputEvent.MOUSE_UP, e);
+	};
+	window.onkeyup = function (e) {
+	    exports.input.isKeyPress = false;
+	    exports.input.emit(exports.InputEvent.KEY_UP, e);
+	};
+	window.onkeydown = function (e) {
+	    exports.input.isKeyPress = true;
+	    exports.input.emit(exports.InputEvent.KEY_DOWN, e);
+	};
+	exports.Curosr = {
+	    hand: 'hand',
+	    move: 'move',
+	    ns: 'ns-resize',
+	    pointer: 'pointer'
+	};
+	exports.setCursor = function (s) {
+	    if (!s)
+	        s = 'auto';
+	    document.body.style.cursor = s;
+	};
+
+
+/***/ },
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2385,7 +2458,7 @@
 
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -2475,7 +2548,7 @@
 
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2484,11 +2557,11 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var PaintCanvas_1 = __webpack_require__(35);
-	var Input_1 = __webpack_require__(48);
-	var PixiEx_1 = __webpack_require__(32);
+	var PaintCanvas_1 = __webpack_require__(36);
+	var Input_1 = __webpack_require__(32);
+	var PixiEx_1 = __webpack_require__(33);
 	var const_1 = __webpack_require__(5);
-	var CompView_1 = __webpack_require__(37);
+	var CompView_1 = __webpack_require__(38);
 	var Viewport = (function (_super) {
 	    __extends(Viewport, _super);
 	    function Viewport() {
@@ -2506,8 +2579,9 @@
 	            }
 	            var d = _this.compView;
 	            var pos = PixiEx_1.posInObj(_this.compView, e);
-	            console.log(pos);
 	            PixiEx_1.setPivot(d, pos.x - d.x, pos.y - d.y);
+	            var dtS = -e.deltaY / 200 * _this.zoomStep;
+	            console.log(pos, dtS);
 	            var s = d.scale.x - e.deltaY / 200 * _this.zoomStep;
 	            d.scale.x = d.scale.y = s;
 	        });
@@ -2519,7 +2593,7 @@
 	                    _this.panCompView(e);
 	                });
 	            }
-	            else if (e.key == "r") {
+	            else if (e.key == "r" && e.ctrlKey) {
 	                console.log('render');
 	                var sp = new PIXI.Sprite(PixiEx_1.imgToTex(_this.paintCanvas.getImg()));
 	                _this.addChild(sp);
@@ -2559,11 +2633,11 @@
 
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var Input_1 = __webpack_require__(48);
+	var Input_1 = __webpack_require__(32);
 	exports.PaintEvent = {
 	    undo: 'undo',
 	    redo: 'redo'
@@ -2577,7 +2651,7 @@
 	        this.confing = {
 	            lineWidth: 6,
 	            lineColor: "red",
-	            shadowBlur: 0.5
+	            shadowBlur: 0
 	        };
 	        this._x = 0;
 	        this._y = 0;
@@ -2642,7 +2716,7 @@
 	    };
 	    PaintCanvas.prototype._initPaint = function () {
 	        var _this = this;
-	        var wintab = __webpack_require__(36);
+	        var wintab = __webpack_require__(37);
 	        var moveFuncID = null;
 	        var upFuncID = null;
 	        Input_1.input.on(Input_1.InputEvent.MOUSE_DOWN, function (e) {
@@ -2656,11 +2730,11 @@
 	            _this.context.moveTo(canvasX, canvasY);
 	            var preData = _this.context.getImageData(0, 0, _this.width, _this.height);
 	            _this.preDrawAry.push(preData);
+	            var step = 15;
+	            var countStep = 0;
+	            var p1, p2, p3;
 	            moveFuncID = Input_1.input.on(Input_1.InputEvent.MOUSE_MOVE, function (e) {
-	                var x2 = e.clientX, y2 = e.clientY, t = e.target, canvasX2 = x2 - _this._x, canvasY2 = y2 - _this._y;
-	                if (wintab.allData().pressure) {
-	                    _this.context.lineWidth = _this.confing.lineWidth * wintab.allData().pressure;
-	                }
+	                var x2 = e.clientX, y2 = e.clientY, canvasX2 = x2 - _this._x, canvasY2 = y2 - _this._y;
 	                if (canvasX2 >= 0 && canvasY2 >= 0) {
 	                    _this.context.lineTo(canvasX2, canvasY2);
 	                    _this.context.stroke();
@@ -2739,13 +2813,13 @@
 
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports) {
 
 	module.exports = require("addon/node-wintab");
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2755,7 +2829,7 @@
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var JsFunc_1 = __webpack_require__(4);
-	var PixiEx_1 = __webpack_require__(32);
+	var PixiEx_1 = __webpack_require__(33);
 	var Animk_1 = __webpack_require__(30);
 	var const_1 = __webpack_require__(5);
 	var CompView = (function (_super) {
@@ -2818,7 +2892,7 @@
 
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2827,11 +2901,11 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Scroller_1 = __webpack_require__(39);
+	var Scroller_1 = __webpack_require__(40);
 	var const_1 = __webpack_require__(5);
 	var Command_1 = __webpack_require__(23);
-	var Stacker_1 = __webpack_require__(40);
-	var TimestampBar_1 = __webpack_require__(45);
+	var Stacker_1 = __webpack_require__(41);
+	var TimestampBar_1 = __webpack_require__(46);
 	var LayerTracker = (function (_super) {
 	    __extends(LayerTracker, _super);
 	    function LayerTracker() {
@@ -2895,7 +2969,7 @@
 
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2904,10 +2978,10 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Input_1 = __webpack_require__(48);
+	var Input_1 = __webpack_require__(32);
 	var const_1 = __webpack_require__(5);
 	var EventDispatcher_1 = __webpack_require__(7);
-	var PixiEx_1 = __webpack_require__(32);
+	var PixiEx_1 = __webpack_require__(33);
 	var Scroller = (function (_super) {
 	    __extends(Scroller, _super);
 	    function Scroller(dir, max, minValue, maxValue) {
@@ -3018,7 +3092,7 @@
 
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3027,13 +3101,14 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Slider_1 = __webpack_require__(41);
-	var CheckBox_1 = __webpack_require__(43);
-	var PixiEx_1 = __webpack_require__(32);
-	var Color_1 = __webpack_require__(42);
+	var Combobox_1 = __webpack_require__(49);
+	var Slider_1 = __webpack_require__(42);
+	var CheckBox_1 = __webpack_require__(44);
+	var PixiEx_1 = __webpack_require__(33);
+	var Color_1 = __webpack_require__(43);
 	var Animk_1 = __webpack_require__(30);
 	var const_1 = __webpack_require__(5);
-	var Clip_1 = __webpack_require__(44);
+	var Clip_1 = __webpack_require__(45);
 	var Stacker = (function (_super) {
 	    __extends(Stacker, _super);
 	    function Stacker(trackInfo) {
@@ -3068,6 +3143,9 @@
 	        vs.x = 50;
 	        vs.y = 40;
 	        _this.addChild(vs);
+	        var cbb = _this.addChild(new Combobox_1.Combobox(['norm', 'ref', 'pass'], 30, 20));
+	        cbb.x = 150;
+	        cbb.y = 30;
 	        _this.initEvent();
 	        _this.scroll(0);
 	        return _this;
@@ -3099,7 +3177,7 @@
 
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3108,10 +3186,10 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Input_1 = __webpack_require__(48);
+	var Input_1 = __webpack_require__(32);
 	var const_1 = __webpack_require__(5);
-	var Color_1 = __webpack_require__(42);
-	var PixiEx_1 = __webpack_require__(32);
+	var Color_1 = __webpack_require__(43);
+	var PixiEx_1 = __webpack_require__(33);
 	var Slider = (function (_super) {
 	    __extends(Slider, _super);
 	    function Slider(min, max, value) {
@@ -3187,7 +3265,7 @@
 
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -3209,7 +3287,7 @@
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3218,9 +3296,9 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var PixiEx_1 = __webpack_require__(32);
+	var PixiEx_1 = __webpack_require__(33);
 	var const_1 = __webpack_require__(5);
-	var Color_1 = __webpack_require__(42);
+	var Color_1 = __webpack_require__(43);
 	var CheckBox = (function (_super) {
 	    __extends(CheckBox, _super);
 	    function CheckBox() {
@@ -3271,7 +3349,7 @@
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3280,8 +3358,8 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Input_1 = __webpack_require__(48);
-	var PixiEx_1 = __webpack_require__(32);
+	var Input_1 = __webpack_require__(32);
+	var PixiEx_1 = __webpack_require__(33);
 	var Animk_1 = __webpack_require__(30);
 	var const_1 = __webpack_require__(5);
 	var Clip = (function (_super) {
@@ -3335,7 +3413,7 @@
 
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3344,12 +3422,12 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Input_1 = __webpack_require__(48);
-	var PixiEx_1 = __webpack_require__(32);
+	var Input_1 = __webpack_require__(32);
+	var PixiEx_1 = __webpack_require__(33);
 	var Animk_1 = __webpack_require__(30);
-	var Button_1 = __webpack_require__(46);
+	var Button_1 = __webpack_require__(47);
 	var const_1 = __webpack_require__(5);
-	var Color_1 = __webpack_require__(42);
+	var Color_1 = __webpack_require__(43);
 	var TimestampBar = (function (_super) {
 	    __extends(TimestampBar, _super);
 	    function TimestampBar() {
@@ -3404,7 +3482,7 @@
 	        var newTrackBtn = new Button_1.Button({ text: "new" });
 	        newTrackBtn.x = -100;
 	        newTrackBtn.on(PixiEx_1.PIXI_MOUSE_EVENT.up, function () {
-	            var dialog = __webpack_require__(47).remote.dialog;
+	            var dialog = __webpack_require__(48).remote.dialog;
 	            var ret = dialog.showOpenDialog({
 	                properties: ['openFile'], filters: [
 	                    { name: 'Images(png)', extensions: ['png'] },
@@ -3464,7 +3542,7 @@
 
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -3505,13 +3583,13 @@
 
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports) {
 
 	module.exports = require("electron");
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3520,67 +3598,27 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var EventDispatcher_1 = __webpack_require__(7);
-	exports.InputEvent = {
-	    MOUSE_DOWN: 'onmousedown',
-	    MOUSE_MOVE: 'onmousemove',
-	    MOUSE_WHEEL: 'onmousewheel',
-	    MOUSE_UP: 'onmouseup',
-	    KEY_UP: 'onkeyup',
-	    KEY_DOWN: 'onkeydown',
-	};
-	var Input = (function (_super) {
-	    __extends(Input, _super);
-	    function Input() {
-	        var _this = _super !== null && _super.apply(this, arguments) || this;
-	        _this.isKeyPress = false;
-	        _this.isMousePress = false;
+	var Color_1 = __webpack_require__(43);
+	var Combobox = (function (_super) {
+	    __extends(Combobox, _super);
+	    function Combobox(options, width, height) {
+	        if (width === void 0) { width = 120; }
+	        if (height === void 0) { height = 30; }
+	        var _this = _super.call(this) || this;
+	        _this._bg = _this.addChild(new PIXI.Graphics()
+	            .beginFill(Color_1.Col.panelBg)
+	            .drawRect(0, 0, width, height));
 	        return _this;
 	    }
-	    return Input;
-	}(EventDispatcher_1.EventDispatcher));
-	exports.input = new Input();
-	window.onmousedown = function (e) {
-	    e['mx'] = e.clientX;
-	    e['my'] = e.clientY;
-	    exports.input.isMousePress = true;
-	    exports.input.emit(exports.InputEvent.MOUSE_DOWN, e);
-	};
-	window.onmousemove = function (e) {
-	    e['mx'] = e.clientX;
-	    e['my'] = e.clientY;
-	    exports.input.emit(exports.InputEvent.MOUSE_MOVE, e);
-	};
-	window.onmousewheel = function (e) {
-	    e['mx'] = e.clientX;
-	    e['my'] = e.clientY;
-	    exports.input.emit(exports.InputEvent.MOUSE_WHEEL, e);
-	};
-	window.onmouseup = function (e) {
-	    e['mx'] = e.clientX;
-	    e['my'] = e.clientY;
-	    exports.input.isMousePress = false;
-	    exports.input.emit(exports.InputEvent.MOUSE_UP, e);
-	};
-	window.onkeyup = function (e) {
-	    exports.input.isKeyPress = false;
-	    exports.input.emit(exports.InputEvent.KEY_UP, e);
-	};
-	window.onkeydown = function (e) {
-	    exports.input.isKeyPress = true;
-	    exports.input.emit(exports.InputEvent.KEY_DOWN, e);
-	};
-	exports.Curosr = {
-	    hand: 'hand',
-	    move: 'move',
-	    ns: 'ns-resize',
-	    pointer: 'pointer'
-	};
-	exports.setCursor = function (s) {
-	    if (!s)
-	        s = 'auto';
-	    document.body.style.cursor = s;
-	};
+	    Combobox.prototype.resize = function (width, height) {
+	        this._w = width;
+	        this._h = height;
+	        this._bg.width = width;
+	        this._bg.height = height;
+	    };
+	    return Combobox;
+	}(PIXI.Container));
+	exports.Combobox = Combobox;
 
 
 /***/ }

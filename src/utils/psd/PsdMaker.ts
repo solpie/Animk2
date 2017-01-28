@@ -1,3 +1,5 @@
+import { Layer } from './Layer';
+import { PsdImage } from './PsdImage';
 var PNG = require('pngjs').PNG;
 
 class PsdMaker {
@@ -18,10 +20,10 @@ class PsdMaker {
     }
 
 
-    //static convertPNGs2PSD(pngArr:Array<PngLayerData>, w, h, colorSpace, path:string, pathCallback) {
+    // static convertPNGs2PSD(pngArr:Array<PngLayerData>, w, h, colorSpace, path:string, pathCallback) {
     //    // create psd data
     //    var psd = new PsdFile(w, h, colorSpace);
-    //
+    
     //    // append layer
     //    var pngLayer:PngLayerData;
     //    for (var i = 0; i < pngArr.length; i++) {
@@ -33,15 +35,15 @@ class PsdMaker {
     //        layer.opacity = pngLayer.opacity;
     //        psd.appendLayer(layer);
     //    }
-    //
+    
     //    // create merged image data
     //    var b = new Buffer(4);
     //    psd.imageData = new PsdImage(1, 1,
     //        colorSpace, b);
-    //
+    
     //    //psd.imageData = new PsdImage(pngLayer.width, pngLayer.height,
     //    //    pngLayer.colorSpace, new jDataView(pngLayer.pixels));
-    //
+    
     //    // alpha blend whth white background
     //    if (psd.hasAlpha) {
     //        //var channels = psd.imageData.channels;
@@ -56,8 +58,8 @@ class PsdMaker {
     //        //    }
     //        //}
     //    }
-    //
-    //
+    
+    
     //    fs.writeFile(path, psd.
     //        toBinary(), function (err) {
     //        if (err) throw err;
@@ -65,7 +67,7 @@ class PsdMaker {
     //        //console.log(this, "sus", new Date().getTime() - startTime);
     //    });
     //    //callback(psd.toBinary());
-    //}
+    // }
 
     /**
      * Alpha blend with white background

@@ -16,7 +16,7 @@ export class PaintCanvas {
     confing = {
         lineWidth: 6,
         lineColor: "red",
-        shadowBlur: 0.5
+        shadowBlur: 0
     }
     canvas: any
     context: any
@@ -80,7 +80,7 @@ export class PaintCanvas {
         this.middleAry.push(preData);
     }
     _initPaint() {
-        var wintab = require('addon/node-wintab');
+        const wintab = require('addon/node-wintab');
         var moveFuncID = null
         var upFuncID = null
         input.on(InputEvent.MOUSE_DOWN, (e) => {
@@ -100,18 +100,44 @@ export class PaintCanvas {
             var preData = this.context.getImageData(0, 0, this.width, this.height);
             //当前绘图表面进栈
             this.preDrawAry.push(preData);
+            const step = 15;
+            var countStep = 0;
+
+            var p1, p2,p3
             moveFuncID = input.on(InputEvent.MOUSE_MOVE, (e) => {
                 var x2 = e.clientX,
                     y2 = e.clientY,
-                    t = e.target,
                     canvasX2 = x2 - this._x,// - left,
                     canvasY2 = y2 - this._y //- top;
-                if (wintab.allData().pressure) {
-                    this.context.lineWidth = this.confing.lineWidth * wintab.allData().pressure
-                }
+
+                // while (countStep++ < step)
+                //     return;
+                // countStep = 0
+                // if (!p1) {
+                //     p1 = { x: canvasX2, y: canvasY2 }
+                //     return
+                // }
+                // if (!p2) {
+                //     p2 = { x: canvasX2, y: canvasY2 }
+                //     return
+                // }
+                // if (!p3) {
+                //     p3 = { x: canvasX2, y: canvasY2 }
+                // }
+                
+
+                // if (wintab.allData().pressure) {
+                //     this.context.lineWidth = this.confing.lineWidth * wintab.allData().pressure
+                // }
                 if (canvasX2 >= 0 && canvasY2 >= 0) {
                     this.context.lineTo(canvasX2, canvasY2);
+                    // this.context.moveTo(p1.x,p1.y)
+                    // this.context.quadraticCurveTo(p2.x, p2.y, p3.x, p3.y);
+                    // this.context.bezierCurveTo(canvasX2, canvasY2);
                     this.context.stroke();
+
+                    // p1 = p3
+                    //  p2 = p3=null
                 }
                 else {
                     this.context.beginPath();
@@ -121,6 +147,7 @@ export class PaintCanvas {
             upFuncID = input.on(InputEvent.MOUSE_UP, (e) => {
                 input.del(InputEvent.MOUSE_UP, upFuncID)
                 input.del(InputEvent.MOUSE_MOVE, moveFuncID)
+
                 //当前绘图表面状态
                 var preData = this.context.getImageData(0, 0, this.width, this.height);
                 if (this.nextDrawAry.length == 0) {

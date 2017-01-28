@@ -28,9 +28,11 @@ export class Viewport extends PIXI.Container {
             let d = this.compView
             // setPivot(d)
             let pos = posInObj(this.compView, e)
-            console.log(pos)
             // if (pos.x > 0 && pos.y > 0)
             setPivot(d, pos.x - d.x, pos.y - d.y)
+            let dtS = - e.deltaY / 200 * this.zoomStep
+            console.log(pos,dtS)
+            
             // else
             //     setPivot(d, this.width / 2, this.height / 2)
             let s = d.scale.x - e.deltaY / 200 * this.zoomStep
@@ -46,7 +48,7 @@ export class Viewport extends PIXI.Container {
                     this.panCompView(e)
                 })
             }
-            else if (e.key == "r") {
+            else if (e.key == "r"&&e.ctrlKey) {
                 console.log('render')
                 let sp = new PIXI.Sprite(imgToTex(this.paintCanvas.getImg()))
                 this.addChild(sp)

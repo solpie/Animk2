@@ -1,3 +1,4 @@
+import { Combobox } from '../components/Combobox';
 import { Slider } from '../components/Slider';
 import { CheckBox } from '../components/CheckBox';
 import { newBitmap, PIXI_RECT } from '../../utils/PixiEx';
@@ -56,7 +57,10 @@ export class Stacker extends PIXI.Container {
         vs.y = 40
         this.addChild(vs)
 
-
+        let cbb = this.addChild(new Combobox(['norm','ref','pass'],30, 20))
+        cbb.x = 150
+        cbb.y = 30
+        // cbb.on()
         this.initEvent()
         this.scroll(0)
     }
