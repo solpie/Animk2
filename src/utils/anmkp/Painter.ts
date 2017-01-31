@@ -10,7 +10,7 @@ export class Painter extends EventDispatcher {
     pushToTransaction = false
 
 
-    size = { width: 640, height: 480 };
+    size = { width: 1280, height: 720 };
 
 
     constructor() {
