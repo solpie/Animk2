@@ -1,27 +1,35 @@
+import { TweenEx } from '../../utils/TweenEx';
 import { TheMachine } from './tm/TheMachine';
 import { SettingInfo } from './SettingInfo';
 import { prop } from '../../utils/JsFunc';
 import { ProjectInfo, ProjectInfoEvent } from './ProjectInfo';
 import { EventDispatcher } from '../../utils/EventDispatcher';
 class AppData {
-    winWidth:number = 1660;
-    winHeight:number = 1024;
+    winWidth: number = 1660;
+    winHeight: number = 1024;
 }
 export class AppInfo extends EventDispatcher {
-    projectInfo:ProjectInfo;
-    tm:TheMachine;
-    settingInfo:SettingInfo;
-    appData:AppData;
-    mouseX:number;
-    mouseY:number;
+    projectInfo: ProjectInfo;
+    tm: TheMachine;
+    settingInfo: SettingInfo;
+    appData: AppData;
+    mouseX: number;
+    mouseY: number;
 
     constructor() {
         super();
         this.appData = new AppData();
         this.tm = new TheMachine();
         this.settingInfo = new SettingInfo();
+        this.test()
     }
 
+    test() {
+        TweenEx.delayedCall(2000, () => {
+            this.tm.test()
+            this.tm.test2()
+        })
+    }
     width(v?) {
         return prop(this.appData, "winWidth", v);
     }

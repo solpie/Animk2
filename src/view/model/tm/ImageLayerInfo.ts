@@ -2,49 +2,40 @@ import { PsdImage } from '../../../utils/psd/PsdImage';
 import { Layer } from '../../../utils/psd/Layer';
 import { PsdFile } from '../../../utils/psd/PsdFile';
 import { ImageInfo } from '../ImageInfo';
-var PNG = require('pngjs').PNG;
+const fs = require('fs')
 export class ImageLayerInfo { //glue ImageInfo and PsdLayer
-    width:number;
-    height:number;
-    opacity:number;
-    isRef:boolean;
-    pixels:Buffer;
-    filename:string;
-    imageInfo:ImageInfo;
+    width: number;
+    height: number;
+    opacity: number=1;
+    isRef: boolean;
+    pixels: Uint8Array;
+    buf: Buffer;
+    filename: string;
+    imageInfo: ImageInfo;
 
     constructor() {
         //console.log(this, "new PngLayerData");
     }
 
-    load(callback) {
-        var self = this;
-        if (this.filename)
-            fs.createReadStream(this.filename)
-                .pipe(new PNG({
-                    filterType: 4
-                }))
-                .on('parsed', function (data) {
-                    //this is PNG
-                    self.pixels = this.data;
-                    self.width = this.width;
-                    self.height = this.height;
-                    //console.log(this, "parsed", data, this.data);
-                    callback();
-                });
+    load2() {
+        // var addon = require('./build/Release/psd.node')
+        // addon.pngLoad("d:\\test.png", function (buf, w, h) {
+        //     console.log(w, h, buf);
+        // })
     }
 
-    static png2psd(pngArr:Array<ImageLayerInfo>, w, h, colorSpace, path:string, pathCallback) {
+    static png2psd(pngArr: Array<ImageLayerInfo>, w, h, colorSpace, path: string, pathCallback) {
         // create psd data
         var psd = new PsdFile(w, h, colorSpace);
 
         // append layer
 
-        var pngLayer:ImageLayerInfo;
+        var pngLayer: ImageLayerInfo;
         for (var i = 0; i < pngArr.length; i++) {
             pngLayer = pngArr[i];
             //todo import PsdFile only
             var image = new PsdImage(pngLayer.width, pngLayer.height,
-                colorSpace, pngLayer.pixels);
+                colorSpace, pngLayer.pixels||pngLayer.buf);
             var layer = new Layer();
             layer.drawImage(image);
             layer.opacity = pngLayer.opacity;

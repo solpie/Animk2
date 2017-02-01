@@ -1,6 +1,6 @@
-import { appInfo } from './model/AppInfo';
 require(`script!./../libs/pixi.min.js`);
 require(`script!./../libs/Tween.min.js`);
+import { appInfo } from './model/AppInfo';
 import { ViewConst } from './const';
 import { animk } from './Animk';
 // console.log('running!')

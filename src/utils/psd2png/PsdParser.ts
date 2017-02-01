@@ -1,5 +1,4 @@
-var PNG = require('pngjs').PNG,
-    fs = require('fs');
+const fs = require('fs');
 //var MODES = [
 //    'BitMap',       //0
 //    'Grayscale',    //1
@@ -105,14 +104,14 @@ class PsdParser {
         var _ = PSD;
 
         var header = _.header = {
-                sig: "",
-                version: 0,
-                channelsNum: 0,
-                height: 0,
-                width: 0,
-                depth: 0,
-                colorMode: 0,
-            },
+            sig: "",
+            version: 0,
+            channelsNum: 0,
+            height: 0,
+            width: 0,
+            depth: 0,
+            colorMode: 0,
+        },
             file = _.file;
 
         header.sig = file.readString(4);
@@ -140,10 +139,10 @@ class PsdParser {
 
 
         var colorMode = _.colorMode = {
-                startPos: 0,
-                length: 0,
-                endPos: 0,
-            },
+            startPos: 0,
+            length: 0,
+            endPos: 0,
+        },
             file = _.file;
 
         colorMode.startPos = file.now();
@@ -247,9 +246,9 @@ class PsdParser {
             }
         };
         var ref = [
-                ref1026,
-                ref1050
-            ],
+            ref1026,
+            ref1050
+        ],
 
             Resources = {};
 
@@ -259,11 +258,11 @@ class PsdParser {
         var _ = PSD;
 
         var imageResources = _.imageResources = {
-                startPos: 0,
-                length: 0,
-                endPos: 0,
-                imageResourceBlock: null,
-            },
+            startPos: 0,
+            length: 0,
+            endPos: 0,
+            imageResourceBlock: null,
+        },
             file = _.file;
 
         var startPos = imageResources.startPos = file.now(),
@@ -293,11 +292,11 @@ class PsdParser {
     __parseLayerMaskInfo(PSD) {
         var _ = PSD;
         var layerMaskInfo = _.layerMaskInfo = {
-                startPos: 0,
-                length: 0,
-                layerInfo: null,
-                globalMask: null,
-            },//todo refactor to class
+            startPos: 0,
+            length: 0,
+            layerInfo: null,
+            globalMask: null,
+        },//todo refactor to class
             file = _.file;
         var startPos = layerMaskInfo.startPos = file.now();
 
@@ -400,23 +399,25 @@ class PsdParser {
             return self.pixelData
         };
 
+        //todo png save
         layer.saveAsPng = function (output, callback) {
-            var self = this;
-            self.parseImageData();
-            var png = new PNG({
-                width: self.width + layer.left,
-                height: self.height + layer.top,
-                filterType: 4
-            });
-            if (self.pixelData) {
-                png.data = PsdParser.transPixels(self.width, self.height, self.pixelData, layer.left, layer.top);
-                //png.data = self.pixelData;
-                var dst = fs.createWriteStream(output);
-                dst.on("finish", callback);
-                png.pack().pipe(dst);
-            } else {
-                throw 'Not support the colorMode'
-            }
+            throw new Error("todo save png!")
+            // var self = this;
+            // self.parseImageData();
+            // var png = new PNG({
+            //     width: self.width + layer.left,
+            //     height: self.height + layer.top,
+            //     filterType: 4
+            // });
+            // if (self.pixelData) {
+            //     png.data = PsdParser.transPixels(self.width, self.height, self.pixelData, layer.left, layer.top);
+            //     //png.data = self.pixelData;
+            //     var dst = fs.createWriteStream(output);
+            //     dst.on("finish", callback);
+            //     png.pack().pipe(dst);
+            // } else {
+            //     throw 'Not support the colorMode'
+            // }
         };
     }
 
@@ -446,11 +447,11 @@ class PsdParser {
         var _ = PSD;
 
         var imageData = _.imageData = {
-                width: 0,
-                height: 0,
-                toImageData: null,
-                saveAsPng: null,
-            },//todo refactor to class
+            width: 0,
+            height: 0,
+            toImageData: null,
+            saveAsPng: null,
+        },//todo refactor to class
             file = _.file;
 
         var parsed = false, pos = file.now();

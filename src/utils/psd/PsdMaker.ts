@@ -1,6 +1,5 @@
 import { Layer } from './Layer';
 import { PsdImage } from './PsdImage';
-var PNG = require('pngjs').PNG;
 
 class PsdMaker {
     constructor() {

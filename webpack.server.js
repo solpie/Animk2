@@ -6,7 +6,7 @@ module.exports = {
         "view/index.js": "./src/view/index.ts"
     },
     target: "electron",
-    externals: [nodeExternals({ whitelist: ['psd'] })],
+    externals: [nodeExternals({ whitelist: ['psd.node'] })],
     output: {
         path: './resources/app',
         filename: "[name]"

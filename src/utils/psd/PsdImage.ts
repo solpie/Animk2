@@ -7,12 +7,12 @@ export class PsdImage {
     colorSpace;
     colorMode;
     hasAlpha;
-    pixels:Buffer;
+    pixels:Uint8Array;
     numChannel;
     numPixels;
     channels;
 
-    constructor(width, height, colorSpace, pixels:Buffer) {
+    constructor(width, height, colorSpace, pixels:Uint8Array) {
         // init params
         this.width = (typeof width === 'number') ? width : 0;
         this.height = (typeof height === 'number') ? height : 0;

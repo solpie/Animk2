@@ -66,6 +66,7 @@ export class Animk extends PIXI.Container {
     }
 
     test() {
+        
         //todo: ctrl + drag frame :hold frame
 
         // let p = new PngMaker()

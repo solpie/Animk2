@@ -106,9 +106,12 @@ void png_decode(const FunctionCallbackInfo<Value> &args)
     unsigned char *pngBuf = png_load(filename, &w, &h);
     ///
     Local<Function> cb = Local<Function>::Cast(args[1]);
+    Local<ArrayBuffer> ab = ArrayBuffer::New(isolate, pngBuf, w * h * 4);
+
     const unsigned argc = 3;
     Local<Value> argv[argc] = {
-        String::NewFromUtf8(isolate, "end"),
+        // String::NewFromUtf8(isolate, "end"),
+         ab,
         Number::New(isolate, w),
         Number::New(isolate, h)};
     cb->Call(Null(isolate), argc, argv);

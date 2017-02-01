@@ -1,4 +1,4 @@
-declare let TWEEN;
+declare const TWEEN;
 export class TweenEx {
     target
     vars
