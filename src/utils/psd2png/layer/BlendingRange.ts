@@ -1,8 +1,8 @@
-class BlendingRange{
+export class BlendingRange{
     grey:any;
     channels:Array<any>;
 }
-function parseBlendingRange(file){
+export function parseBlendingRange(file){
     var length = file.readInt(),
         endPos = file.now() + length;
 

@@ -11,8 +11,6 @@ var _layerName = {
     }
 };
 ///
-/// <reference path="../Descriptor.ts"/>
-//parseEngineData = require('parse-engine-data');
 
 var _typeTool = {
     id: 'TySh',
@@ -80,7 +78,7 @@ ref.forEach(function (o) {
     LAYER_INFO[o.id] = o;
 });
 
-function parseAdditional(file, endPos) {
+export function parseAdditional(file, endPos) {
     var o = {};
     while (file.now() < endPos) {
         var sig = file.readString(4),

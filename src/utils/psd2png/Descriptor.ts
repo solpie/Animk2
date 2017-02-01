@@ -1,4 +1,4 @@
-class Descriptor {
+export class Descriptor {
     data;
     file;
     types;

@@ -1,9 +1,10 @@
 export class ChImageData {
     width;
     height;
-    pixels:Buffer;
-
-    constructor(width, height, pixels) {
+    pixels: Array<number>;
+    buf: Buffer
+    toBinCount = 0;
+    constructor(width, height, pixels: Array<number>) {
         this.width = width;
         this.height = height;
         this.pixels = pixels;
@@ -120,17 +121,20 @@ export class ChImageData {
     }
 
     toBinary() {
-        // set compression type
-        var compType = new Buffer(2);
-        compType.writeUInt16BE(1, 0); // RLE
+        if (!this.buf) {
+            // set compression type
+            var compType = new Buffer(2);
+            compType.writeUInt16BE(1, 0); // RLE
 
-        // get RLE compressed data
-        var compressedData = this.compressRLE();
+            // get RLE compressed data
+            var compressedData = this.compressRLE();
 
-        return Buffer.concat([
-            compType, // compression
-            compressedData.byteCounts, // byte counts
-            compressedData.image // RLE compressed data
-        ]);
+            this.buf = Buffer.concat([
+                compType, // compression
+                compressedData.byteCounts, // byte counts
+                compressedData.image // RLE compressed data
+            ]);
+        }
+        return this.buf
     }
 }

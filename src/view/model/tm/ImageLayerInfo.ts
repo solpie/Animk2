@@ -1,17 +1,16 @@
-import { PsdImage } from '../../../utils/psd/PsdImage';
 import { Layer } from '../../../utils/psd/Layer';
 import { PsdFile } from '../../../utils/psd/PsdFile';
-import { ImageInfo } from '../ImageInfo';
+import { PsdImage } from '../../../utils/psd/PsdImage';
 const fs = require('fs')
 export class ImageLayerInfo { //glue ImageInfo and PsdLayer
     width: number;
     height: number;
     opacity: number = 1;
     isRef: boolean;
-    pixels: Uint8Array;
+    pixels: Uint8ClampedArray;
     buf: Buffer;
     filename: string;
-    imageInfo: ImageInfo;
+    // imageInfo: ImageInfo;
 
     constructor() {
         //console.log(this, "new PngLayerData");

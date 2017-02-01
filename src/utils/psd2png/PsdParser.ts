@@ -1,3 +1,7 @@
+import { imageFun } from './ImageHelper';
+import { Descriptor } from './Descriptor';
+import { Handler } from './Handler';
+import { Records } from './layer/Record';
 const fs = require('fs');
 //var MODES = [
 //    'BitMap',       //0
@@ -11,8 +15,7 @@ const fs = require('fs');
 //    'Duotone',      //8
 //    'Lab'           //9
 //];
-class PsdParser {
-
+export class PsdParser {
     constructor() {
 
     }
@@ -401,23 +404,23 @@ class PsdParser {
 
         //todo png save
         layer.saveAsPng = function (output, callback) {
-            throw new Error("todo save png!")
-            // var self = this;
-            // self.parseImageData();
+            // throw new Error("todo save png!")
+            var self = this;
+            self.parseImageData();
             // var png = new PNG({
             //     width: self.width + layer.left,
             //     height: self.height + layer.top,
             //     filterType: 4
             // });
-            // if (self.pixelData) {
-            //     png.data = PsdParser.transPixels(self.width, self.height, self.pixelData, layer.left, layer.top);
-            //     //png.data = self.pixelData;
-            //     var dst = fs.createWriteStream(output);
-            //     dst.on("finish", callback);
-            //     png.pack().pipe(dst);
-            // } else {
-            //     throw 'Not support the colorMode'
-            // }
+            if (self.pixelData) {
+                // png.data = PsdParser.transPixels(self.width, self.height, self.pixelData, layer.left, layer.top);
+                // //png.data = self.pixelData;
+                // var dst = fs.createWriteStream(output);
+                // dst.on("finish", callback);
+                // png.pack().pipe(dst);
+            } else {
+                throw 'Not support the colorMode'
+            }
         };
     }
 

@@ -55,7 +55,7 @@ function newLayer(l) {
     };
     return l;
 }
-class Handler {
+export class Handler {
     _psd_;
     _children;
     _tree;

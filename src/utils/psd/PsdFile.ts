@@ -86,7 +86,7 @@ export class PsdFile {
         }
 
         // layer records
-        var layerRecords = Buffer.concat(psd.layers.map(function (layer) {
+        var layerRecords = Buffer.concat(psd.layers.map(function (layer:Layer) {
             return layer.toBinary();
         }));
 

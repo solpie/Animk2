@@ -1,4 +1,4 @@
-function parseMask(file) {
+export function parseMask(file) {
     var size = file.readInt(),
         endPos = file.now() + size;
     if (size === 0) return null;

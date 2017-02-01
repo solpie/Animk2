@@ -112,7 +112,7 @@ function _imageMode(layer) {
     }
     return pixelData
 }
-var imageFun = {
+export var imageFun = {
     //image ��������
     layerFormat: [
         //0=Raw 1=RLE 2=ZIP without prediction 3=ZIP with prediction

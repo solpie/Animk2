@@ -215,7 +215,7 @@ export class CompInfo extends EventDispatcher {
             var filename = trackInfo.getFrameByCursor(frame)
             let img = imgCache.getImg(filename)
             if (img) {
-                let buf = getPixelBufFromImg(img)
+                let buf = imgCache.getBuf(filename)
                 let w = img.width, h = img.height;
                 let imgLayer = new ImageLayerInfo()
                 imgLayer.width = w

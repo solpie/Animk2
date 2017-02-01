@@ -29,6 +29,7 @@ export class PaintCanvas {
         return this.canvas.height
     }
     constructor() {
+        
         this.canvas = document.getElementById('paintCanvas')
         this.canvas.style['pointer-events'] = 'none'
 
@@ -50,7 +51,6 @@ export class PaintCanvas {
         this.createPng()
         input.on(InputEvent.KEY_DOWN, (e) => {
             console.log(e)
-
             let k = e.key.toLowerCase()
             let isCtrl = e.ctrlKey
             let isShift = e.shiftKey
@@ -173,7 +173,7 @@ export class PaintCanvas {
         // return new Uint32Array(pixel.data.buffer)
         return new Uint8Array(pixel.data.buffer)
     }
-    
+
     createPng() {
         let canvas = document.createElement("canvas");
         canvas.width = this.width

@@ -1,3 +1,4 @@
+import { PsdParser } from '../utils/psd2png/PsdParser';
 import { CompInfoEvent } from './const';
 import { ImageLayerInfo } from './model/tm/ImageLayerInfo';
 import { getPixelBufFromImg } from '../utils/PixelBuf';
@@ -25,9 +26,23 @@ export const initTest = () => {
         //         });
         // })
 
+        var psdParser = new PsdParser();
+        var psd = psdParser.parse('d:/3.psd');
+        let imgData = psd.getDescendants()[1].parseImageData();
+        console.log('imageData', imgData);
+        let cvs: any = document.getElementById('paintCanvas')
+        let ctx = cvs.getContext('2d');
+        let id = new ImageData(1280, 720)
+        let mc_px_data = new Uint8ClampedArray(imgData);
+        id.data.set(mc_px_data);
+        ctx.putImageData(id, 0, 0)
+        // psd.getDescendants()[0].saveAsPng('d:/decode3.png', () => {
+        // console.log(this, "psd2png", imageLayerInfo.filename);
+        // imageLayerInfo.imageInfo.updateImg();
+        // });
         appInfo.projectInfo.on(CompInfoEvent.NEW_COMP, () => {
             TweenEx.delayedCall(1000, () => {
-                appInfo.curComp().newTrack('D:/lsj/rkb2017/军哥/cut3/jg020114.924.png')
+                // appInfo.curComp().newTrack('D:/lsj/rkb2017/军哥/cut3/jg020114.924.png')
                 // appInfo.curComp().newTrack('D:\lsj\rkb2017\军哥\reto\101.png')
             })
         })

@@ -1,3 +1,4 @@
+import { ChImageData } from './ChImageData';
 export class Layer {
     top = 0;
     left = 0;
@@ -25,7 +26,7 @@ export class Layer {
     }
 
     getChannelImageBinary() {
-        var channelImageData = Buffer.concat(this.channels.map(function (channel) {
+        var channelImageData = Buffer.concat(this.channels.map(function (channel:ChImageData) {
             return channel.toBinary();
         }));
 
@@ -58,7 +59,7 @@ export class Layer {
         layerRecord.writeUInt16BE(numChannel, 16);
         var ofs = 16 + 2;
         // channnel infomation
-        this.channels.forEach(function (channel, index) {
+        this.channels.forEach(function (channel:ChImageData, index) {
             // id
             var id = (that.hasAlpha && index === numChannel - 1) ? -1 : index;
             layerRecord.writeInt16BE(id, ofs);

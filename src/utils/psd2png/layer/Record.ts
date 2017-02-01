@@ -1,10 +1,9 @@
+import { parseAdditional } from './AddLayerInfo';
+import { parseBlendingRange } from './BlendingRange';
+import { parseMask } from './Mask';
 /**
  * Created by Gqb on 14/11/16.
  */
-/// <reference path="Mask.ts"/>
-/// <reference path="BlendingRange.ts"/>
-/// <reference path="AddLayerInfo.ts"/>
-
 //var parseMask = require('./mask'),
 //    parseBlendingRange = require('./blendingRange'),
 //    parseAdditional = require('./addLayerInfo');
@@ -39,7 +38,7 @@ var MODES = {
     'colr': 'color',
     'lum ': 'luminosity'
 };
-class Records {
+export class Records {
     static parseLayer(file) {
         var top = file.readInt(),
             left = file.readInt(),
