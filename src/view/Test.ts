@@ -1,3 +1,4 @@
+import { CompInfoEvent } from './const';
 import { ImageLayerInfo } from './model/tm/ImageLayerInfo';
 import { getPixelBufFromImg } from '../utils/PixelBuf';
 import { loadImg } from '../utils/JsFunc';
@@ -6,22 +7,29 @@ import { TweenEx } from '../utils/TweenEx';
 import { appInfo, AppInfoEvent } from './model/AppInfo';
 export const initTest = () => {
     appInfo.on(ProjectInfoEvent.NEW_PROJ, () => {
-        loadImg('d:\\test.png', (img) => {
-            let t1 = new Date().getMilliseconds()
-            let buf = getPixelBufFromImg(img)
-            let w = img.width, h = img.height;
-            let a: Array<ImageLayerInfo> = []
-            let imgLayer = new ImageLayerInfo()
-            imgLayer.width = w
-            imgLayer.height = h
-            imgLayer.pixels = buf
-            a.push(imgLayer)
-            ImageLayerInfo.png2psd(a, w,
-                h, "rgba",
-                'd:\\4.psd', (p) => {
-                    let t2 = new Date().getMilliseconds()
-                    console.log('psd4 cast time:', t2 - t1)
-                });
+        // loadImg('d:\\test.png', (img) => {
+        //     let t1 = new Date().getMilliseconds()
+        //     let buf = getPixelBufFromImg(img)
+        //     let w = img.width, h = img.height;
+        //     let a: Array<ImageLayerInfo> = []
+        //     let imgLayer = new ImageLayerInfo()
+        //     imgLayer.width = w
+        //     imgLayer.height = h
+        //     imgLayer.pixels = buf
+        //     a.push(imgLayer)
+        //     ImageLayerInfo.png2psd(a, w,
+        //         h, "rgba",
+        //         'd:\\4.psd', (p) => {
+        //             let t2 = new Date().getMilliseconds()
+        //             console.log('psd4 cast time:', t2 - t1)
+        //         });
+        // })
+
+        appInfo.projectInfo.on(CompInfoEvent.NEW_COMP, () => {
+            TweenEx.delayedCall(1000, () => {
+                appInfo.curComp().newTrack('D:/lsj/rkb2017/军哥/cut3/jg020114.924.png')
+                // appInfo.curComp().newTrack('D:\lsj\rkb2017\军哥\reto\101.png')
+            })
         })
         //todo: ctrl + drag frame :hold frame
 

@@ -471,21 +471,21 @@ class PsdParser {
             self.pixelData = imageFun.mergeImageData(this, _.header.colorMode);
             parsed = true;
         };
-
+        //todo png save
         imageData.saveAsPng = function (output) {
-            var self = this;
-            self.toImageData();
-            var png = new PNG({
-                width: self.width,
-                height: self.height,
-                filterType: 4
-            });
-            if (self.pixelData) {
-                png.data = self.pixelData;
-                png.pack().pipe(fs.createWriteStream(output));
-            } else {
-                throw 'pixelData not exist'
-            }
+            // var self = this;
+            // self.toImageData();
+            // var png = new PNG({
+            //     width: self.width,
+            //     height: self.height,
+            //     filterType: 4
+            // });
+            // if (self.pixelData) {
+            //     png.data = self.pixelData;
+            //     png.pack().pipe(fs.createWriteStream(output));
+            // } else {
+            //     throw 'pixelData not exist'
+            // }
         };
     }
 }

@@ -52,26 +52,8 @@ export class Viewport extends PIXI.Container {
                 console.log('render')
                 // let sp = new PIXI.Sprite(imgToTex(this.paintCanvas.getImg()))
                 // this.addChild(sp)
-
             }
-            else if (e.key == 'Enter') {
-                console.log('enter')
-                let t1 = new Date().getMilliseconds()
-                let buf = this.paintCanvas.getPixelBuf()
-                let w = 1280, h = 720;
-                let a: Array<ImageLayerInfo> = []
-                let imgLayer = new ImageLayerInfo()
-                imgLayer.width = w
-                imgLayer.height = h
-                imgLayer.pixels = buf
-                a.push(imgLayer)
-                ImageLayerInfo.png2psd(a, w,
-                    h, "rgba",
-                    'd:\\2.psd', (p) => {
-                        let t2 = new Date().getMilliseconds()
-                        console.log('addon cast time:', t2 - t1)
-                    });
-            }
+           
         })
 
         input.on(InputEvent.KEY_UP, (e) => {

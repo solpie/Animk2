@@ -1,3 +1,4 @@
+import { initShortCut } from './model/ShortCut';
 import { getPixelBufFromImg } from '../utils/PixelBuf';
 import { ImageLayerInfo } from './model/tm/ImageLayerInfo';
 import { loadImg } from '../utils/JsFunc';
@@ -20,7 +21,6 @@ export class Animk extends PIXI.Container {
 
     constructor() {
         super()
-
     }
 
     initUI() {
@@ -47,7 +47,7 @@ export class Animk extends PIXI.Container {
         this.initUI()
         stage.addChild(this)
 
-        this.initEvent()
+        initShortCut()
         this.onload()
         this.test()
     }
@@ -55,19 +55,7 @@ export class Animk extends PIXI.Container {
     onload() {
         this.projInfo.curComp.setCursor(1)
     }
-    initEvent() {
-        input.on(InputEvent.KEY_DOWN, (e) => {
-            let k = e.key
-            let isCtrl = e.ctrlKey
-            if (k == 'f') {
-                this.projInfo.curComp.forward()
-            }
-            else if (k == 'd')
-                this.projInfo.curComp.backward()
-
-        })
-    }
-
+    
     test() {
         this.tracker.vScroller.setMax(350)
         this.tracker.vScroller.evt.on(BaseEvent.CHANGED, (v) => {

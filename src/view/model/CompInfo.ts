@@ -1,3 +1,6 @@
+import { ImageLayerInfo } from './tm/ImageLayerInfo';
+import { getPixelBufFromImg } from '../../utils/PixelBuf';
+import { imgCache } from './ImageCache';
 import { prop } from '../../utils/JsFunc';
 import { walkDir } from '../../utils/NodeFunc';
 import { cmd } from './Command';
@@ -200,7 +203,33 @@ export class CompInfo extends EventDispatcher {
         if (v > this._maxPos)
             this._maxPos = v
         console.log('maxPos', this._maxPos);
+    }
 
+    makePsd(frame?) {
+        if (!frame)
+            frame = this._cursorPos;
+        let imgArr = []
+        let t1 = new Date().getMilliseconds()
+        let a: Array<ImageLayerInfo> = []
+        for (var trackInfo of this.trackInfoArr) {
+            var filename = trackInfo.getFrameByCursor(frame)
+            let img = imgCache.getImg(filename)
+            if (img) {
+                let buf = getPixelBufFromImg(img)
+                let w = img.width, h = img.height;
+                let imgLayer = new ImageLayerInfo()
+                imgLayer.width = w
+                imgLayer.height = h
+                imgLayer.pixels = buf
+                a.push(imgLayer)
+            }
+        }
+        ImageLayerInfo.png2psd(a, this.width,
+            this.height, "rgba",
+            'd:\\4.psd', (p) => {
+                let t2 = new Date().getMilliseconds()
+                console.log('psd4 cast time:', t2 - t1)
+            });
     }
 
     newTrackByTrackData(trackData: TrackData) {
@@ -246,7 +275,7 @@ export class CompInfo extends EventDispatcher {
         this._compTrackInfoArr = a;
     }
 
-   getCompTrackInfoArr() {
+    getCompTrackInfoArr() {
         if (!this._compTrackInfoArr)
             this._updateCompTrackArr();
         return this._compTrackInfoArr;

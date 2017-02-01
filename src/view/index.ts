@@ -1,5 +1,6 @@
 require(`script!./../libs/pixi.min.js`);
 require(`script!./../libs/Tween.min.js`);
+import { imgCache } from './model/ImageCache';
 import { appInfo } from './model/AppInfo';
 import { initTest } from './Test';
 import { ViewConst } from './const';
@@ -22,5 +23,6 @@ let main = () => {
     return renderer.stage;
 }
 initTest()
+imgCache
 animk.init(main(), appInfo)
 window['animk'] = animk

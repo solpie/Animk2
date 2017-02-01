@@ -1,3 +1,4 @@
+import { CompInfo } from './CompInfo';
 import { TweenEx } from '../../utils/TweenEx';
 import { TheMachine } from './tm/TheMachine';
 import { SettingInfo } from './SettingInfo';
@@ -56,7 +57,7 @@ export class AppInfo extends EventDispatcher {
         return this.projectInfo.curComp.frameWidth;
     }
 
-    curComp() {
+    curComp():CompInfo {
         return this.projectInfo.curComp;
     }
 }

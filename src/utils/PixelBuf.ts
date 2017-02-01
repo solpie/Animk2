@@ -5,5 +5,6 @@ export const getPixelBufFromImg = (img: HTMLImageElement) => {
     let context = canvas.getContext('2d')
     context.drawImage(img, 0, 0);
     var pixel = context.getImageData(0, 0, img.width, img.height);
+    
     return new Uint8Array(pixel.data.buffer)
 }

@@ -47,6 +47,7 @@
 	"use strict";
 	__webpack_require__(26);
 	__webpack_require__(29);
+	var ImageCache_1 = __webpack_require__(54);
 	var AppInfo_1 = __webpack_require__(1);
 	var Test_1 = __webpack_require__(52);
 	var const_1 = __webpack_require__(5);
@@ -65,6 +66,7 @@
 	    return renderer.stage;
 	};
 	Test_1.initTest();
+	ImageCache_1.imgCache;
 	Animk_1.animk.init(main(), AppInfo_1.appInfo);
 	window['animk'] = Animk_1.animk;
 
@@ -1508,6 +1510,9 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var ImageLayerInfo_1 = __webpack_require__(8);
+	var PixelBuf_1 = __webpack_require__(51);
+	var ImageCache_1 = __webpack_require__(54);
 	var JsFunc_1 = __webpack_require__(4);
 	var NodeFunc_1 = __webpack_require__(23);
 	var Command_1 = __webpack_require__(24);
@@ -1598,6 +1603,31 @@
 	        if (v > this._maxPos)
 	            this._maxPos = v;
 	        console.log('maxPos', this._maxPos);
+	    };
+	    CompInfo.prototype.makePsd = function (frame) {
+	        if (!frame)
+	            frame = this._cursorPos;
+	        var imgArr = [];
+	        var t1 = new Date().getMilliseconds();
+	        var a = [];
+	        for (var _i = 0, _a = this.trackInfoArr; _i < _a.length; _i++) {
+	            var trackInfo = _a[_i];
+	            var filename = trackInfo.getFrameByCursor(frame);
+	            var img = ImageCache_1.imgCache.getImg(filename);
+	            if (img) {
+	                var buf = PixelBuf_1.getPixelBufFromImg(img);
+	                var w = img.width, h = img.height;
+	                var imgLayer = new ImageLayerInfo_1.ImageLayerInfo();
+	                imgLayer.width = w;
+	                imgLayer.height = h;
+	                imgLayer.pixels = buf;
+	                a.push(imgLayer);
+	            }
+	        }
+	        ImageLayerInfo_1.ImageLayerInfo.png2psd(a, this.width, this.height, "rgba", 'd:\\4.psd', function (p) {
+	            var t2 = new Date().getMilliseconds();
+	            console.log('psd4 cast time:', t2 - t1);
+	        });
 	    };
 	    CompInfo.prototype.newTrackByTrackData = function (trackData) {
 	        var trackInfo = new TrackInfo_1.TrackInfo(trackData);
@@ -1867,11 +1897,11 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var ShortCut_1 = __webpack_require__(53);
 	var Splitter_1 = __webpack_require__(32);
 	var Viewport_1 = __webpack_require__(36);
 	var const_1 = __webpack_require__(5);
 	var LayerTracker_1 = __webpack_require__(40);
-	var Input_1 = __webpack_require__(33);
 	var Animk = (function (_super) {
 	    __extends(Animk, _super);
 	    function Animk() {
@@ -1898,24 +1928,12 @@
 	        this.projInfo = appInfo.newProject();
 	        this.initUI();
 	        stage.addChild(this);
-	        this.initEvent();
+	        ShortCut_1.initShortCut();
 	        this.onload();
 	        this.test();
 	    };
 	    Animk.prototype.onload = function () {
 	        this.projInfo.curComp.setCursor(1);
-	    };
-	    Animk.prototype.initEvent = function () {
-	        var _this = this;
-	        Input_1.input.on(Input_1.InputEvent.KEY_DOWN, function (e) {
-	            var k = e.key;
-	            var isCtrl = e.ctrlKey;
-	            if (k == 'f') {
-	                _this.projInfo.curComp.forward();
-	            }
-	            else if (k == 'd')
-	                _this.projInfo.curComp.backward();
-	        });
 	    };
 	    Animk.prototype.test = function () {
 	        this.tracker.vScroller.setMax(350);
@@ -2511,7 +2529,6 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var ImageLayerInfo_1 = __webpack_require__(8);
 	var PaintCanvas_1 = __webpack_require__(37);
 	var Input_1 = __webpack_require__(33);
 	var PixiEx_1 = __webpack_require__(34);
@@ -2550,22 +2567,6 @@
 	            }
 	            else if (e.key == "r" && e.ctrlKey) {
 	                console.log('render');
-	            }
-	            else if (e.key == 'Enter') {
-	                console.log('enter');
-	                var t1_1 = new Date().getMilliseconds();
-	                var buf = _this.paintCanvas.getPixelBuf();
-	                var w = 1280, h = 720;
-	                var a = [];
-	                var imgLayer = new ImageLayerInfo_1.ImageLayerInfo();
-	                imgLayer.width = w;
-	                imgLayer.height = h;
-	                imgLayer.pixels = buf;
-	                a.push(imgLayer);
-	                ImageLayerInfo_1.ImageLayerInfo.png2psd(a, w, h, "rgba", 'd:\\2.psd', function (p) {
-	                    var t2 = new Date().getMilliseconds();
-	                    console.log('addon cast time:', t2 - t1_1);
-	                });
 	            }
 	        });
 	        Input_1.input.on(Input_1.InputEvent.KEY_UP, function (e) {
@@ -2801,15 +2802,16 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var ImageCache_1 = __webpack_require__(54);
 	var JsFunc_1 = __webpack_require__(4);
 	var PixiEx_1 = __webpack_require__(34);
-	var Animk_1 = __webpack_require__(31);
 	var const_1 = __webpack_require__(5);
+	var AppInfo_1 = __webpack_require__(1);
 	var CompView = (function (_super) {
 	    __extends(CompView, _super);
 	    function CompView(width, height) {
 	        var _this = _super.call(this) || this;
-	        _this._imgMap = {};
+	        _this._texMap = {};
 	        _this._spArr = [];
 	        _this._bg = PixiEx_1.PIXI_RECT(0, 0, 0, const_1.ViewConst.COMP_WIDTH, const_1.ViewConst.COMP_HEIGHT);
 	        _this.addChild(_this._bg);
@@ -2827,8 +2829,8 @@
 	    };
 	    CompView.prototype.initEvent = function () {
 	        var _this = this;
-	        Animk_1.animk.projInfo.curComp.on(const_1.CompInfoEvent.UPDATE_CURSOR, function (frame) {
-	            var trackInfoArr = Animk_1.animk.projInfo.curComp.trackInfoArr;
+	        AppInfo_1.appInfo.curComp().on(const_1.CompInfoEvent.UPDATE_CURSOR, function (frame) {
+	            var trackInfoArr = AppInfo_1.appInfo.curComp().trackInfoArr;
 	            while (_this._spArr.length < trackInfoArr.length)
 	                _this._newSp();
 	            var renderTrack = function (i) {
@@ -2838,15 +2840,16 @@
 	                    if (filename) {
 	                        _this._spArr[i].visible = true && tInfo.enable();
 	                        console.log('udpate comp view', frame, filename, trackInfoArr.length);
-	                        if (!_this._imgMap[filename]) {
+	                        if (!_this._texMap[filename]) {
 	                            JsFunc_1.loadImg(filename, function (img) {
-	                                _this._imgMap[filename] = PixiEx_1.imgToTex(img);
-	                                _this._spArr[i].texture = _this._imgMap[filename];
+	                                ImageCache_1.imgCache.setImg(filename, img);
+	                                _this._texMap[filename] = PixiEx_1.imgToTex(img);
+	                                _this._spArr[i].texture = _this._texMap[filename];
 	                                renderTrack(i + 1);
 	                            });
 	                        }
 	                        else {
-	                            _this._spArr[i].texture = _this._imgMap[filename];
+	                            _this._spArr[i].texture = _this._texMap[filename];
 	                            renderTrack(i + 1);
 	                        }
 	                    }
@@ -3615,30 +3618,65 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var ImageLayerInfo_1 = __webpack_require__(8);
-	var PixelBuf_1 = __webpack_require__(51);
-	var JsFunc_1 = __webpack_require__(4);
+	var const_1 = __webpack_require__(5);
 	var ProjectInfo_1 = __webpack_require__(19);
+	var TweenEx_1 = __webpack_require__(35);
 	var AppInfo_1 = __webpack_require__(1);
 	exports.initTest = function () {
 	    AppInfo_1.appInfo.on(ProjectInfo_1.ProjectInfoEvent.NEW_PROJ, function () {
-	        JsFunc_1.loadImg('d:\\test.png', function (img) {
-	            var t1 = new Date().getMilliseconds();
-	            var buf = PixelBuf_1.getPixelBufFromImg(img);
-	            var w = img.width, h = img.height;
-	            var a = [];
-	            var imgLayer = new ImageLayerInfo_1.ImageLayerInfo();
-	            imgLayer.width = w;
-	            imgLayer.height = h;
-	            imgLayer.pixels = buf;
-	            a.push(imgLayer);
-	            ImageLayerInfo_1.ImageLayerInfo.png2psd(a, w, h, "rgba", 'd:\\4.psd', function (p) {
-	                var t2 = new Date().getMilliseconds();
-	                console.log('psd4 cast time:', t2 - t1);
+	        AppInfo_1.appInfo.projectInfo.on(const_1.CompInfoEvent.NEW_COMP, function () {
+	            TweenEx_1.TweenEx.delayedCall(1000, function () {
+	                AppInfo_1.appInfo.curComp().newTrack('D:/lsj/rkb2017/军哥/cut3/jg020114.924.png');
 	            });
 	        });
 	    });
 	};
+
+
+/***/ },
+/* 53 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var AppInfo_1 = __webpack_require__(1);
+	var Input_1 = __webpack_require__(33);
+	exports.initShortCut = function () {
+	    Input_1.input.on(Input_1.InputEvent.KEY_DOWN, function (e) {
+	        var k = e.key;
+	        var isCtrl = e.ctrlKey;
+	        if (k == 'f') {
+	            AppInfo_1.appInfo.curComp().forward();
+	        }
+	        else if (k == 'd')
+	            AppInfo_1.appInfo.curComp().backward();
+	        else if (e.key == 'Enter') {
+	            AppInfo_1.appInfo.curComp().makePsd();
+	        }
+	    });
+	};
+
+
+/***/ },
+/* 54 */
+/***/ function(module, exports) {
+
+	"use strict";
+	var ImageCache = (function () {
+	    function ImageCache() {
+	        this._imgMap = {};
+	        this._texMap = {};
+	    }
+	    ImageCache.prototype.setImg = function (filename, img) {
+	        if (!this._imgMap[filename])
+	            this._imgMap[filename] = img;
+	    };
+	    ImageCache.prototype.getImg = function (filename, reload) {
+	        if (reload === void 0) { reload = false; }
+	        return this._imgMap[filename];
+	    };
+	    return ImageCache;
+	}());
+	exports.imgCache = new ImageCache();
 
 
 /***/ }
