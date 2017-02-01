@@ -3637,7 +3637,9 @@
 	        var id = new ImageData(1280, 720);
 	        var mc_px_data = new Uint8ClampedArray(imgData);
 	        id.data.set(mc_px_data);
-	        ctx.putImageData(id, 0, 0);
+	        TweenEx_1.TweenEx.delayedCall(3000, function () {
+	            ctx.putImageData(id, 0, 0);
+	        });
 	        AppInfo_1.appInfo.projectInfo.on(const_1.CompInfoEvent.NEW_COMP, function () {
 	            TweenEx_1.TweenEx.delayedCall(1000, function () {
 	            });
@@ -4244,11 +4246,6 @@
 	        return file.readUnicodeString();
 	    }
 	};
-	var _typeTool = {
-	    id: 'TySh',
-	    parse: function (file) {
-	    }
-	};
 	var _sectionDivider = {
 	    id: 'lsct',
 	    parse: function (file) {
@@ -4265,7 +4262,6 @@
 	var ref = [
 	    _layerId,
 	    _layerName,
-	    _typeTool,
 	    _sectionDivider
 	], LAYER_INFO = {};
 	ref.forEach(function (o) {

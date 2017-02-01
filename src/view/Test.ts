@@ -35,7 +35,10 @@ export const initTest = () => {
         let id = new ImageData(1280, 720)
         let mc_px_data = new Uint8ClampedArray(imgData);
         id.data.set(mc_px_data);
-        ctx.putImageData(id, 0, 0)
+        TweenEx.delayedCall(3000, () => {
+            ctx.putImageData(id, 0, 0)
+        })
+
         // psd.getDescendants()[0].saveAsPng('d:/decode3.png', () => {
         // console.log(this, "psd2png", imageLayerInfo.filename);
         // imageLayerInfo.imageInfo.updateImg();
