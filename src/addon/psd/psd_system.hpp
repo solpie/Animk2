@@ -6,7 +6,13 @@
     *(((unsigned char *)&dst32) + 1) = src32 >> 16; \
     *(((unsigned char *)&dst32) + 2) = src32 >> 8;  \
     *(((unsigned char *)&dst32) + 3) = src32
-
+#define writeUInt16BE LITTLE2BIG_SHORT
+#define writeUInt32BE LITTLE2BIG_INT
+#define writeUInt32BEAt(dst32, src32,ofs)                \
+    *(((unsigned char *)&dst32) + 0+ofs) = src32 >> 24; \
+    *(((unsigned char *)&dst32) + 1+ofs) = src32 >> 16; \
+    *(((unsigned char *)&dst32) + 2+ofs) = src32 >> 8;  \
+    *(((unsigned char *)&dst32) + 3+ofs) = src32
 typedef char psd_char;
 typedef unsigned char psd_uchar;
 typedef unsigned short psd_ushort;
