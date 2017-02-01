@@ -1,3 +1,6 @@
+import { getPixelBufFromImg } from '../utils/PixelBuf';
+import { ImageLayerInfo } from './model/tm/ImageLayerInfo';
+import { loadImg } from '../utils/JsFunc';
 import { PaintView } from './components/Viewport/PaintView';
 import { PaintCanvas } from './components/Viewport/PaintCanvas';
 import { PngMaker } from '../utils/png/PngMaker';
@@ -61,46 +64,11 @@ export class Animk extends PIXI.Container {
             }
             else if (k == 'd')
                 this.projInfo.curComp.backward()
-         
+
         })
     }
 
     test() {
-        
-        //todo: ctrl + drag frame :hold frame
-
-        // let p = new PngMaker()
-        // p.createPng(512, 512, 'd:\\test.png', () => {
-
-        // })
-        // var addon = require('addon/psd')
-        // console.log(addon.hello()); // 'world'
-        // for (var i = 0; i < 1; i++) {
-        //     this.tracker.newStacker()
-        // }
-        // for (var p of ['D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png', 'D:\lsj\rkb2017\军哥\reto\101.png']) {
-        // this.projInfo.curComp.newTrack(p);
-        // }
-        // var wintab = require('./build/wintab');
-        // var wintab = require('addon/node-wintab');
-        // setInterval(function () {
-        //     console.log(wintab.allData());
-        // }, 100);
-        // this.projInfo.curComp.newTrack('C:\projects\Animk2\test\test30\01.png');
-
-        // let a = ['D:\\lsj\\rkb2017\\军哥\\cut3\\jg020114.838.png', 'D:\lsj\rkb2017\军哥\reto\101.png']
-        // let loadTrack = (pathArr: Array<string>) => {
-        //     let p = pathArr.shift()
-        //     if (p) {
-        //         let fid = cmd.on(CompInfoEvent.READ_DIR, () => {
-        //             cmd.del(CompInfoEvent.READ_DIR, fid)
-        //             loadTrack(pathArr)
-        //         })
-        //         this.projInfo.curComp.newTrack(p);
-        //     }
-        // }
-        // loadTrack(a)
-
         this.tracker.vScroller.setMax(350)
         this.tracker.vScroller.evt.on(BaseEvent.CHANGED, (v) => {
             console.log('scroll changed', v);

@@ -1,6 +1,7 @@
 require(`script!./../libs/pixi.min.js`);
 require(`script!./../libs/Tween.min.js`);
 import { appInfo } from './model/AppInfo';
+import { initTest } from './Test';
 import { ViewConst } from './const';
 import { animk } from './Animk';
 // console.log('running!')
@@ -20,6 +21,6 @@ let main = () => {
     renderer.renderStage();
     return renderer.stage;
 }
-
+initTest()
 animk.init(main(), appInfo)
 window['animk'] = animk

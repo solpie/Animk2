@@ -103,7 +103,7 @@ export class PaintCanvas {
             const step = 15;
             var countStep = 0;
 
-            var p1, p2,p3
+            var p1, p2, p3
             moveFuncID = input.on(InputEvent.MOUSE_MOVE, (e) => {
                 var x2 = e.clientX,
                     y2 = e.clientY,
@@ -124,7 +124,7 @@ export class PaintCanvas {
                 // if (!p3) {
                 //     p3 = { x: canvasX2, y: canvasY2 }
                 // }
-                
+
 
                 // if (wintab.allData().pressure) {
                 //     this.context.lineWidth = this.confing.lineWidth * wintab.allData().pressure
@@ -168,7 +168,12 @@ export class PaintCanvas {
         img.src = url;
         return img
     }
-
+    getPixelBuf() {
+        var pixel = this.context.getImageData(0, 0, this.width, this.height);
+        // return new Uint32Array(pixel.data.buffer)
+        return new Uint8Array(pixel.data.buffer)
+    }
+    
     createPng() {
         let canvas = document.createElement("canvas");
         canvas.width = this.width

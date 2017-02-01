@@ -48,6 +48,7 @@
 	__webpack_require__(26);
 	__webpack_require__(29);
 	var AppInfo_1 = __webpack_require__(1);
+	var Test_1 = __webpack_require__(52);
 	var const_1 = __webpack_require__(5);
 	var Animk_1 = __webpack_require__(31);
 	var main = function () {
@@ -63,6 +64,7 @@
 	    renderer.renderStage();
 	    return renderer.stage;
 	};
+	Test_1.initTest();
 	Animk_1.animk.init(main(), AppInfo_1.appInfo);
 	window['animk'] = Animk_1.animk;
 
@@ -77,7 +79,6 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var TweenEx_1 = __webpack_require__(35);
 	var TheMachine_1 = __webpack_require__(2);
 	var SettingInfo_1 = __webpack_require__(18);
 	var JsFunc_1 = __webpack_require__(4);
@@ -90,6 +91,9 @@
 	    }
 	    return AppData;
 	}());
+	exports.AppInfoEvent = {
+	    Inited: "AppInfo()",
+	};
 	var AppInfo = (function (_super) {
 	    __extends(AppInfo, _super);
 	    function AppInfo() {
@@ -97,16 +101,9 @@
 	        _this.appData = new AppData();
 	        _this.tm = new TheMachine_1.TheMachine();
 	        _this.settingInfo = new SettingInfo_1.SettingInfo();
-	        _this.test();
+	        _this.emit(exports.AppInfoEvent.Inited);
 	        return _this;
 	    }
-	    AppInfo.prototype.test = function () {
-	        var _this = this;
-	        TweenEx_1.TweenEx.delayedCall(2000, function () {
-	            _this.tm.test();
-	            _this.tm.test2();
-	        });
-	    };
 	    AppInfo.prototype.width = function (v) {
 	        return JsFunc_1.prop(this.appData, "winWidth", v);
 	    };
@@ -855,8 +852,6 @@
 	    function ImageLayerInfo() {
 	        this.opacity = 1;
 	    }
-	    ImageLayerInfo.prototype.load2 = function () {
-	    };
 	    ImageLayerInfo.png2psd = function (pngArr, w, h, colorSpace, path, pathCallback) {
 	        var psd = new PsdFile_1.PsdFile(w, h, colorSpace);
 	        var pngLayer;
@@ -2516,6 +2511,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var ImageLayerInfo_1 = __webpack_require__(8);
 	var PaintCanvas_1 = __webpack_require__(37);
 	var Input_1 = __webpack_require__(33);
 	var PixiEx_1 = __webpack_require__(34);
@@ -2554,8 +2550,22 @@
 	            }
 	            else if (e.key == "r" && e.ctrlKey) {
 	                console.log('render');
-	                var sp = new PIXI.Sprite(PixiEx_1.imgToTex(_this.paintCanvas.getImg()));
-	                _this.addChild(sp);
+	            }
+	            else if (e.key == 'Enter') {
+	                console.log('enter');
+	                var t1_1 = new Date().getMilliseconds();
+	                var buf = _this.paintCanvas.getPixelBuf();
+	                var w = 1280, h = 720;
+	                var a = [];
+	                var imgLayer = new ImageLayerInfo_1.ImageLayerInfo();
+	                imgLayer.width = w;
+	                imgLayer.height = h;
+	                imgLayer.pixels = buf;
+	                a.push(imgLayer);
+	                ImageLayerInfo_1.ImageLayerInfo.png2psd(a, w, h, "rgba", 'd:\\2.psd', function (p) {
+	                    var t2 = new Date().getMilliseconds();
+	                    console.log('addon cast time:', t2 - t1_1);
+	                });
 	            }
 	        });
 	        Input_1.input.on(Input_1.InputEvent.KEY_UP, function (e) {
@@ -2722,6 +2732,10 @@
 	        var url = this.canvas.toDataURL('image/png'), img = new Image();
 	        img.src = url;
 	        return img;
+	    };
+	    PaintCanvas.prototype.getPixelBuf = function () {
+	        var pixel = this.context.getImageData(0, 0, this.width, this.height);
+	        return new Uint8Array(pixel.data.buffer);
 	    };
 	    PaintCanvas.prototype.createPng = function () {
 	        var canvas = document.createElement("canvas");
@@ -3579,6 +3593,53 @@
 /***/ function(module, exports) {
 
 	module.exports = require("electron");
+
+/***/ },
+/* 51 */
+/***/ function(module, exports) {
+
+	"use strict";
+	exports.getPixelBufFromImg = function (img) {
+	    var canvas = document.createElement("canvas");
+	    canvas.width = img.width;
+	    canvas.height = img.height;
+	    var context = canvas.getContext('2d');
+	    context.drawImage(img, 0, 0);
+	    var pixel = context.getImageData(0, 0, img.width, img.height);
+	    return new Uint8Array(pixel.data.buffer);
+	};
+
+
+/***/ },
+/* 52 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var ImageLayerInfo_1 = __webpack_require__(8);
+	var PixelBuf_1 = __webpack_require__(51);
+	var JsFunc_1 = __webpack_require__(4);
+	var ProjectInfo_1 = __webpack_require__(19);
+	var AppInfo_1 = __webpack_require__(1);
+	exports.initTest = function () {
+	    AppInfo_1.appInfo.on(ProjectInfo_1.ProjectInfoEvent.NEW_PROJ, function () {
+	        JsFunc_1.loadImg('d:\\test.png', function (img) {
+	            var t1 = new Date().getMilliseconds();
+	            var buf = PixelBuf_1.getPixelBufFromImg(img);
+	            var w = img.width, h = img.height;
+	            var a = [];
+	            var imgLayer = new ImageLayerInfo_1.ImageLayerInfo();
+	            imgLayer.width = w;
+	            imgLayer.height = h;
+	            imgLayer.pixels = buf;
+	            a.push(imgLayer);
+	            ImageLayerInfo_1.ImageLayerInfo.png2psd(a, w, h, "rgba", 'd:\\4.psd', function (p) {
+	                var t2 = new Date().getMilliseconds();
+	                console.log('psd4 cast time:', t2 - t1);
+	            });
+	        });
+	    });
+	};
+
 
 /***/ }
 /******/ ]);

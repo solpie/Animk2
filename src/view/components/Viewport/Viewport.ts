@@ -1,3 +1,4 @@
+import { ImageLayerInfo } from '../../model/tm/ImageLayerInfo';
 import { PaintCanvas } from './PaintCanvas';
 import { Curosr, input, InputEvent, setCursor } from '../../../utils/Input';
 import { imgToTex, PIXI_MOUSE_EVENT, posInObj, setPivot } from '../../../utils/PixiEx';
@@ -31,13 +32,12 @@ export class Viewport extends PIXI.Container {
             // if (pos.x > 0 && pos.y > 0)
             setPivot(d, pos.x - d.x, pos.y - d.y)
             let dtS = - e.deltaY / 200 * this.zoomStep
-            console.log(pos,dtS)
-            
+            console.log(pos, dtS)
+
             // else
             //     setPivot(d, this.width / 2, this.height / 2)
             let s = d.scale.x - e.deltaY / 200 * this.zoomStep
             d.scale.x = d.scale.y = s
-
         })
 
         var panCompViewFunId = null
@@ -48,10 +48,29 @@ export class Viewport extends PIXI.Container {
                     this.panCompView(e)
                 })
             }
-            else if (e.key == "r"&&e.ctrlKey) {
+            else if (e.key == "r" && e.ctrlKey) {
                 console.log('render')
-                let sp = new PIXI.Sprite(imgToTex(this.paintCanvas.getImg()))
-                this.addChild(sp)
+                // let sp = new PIXI.Sprite(imgToTex(this.paintCanvas.getImg()))
+                // this.addChild(sp)
+
+            }
+            else if (e.key == 'Enter') {
+                console.log('enter')
+                let t1 = new Date().getMilliseconds()
+                let buf = this.paintCanvas.getPixelBuf()
+                let w = 1280, h = 720;
+                let a: Array<ImageLayerInfo> = []
+                let imgLayer = new ImageLayerInfo()
+                imgLayer.width = w
+                imgLayer.height = h
+                imgLayer.pixels = buf
+                a.push(imgLayer)
+                ImageLayerInfo.png2psd(a, w,
+                    h, "rgba",
+                    'd:\\2.psd', (p) => {
+                        let t2 = new Date().getMilliseconds()
+                        console.log('addon cast time:', t2 - t1)
+                    });
             }
         })
 

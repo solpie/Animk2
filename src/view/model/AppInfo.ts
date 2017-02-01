@@ -8,6 +8,10 @@ class AppData {
     winWidth: number = 1660;
     winHeight: number = 1024;
 }
+export const AppInfoEvent = {
+    Inited: "AppInfo()",
+}
+
 export class AppInfo extends EventDispatcher {
     projectInfo: ProjectInfo;
     tm: TheMachine;
@@ -21,15 +25,9 @@ export class AppInfo extends EventDispatcher {
         this.appData = new AppData();
         this.tm = new TheMachine();
         this.settingInfo = new SettingInfo();
-        this.test()
+        this.emit(AppInfoEvent.Inited)
     }
 
-    test() {
-        TweenEx.delayedCall(2000, () => {
-            this.tm.test()
-            this.tm.test2()
-        })
-    }
     width(v?) {
         return prop(this.appData, "winWidth", v);
     }

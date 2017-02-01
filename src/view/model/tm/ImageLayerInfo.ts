@@ -6,7 +6,7 @@ const fs = require('fs')
 export class ImageLayerInfo { //glue ImageInfo and PsdLayer
     width: number;
     height: number;
-    opacity: number=1;
+    opacity: number = 1;
     isRef: boolean;
     pixels: Uint8Array;
     buf: Buffer;
@@ -17,12 +17,6 @@ export class ImageLayerInfo { //glue ImageInfo and PsdLayer
         //console.log(this, "new PngLayerData");
     }
 
-    load2() {
-        // var addon = require('./build/Release/psd.node')
-        // addon.pngLoad("d:\\test.png", function (buf, w, h) {
-        //     console.log(w, h, buf);
-        // })
-    }
 
     static png2psd(pngArr: Array<ImageLayerInfo>, w, h, colorSpace, path: string, pathCallback) {
         // create psd data
@@ -35,7 +29,7 @@ export class ImageLayerInfo { //glue ImageInfo and PsdLayer
             pngLayer = pngArr[i];
             //todo import PsdFile only
             var image = new PsdImage(pngLayer.width, pngLayer.height,
-                colorSpace, pngLayer.pixels||pngLayer.buf);
+                colorSpace, pngLayer.pixels || pngLayer.buf);
             var layer = new Layer();
             layer.drawImage(image);
             layer.opacity = pngLayer.opacity;
