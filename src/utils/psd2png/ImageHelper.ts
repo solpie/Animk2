@@ -1,7 +1,6 @@
 function _layerRaw(layer, file) {
     return file.read((layer.right - layer.left) * (layer.bottom - layer.top))
 }
-//./imageFormat/layerRLE
 function decodeRLE(height, file, bytes) {
     var byteCount, endPos, len;
     var data = [], val;
@@ -42,10 +41,9 @@ function _layerRLE(layer, file) {
     return decodeRLE(layer.height, file, parseByteCounts(layer.height, file))
 }
 ///./imageFormat/psdRaw
-function _psdRaw(PSD) {
-    return processData(PSD.file.read(calculate(PSD)), PSD.header.channelsNum)
-}
-
+// function _psdRaw(PSD) {
+//     return processData(PSD.file.read(calculate(PSD)), PSD.header.channelsNum)
+// }
 ///./imageFormat/psdRLE
 function parseByteCountsCh(height, channels, file) {
     var temp = [];
@@ -83,8 +81,7 @@ function _psdRLE(PSD) {
 ///./imageMode/rgb
 function _imageMode(layer) {
     var pixelNum = layer.width * layer.height;
-
-    console.log("imageMerge top", layer.top);
+    // console.log("imageMerge top", layer.top);
     var pixelData = [];
     var a, r, g, b;
     for (var j = 0; j < pixelNum; j++) {
@@ -121,13 +118,12 @@ export var imageFun = {
     ],
     PSDFormat: [
         //0=Raw 1=RLE 2=ZIP without prediction 3=ZIP with prediction
-        _psdRaw,
+        // _psdRaw,
         _psdRLE
     ],
     Mode: {
         '3': _imageMode
     },
-
     mergeImageData: function (layer, colorMode) {
         if (this.Mode[colorMode])
             return this.Mode[colorMode](layer);
