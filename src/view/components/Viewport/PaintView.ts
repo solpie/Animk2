@@ -3,11 +3,18 @@ import { Painter } from '../../../utils/anmkp/Painter';
 import { input, InputEvent } from '../../../utils/Input';
 
 export class PaintView {
-    painter: Painter
+    private painter: Painter
     private _x: number
     private _y: number
+    
     rectWidth: number
     rectHeight: number
+
+    private parentRect = { x: 0, y: 0, w: 0, h: 0 }
+    setParentRect(options: { x?: number, y?: number, width?: number, height?: number }) {
+        if (options.height)
+            this.parentRect.h = options.height
+    }
     constructor(width, height) {
         this.rectWidth = width
         this.rectHeight = height
@@ -38,6 +45,8 @@ export class PaintView {
         })
     }
     updateShowRect() {
+        this.rectHeight = this.parentRect.h - this.y;
+        this.rectHeight /= this.painter.scale
         this.painter.setShowRect(null, null, this.rectWidth, this.rectHeight)
     }
     zoom(scale) {

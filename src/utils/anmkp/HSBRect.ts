@@ -1,4 +1,4 @@
-class HSBRect {
+export class HSBRect {
     constructor(width: number = 0x80, height: number = 0x80) {
         this._hue = 0;
         this._sa = document.createElement('canvas');
@@ -28,6 +28,14 @@ class HSBRect {
         ctx.clearRect(0, 0, this._sa.width, 1);
         ctx.fillRect(0, 0, this._sa.width, 1);
     }
+
+    getImg() {
+        var url = this._br.toDataURL('image/png'),
+            img = new Image();
+        img.src = url;
+        return img
+    }
+
     private _renderBr(): void {
         var ctx = this._br.getContext('2d');
         var grad = ctx.createLinearGradient(0, 0, 1, this._br.height);

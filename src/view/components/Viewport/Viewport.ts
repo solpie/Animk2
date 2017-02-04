@@ -1,3 +1,5 @@
+import { ColorPicker } from './ColorPicker';
+import { Docker } from '../Docker';
 import { PaintView } from './PaintView';
 import { Painter } from '../../../utils/anmkp/Painter';
 import { keyDownMap } from '../../model/ShortCut';
@@ -9,16 +11,13 @@ import { ViewConst } from '../../const';
 import { CompView } from './CompView';
 export class Viewport extends PIXI.Container {
     compView: CompView
-    // paintCanvas: PaintCanvas
     paintView: PaintView
     zoomStep = 0.20
     _h: number
-
+    dockerColorPicker:ColorPicker
     constructor() {
         super()
         this.paintView = new PaintView(ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
-        // this.paintView.painter.setShowRect(0, 0, 500, 500)
-
         this.compView = new CompView(ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
         this.addChild(this.compView)
         // this.paintCanvas = new PaintCanvas()
@@ -55,6 +54,10 @@ export class Viewport extends PIXI.Container {
 
         // this.painter = new Painter()
         // document.body.appendChild(this.painter.paintingCanvas)
+        this.dockerColorPicker = new ColorPicker()
+        this.dockerColorPicker.x =800
+        this.dockerColorPicker.y =10
+        this.addChild(this.dockerColorPicker)
     }
     lastX = null
     lastY = null
@@ -83,8 +86,7 @@ export class Viewport extends PIXI.Container {
         this.paintView.x = d.x
         this.paintView.y = d.y
         this.paintView.zoom(s)
-        this._updatePainterRect()
-
+        this.paintView.updateShowRect()
     }
     _pan(x, y) {
         this.compView.x = x
@@ -92,18 +94,15 @@ export class Viewport extends PIXI.Container {
 
         this.paintView.x = x
         this.paintView.y = y
-        this._updatePainterRect()
-
-    }
-    _updatePainterRect() {
-        this.paintView.rectHeight = this._h - this.paintView.y;
-        this.paintView.rectHeight /= this.paintView.painter.scale
         this.paintView.updateShowRect()
+
     }
     resize(width, height) {
         if (width == null)
             width = this.width
         this._h = height
-        this._updatePainterRect()
+        this.paintView.setParentRect({height:height})
+        this.paintView.updateShowRect()
+        
     }
 }

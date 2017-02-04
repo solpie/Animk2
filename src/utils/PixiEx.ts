@@ -239,6 +239,13 @@ export let setupDrag = (obj, onDown, onMove, onUp) => {
 export let PIXI_RECT = (col, x, y, w, h) => {
     return new PIXI.Graphics().beginFill(col).drawRect(x, y, w, h)
 }
+export let PIXI_BORDER = (lineWidth, col, w, h, obj?: PIXI.Graphics) => {
+    if (obj) {
+        obj.clear()
+        obj.lineStyle(lineWidth, col).drawRect(0, 0, w, h)
+    }
+    return new PIXI.Graphics().lineStyle(lineWidth, col).drawRect(0, 0, w, h)
+}
 export let isIn = (pos, obj): boolean => {
     var x, y
     if (pos['mx'] != undefined && pos['my'] != undefined) {
