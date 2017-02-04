@@ -1,3 +1,4 @@
+import { keyDownMap } from '../../model/ShortCut';
 import { ImageLayerInfo } from '../../model/tm/ImageLayerInfo';
 import { PaintCanvas } from './PaintCanvas';
 import { Curosr, input, InputEvent, setCursor } from '../../../utils/Input';
@@ -25,31 +26,31 @@ export class Viewport extends PIXI.Container {
             d.scale.x = d.scale.y = s
         })
 
-        var panCompViewFunId = null
-        input.on(InputEvent.KEY_DOWN, (e) => {
-            console.log(e)
-            if (e.key == " " && !panCompViewFunId) {
+        var panCompViewFunId = null, upFuncId = null
+        keyDownMap[' '] = (e) => {
+            if (!panCompViewFunId) {
+
                 panCompViewFunId = input.on(InputEvent.MOUSE_MOVE, (e) => {
                     this.panCompView(e)
                 })
+                upFuncId =input.on(InputEvent.KEY_UP, (e) => {
+                    if (panCompViewFunId) {
+                        setCursor()
+                        this.lastX = null
+                        this.lastY = null
+                        input.del(InputEvent.MOUSE_MOVE, panCompViewFunId)
+                        input.del(InputEvent.KEY_UP, upFuncId)
+                        panCompViewFunId = null
+                        upFuncId = null
+                    }
+                })
             }
-            else if (e.key == "r" && e.ctrlKey) {
-                console.log('render')
-                // let sp = new PIXI.Sprite(imgToTex(this.paintCanvas.getImg()))
-                // this.addChild(sp)
-            }
-
-        })
-
-        input.on(InputEvent.KEY_UP, (e) => {
-            if (panCompViewFunId) {
-                setCursor()
-                this.lastX = null
-                this.lastY = null
-                input.del(InputEvent.MOUSE_MOVE, panCompViewFunId)
-                panCompViewFunId = null
-            }
-        })
+        }
+        //     else if (e.key == "r" && e.ctrlKey) {
+        //         console.log('render')
+        //         // let sp = new PIXI.Sprite(imgToTex(this.paintCanvas.getImg()))
+        //         // this.addChild(sp)
+        //     }
     }
     test() {
 

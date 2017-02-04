@@ -52,8 +52,9 @@
 	var Test_1 = __webpack_require__(31);
 	var const_1 = __webpack_require__(12);
 	var Animk_1 = __webpack_require__(43);
+	var renderer;
 	var main = function () {
-	    var renderer = PIXI.autoDetectRenderer(const_1.ViewConst.STAGE_WIDTH, const_1.ViewConst.STAGE_HEIGHT, { antialias: false, transparent: true, resolution: 1 });
+	    renderer = PIXI.autoDetectRenderer(const_1.ViewConst.STAGE_WIDTH, const_1.ViewConst.STAGE_HEIGHT, { antialias: false, transparent: true, resolution: 1 });
 	    document.body.insertBefore(renderer.view, document.getElementById("paintCanvas"));
 	    renderer.stage = new PIXI.Container();
 	    renderer.backgroundColor = 0x00000000;
@@ -69,6 +70,14 @@
 	ImageCache_1.imgCache;
 	Animk_1.animk.init(main(), AppInfo_1.appInfo);
 	window['animk'] = Animk_1.animk;
+	window.addEventListener('resize', function (e) {
+	    e.preventDefault();
+	    var remote = __webpack_require__(62).remote;
+	    var win = remote.getCurrentWindow();
+	    var size = win.getSize();
+	    renderer.resize(size[0], size[1]);
+	    Animk_1.animk.resize(size[0], size[1]);
+	});
 
 
 /***/ },
@@ -183,16 +192,27 @@
 	exports.AppInfoEvent = {
 	    Inited: "AppInfo()",
 	};
+	var fs = __webpack_require__(20);
 	var AppInfo = (function (_super) {
 	    __extends(AppInfo, _super);
 	    function AppInfo() {
 	        var _this = _super.call(this) || this;
-	        _this.appData = new AppData();
-	        _this.tm = new TheMachine_1.TheMachine();
-	        _this.settingInfo = new SettingInfo_1.SettingInfo();
-	        _this.emit(exports.AppInfoEvent.Inited);
+	        _this.initConf(function () {
+	            _this.appData = new AppData();
+	            _this.tm = new TheMachine_1.TheMachine();
+	            _this.settingInfo = new SettingInfo_1.SettingInfo();
+	            _this.emit(exports.AppInfoEvent.Inited);
+	        });
 	        return _this;
 	    }
+	    AppInfo.prototype.initConf = function (callback) {
+	        var _this = this;
+	        fs.readFile('resources/.conf', 'utf8', function (err, data) {
+	            _this.conf = JSON.parse(data);
+	            console.log(data, _this.conf.version);
+	            callback();
+	        });
+	    };
 	    AppInfo.prototype.width = function (v) {
 	        return JsFunc_1.prop(this.appData, "winWidth", v);
 	    };
@@ -315,8 +335,6 @@
 	                console.log('addon cast time:', t2 - t1);
 	            });
 	        });
-	    };
-	    TheMachine.prototype.test = function () {
 	    };
 	    TheMachine.prototype.watchCurFrame = function () {
 	        var existPOI = this._isExistPOI();
@@ -1687,7 +1705,7 @@
 	            this._maxPos = v;
 	        console.log('maxPos', this._maxPos);
 	    };
-	    CompInfo.prototype.makePsd = function (frame) {
+	    CompInfo.prototype.makePsd = function (callback, frame) {
 	        if (!frame)
 	            frame = this._cursorPos;
 	        var imgArr = [];
@@ -2101,6 +2119,10 @@
 	        this.onload();
 	        this.test();
 	    };
+	    Animk.prototype.resize = function (width, height) {
+	        this.vSplitter.resize(width, height);
+	        this.tracker.resize(width, height);
+	    };
 	    Animk.prototype.onload = function () {
 	        this.projInfo.curComp.setCursor(1);
 	    };
@@ -2123,18 +2145,41 @@
 	"use strict";
 	var AppInfo_1 = __webpack_require__(8);
 	var Input_1 = __webpack_require__(45);
+	exports.keyDownMap = {};
+	exports.keyUpMap = {};
+	var makeKeyString = function (e) {
+	    var k = e.key.toLowerCase();
+	    if (e.shiftKey && k != 'shift') {
+	        k = 'shift+' + k;
+	    }
+	    if (e.altKey && k != 'alt') {
+	        k = 'alt+' + k;
+	    }
+	    if (e.ctrlKey && k != 'ctrl') {
+	        k = 'ctrl+' + k;
+	    }
+	    return k;
+	};
 	exports.initShortCut = function () {
 	    Input_1.input.on(Input_1.InputEvent.KEY_DOWN, function (e) {
-	        var k = e.key;
-	        var isCtrl = e.ctrlKey;
-	        if (k == 'f') {
+	        var k = makeKeyString(e);
+	        exports.keyDownMap['f'] = function () {
 	            AppInfo_1.appInfo.curComp().forward();
-	        }
-	        else if (k == 'd')
+	        };
+	        exports.keyDownMap['d'] = function () {
 	            AppInfo_1.appInfo.curComp().backward();
-	        else if (e.key == 'Enter') {
-	            AppInfo_1.appInfo.curComp().makePsd();
-	        }
+	        };
+	        exports.keyDownMap['enter'] = function () {
+	            AppInfo_1.appInfo.curComp().makePsd(function () {
+	            });
+	        };
+	        if (exports.keyDownMap[k])
+	            exports.keyDownMap[k](e);
+	    });
+	    Input_1.input.on(Input_1.InputEvent.KEY_UP, function (e) {
+	        var k = makeKeyString(e);
+	        if (exports.keyUpMap[k])
+	            exports.keyUpMap[k](e);
 	    });
 	};
 
@@ -2326,12 +2371,16 @@
 	        this.addChild(this.bar);
 	    };
 	    Splitter.prototype.resize = function (width, height) {
+	        this._w = width;
+	        this._h = height;
 	        if (this.dir == 'v') {
 	            this.setBarY(height / 2);
 	            if (!this.bar.children.length)
-	                this.bar.addChild(new PIXI.Graphics()
+	                this._barBg = this.bar.addChild(new PIXI.Graphics()
 	                    .beginFill(this.colBg)
 	                    .drawRect(0, 0, width, this.barSpace));
+	            else
+	                this._barBg.width = width;
 	            this.mask1.width = width;
 	            this.mask2.width = width;
 	        }
@@ -2340,9 +2389,11 @@
 	            this.mask1.height = height;
 	            this.mask2.height = height;
 	            if (!this.bar.children.length)
-	                this.bar.addChild(new PIXI.Graphics()
+	                this._barBg = this.bar.addChild(new PIXI.Graphics()
 	                    .beginFill(this.colBg)
 	                    .drawRect(0, 0, this.barSpace, height));
+	            else
+	                this._barBg.height = height;
 	        }
 	    };
 	    return Splitter;
@@ -2637,6 +2688,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var ShortCut_1 = __webpack_require__(44);
 	var PaintCanvas_1 = __webpack_require__(49);
 	var Input_1 = __webpack_require__(45);
 	var PixiEx_1 = __webpack_require__(47);
@@ -2662,27 +2714,25 @@
 	            var s = d.scale.x + dtS;
 	            d.scale.x = d.scale.y = s;
 	        });
-	        var panCompViewFunId = null;
-	        Input_1.input.on(Input_1.InputEvent.KEY_DOWN, function (e) {
-	            console.log(e);
-	            if (e.key == " " && !panCompViewFunId) {
+	        var panCompViewFunId = null, upFuncId = null;
+	        ShortCut_1.keyDownMap[' '] = function (e) {
+	            if (!panCompViewFunId) {
 	                panCompViewFunId = Input_1.input.on(Input_1.InputEvent.MOUSE_MOVE, function (e) {
 	                    _this.panCompView(e);
 	                });
+	                upFuncId = Input_1.input.on(Input_1.InputEvent.KEY_UP, function (e) {
+	                    if (panCompViewFunId) {
+	                        Input_1.setCursor();
+	                        _this.lastX = null;
+	                        _this.lastY = null;
+	                        Input_1.input.del(Input_1.InputEvent.MOUSE_MOVE, panCompViewFunId);
+	                        Input_1.input.del(Input_1.InputEvent.KEY_UP, upFuncId);
+	                        panCompViewFunId = null;
+	                        upFuncId = null;
+	                    }
+	                });
 	            }
-	            else if (e.key == "r" && e.ctrlKey) {
-	                console.log('render');
-	            }
-	        });
-	        Input_1.input.on(Input_1.InputEvent.KEY_UP, function (e) {
-	            if (panCompViewFunId) {
-	                Input_1.setCursor();
-	                _this.lastX = null;
-	                _this.lastY = null;
-	                Input_1.input.del(Input_1.InputEvent.MOUSE_MOVE, panCompViewFunId);
-	                panCompViewFunId = null;
-	            }
-	        });
+	        };
 	        return _this;
 	    }
 	    Viewport.prototype.test = function () {

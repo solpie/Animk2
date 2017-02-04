@@ -205,7 +205,7 @@ export class CompInfo extends EventDispatcher {
         console.log('maxPos', this._maxPos);
     }
 
-    makePsd(frame?) {
+    makePsd(callback?,frame?) {
         if (!frame)
             frame = this._cursorPos;
         let imgArr = []

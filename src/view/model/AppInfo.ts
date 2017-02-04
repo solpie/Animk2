@@ -12,21 +12,33 @@ class AppData {
 export const AppInfoEvent = {
     Inited: "AppInfo()",
 }
-
+const fs = require('fs')
 export class AppInfo extends EventDispatcher {
+    //.conf file js object
+    conf: any;
+
     projectInfo: ProjectInfo;
     tm: TheMachine;
     settingInfo: SettingInfo;
     appData: AppData;
     mouseX: number;
     mouseY: number;
-
     constructor() {
         super();
-        this.appData = new AppData();
+        this.initConf(() => {
+              this.appData = new AppData();
         this.tm = new TheMachine();
         this.settingInfo = new SettingInfo();
         this.emit(AppInfoEvent.Inited)
+        })
+    }
+
+    initConf(callback) {
+        fs.readFile('resources/.conf', 'utf8', (err, data) => {
+            this.conf = JSON.parse(data)
+            console.log(data,this.conf.version)
+            callback()
+        });
     }
 
     width(v?) {
@@ -57,7 +69,7 @@ export class AppInfo extends EventDispatcher {
         return this.projectInfo.curComp.frameWidth;
     }
 
-    curComp():CompInfo {
+    curComp(): CompInfo {
         return this.projectInfo.curComp;
     }
 }

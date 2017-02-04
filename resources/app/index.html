@@ -9,14 +9,15 @@
             overflow: hidden;
             margin: 0;
         }
-        #paintCanvas{
+        
+        #paintCanvas {
             position: fixed;
-            top:0px;
+            top: 0px;
             left: 0px;
             /*width:1000px;
             height:1000px;*/
-            width:1280px;
-            height:720px;
+            width: 1280px;
+            height: 720px;
         }
     </style>
 </head>
@@ -24,10 +25,16 @@
 <body>
     <canvas id="paintCanvas"></canvas>
     <script>
+        const {
+            remote
+        } = require('electron');
+        // win = remote.getCurrentWindow();
+
+        // win.on('resize', function(e) {
+        //     console.log('resize', e)
+        // })
+
         function buildMenu() {
-            const {
-                remote
-            } = require('electron');
             const {
                 Menu,
                 MenuItem
@@ -67,7 +74,13 @@
             }));
             // window.setMenu(menu);
         }
-        buildMenu()
+        //remote
+        // const {
+        //     remote
+        // } = require('electron');
+
+
+        // buildMenu()
     </script>
     <script src="/resources/app/view/index.js"></script>
 </body>

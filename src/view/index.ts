@@ -7,8 +7,9 @@ import { ViewConst } from './const';
 import { animk } from './Animk';
 // console.log('running!')
 declare const TWEEN
+let renderer: any
 let main = () => {
-    let renderer: any = PIXI.autoDetectRenderer(ViewConst.STAGE_WIDTH, ViewConst.STAGE_HEIGHT,
+    renderer = PIXI.autoDetectRenderer(ViewConst.STAGE_WIDTH, ViewConst.STAGE_HEIGHT,
         { antialias: false, transparent: true, resolution: 1 });
     document.body.insertBefore(renderer.view, document.getElementById("paintCanvas"));
     renderer.stage = new PIXI.Container();
@@ -20,9 +21,22 @@ let main = () => {
         renderer.render(renderer.stage);
     };
     renderer.renderStage();
+
+
     return renderer.stage;
 }
+
+
 initTest()
 imgCache
 animk.init(main(), appInfo)
 window['animk'] = animk
+
+window.addEventListener('resize', function (e) {
+    e.preventDefault();
+    const {remote} = require('electron')
+    let win = remote.getCurrentWindow();
+    let size = win.getSize()
+    renderer.resize(size[0], size[1])
+    animk.resize(size[0],size[1])
+})

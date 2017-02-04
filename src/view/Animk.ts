@@ -52,10 +52,15 @@ export class Animk extends PIXI.Container {
         this.test()
     }
 
+    resize(width, height) {
+        this.vSplitter.resize(width, height)
+        this.tracker.resize(width,height)
+    }
+
     onload() {
         this.projInfo.curComp.setCursor(1)
     }
-    
+
     test() {
         this.tracker.vScroller.setMax(350)
         this.tracker.vScroller.evt.on(BaseEvent.CHANGED, (v) => {

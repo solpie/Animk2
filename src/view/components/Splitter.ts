@@ -122,14 +122,19 @@ export class Splitter extends PIXI.Container {
         this.addChild(this.bar)
     }
     colBg = 0x232323
+    _barBg: any
     resize(width, height) {
+        this._w = width
+        this._h = height
         if (this.dir == 'v') {
             // this.bar.
             this.setBarY(height / 2)
             if (!this.bar.children.length)
-                this.bar.addChild(new PIXI.Graphics()
+                this._barBg = this.bar.addChild(new PIXI.Graphics()
                     .beginFill(this.colBg)
                     .drawRect(0, 0, width, this.barSpace))
+            else
+                this._barBg.width = width
             this.mask1.width = width
             this.mask2.width = width
         }
@@ -138,10 +143,12 @@ export class Splitter extends PIXI.Container {
             this.mask1.height = height
             this.mask2.height = height
             if (!this.bar.children.length)
-                this.bar.addChild(new PIXI.Graphics()
+                this._barBg = this.bar.addChild(new PIXI.Graphics()
                     .beginFill(this.colBg)
                     .drawRect(0, 0, this.barSpace, height)
                 )
+            else
+                this._barBg.height = height
         }
 
     }

@@ -1,17 +1,40 @@
 import { appInfo } from './AppInfo';
 import { input, InputEvent } from '../../utils/Input';
+export const keyDownMap = {}
+export const keyUpMap = {}
+const makeKeyString = (e):string => {
+    let k = e.key.toLowerCase()
+    if (e.shiftKey && k != 'shift') {
+        k = 'shift+' + k
+    }
+    if (e.altKey && k != 'alt') {
+        k = 'alt+' + k
+    }
+    if (e.ctrlKey && k != 'ctrl') {
+        k = 'ctrl+' + k
+    }
+    return k
+}
 export const initShortCut = () => {
     input.on(InputEvent.KEY_DOWN, (e) => {
-        let k = e.key
-        let isCtrl = e.ctrlKey
-        if (k == 'f') {
+        let k = makeKeyString(e)
+        keyDownMap['f'] = () => {
             appInfo.curComp().forward()
         }
-        else if (k == 'd')
+        keyDownMap['d'] = () => {
             appInfo.curComp().backward()
-        else if (e.key == 'Enter') {
-            appInfo.curComp().makePsd()
         }
+        keyDownMap['enter'] = () => {
+            appInfo.curComp().makePsd(() => {
+            })
+        }
+        if (keyDownMap[k])
+            keyDownMap[k](e)
     })
+    input.on(InputEvent.KEY_UP, (e) => {
+        let k = makeKeyString(e)
+         if (keyUpMap[k])
+            keyUpMap[k](e)
+    })    
 }
 
