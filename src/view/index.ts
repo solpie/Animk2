@@ -11,7 +11,7 @@ let renderer: any
 let main = () => {
     renderer = PIXI.autoDetectRenderer(ViewConst.STAGE_WIDTH, ViewConst.STAGE_HEIGHT,
         { antialias: false, transparent: true, resolution: 1 });
-    document.body.insertBefore(renderer.view, document.getElementById("paintCanvas"));
+    document.body.appendChild(renderer.view);
     renderer.stage = new PIXI.Container();
     renderer.backgroundColor = 0x00000000;
     //Loop this function 60 times per second
@@ -30,10 +30,12 @@ initTest()
 imgCache
 animk.init(main(), appInfo)
 window['animk'] = animk
+const {remote} = require('electron')
+window['remote'] = remote
 
 window.addEventListener('resize', function (e) {
     e.preventDefault();
-    const {remote} = require('electron')
+
     let win = remote.getCurrentWindow();
     let size = win.getSize()
     renderer.resize(size[0], size[1])

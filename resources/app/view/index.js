@@ -55,7 +55,7 @@
 	var renderer;
 	var main = function () {
 	    renderer = PIXI.autoDetectRenderer(const_1.ViewConst.STAGE_WIDTH, const_1.ViewConst.STAGE_HEIGHT, { antialias: false, transparent: true, resolution: 1 });
-	    document.body.insertBefore(renderer.view, document.getElementById("paintCanvas"));
+	    document.body.appendChild(renderer.view);
 	    renderer.stage = new PIXI.Container();
 	    renderer.backgroundColor = 0x00000000;
 	    renderer.renderStage = function (time) {
@@ -70,9 +70,10 @@
 	ImageCache_1.imgCache;
 	Animk_1.animk.init(main(), AppInfo_1.appInfo);
 	window['animk'] = Animk_1.animk;
+	var remote = __webpack_require__(62).remote;
+	window['remote'] = remote;
 	window.addEventListener('resize', function (e) {
 	    e.preventDefault();
-	    var remote = __webpack_require__(62).remote;
 	    var win = remote.getCurrentWindow();
 	    var size = win.getSize();
 	    renderer.resize(size[0], size[1]);
@@ -1959,53 +1960,11 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var Brush_1 = __webpack_require__(64);
-	var Painter_1 = __webpack_require__(63);
-	var Input_1 = __webpack_require__(45);
 	var const_1 = __webpack_require__(12);
 	var ProjectInfo_1 = __webpack_require__(24);
 	var TweenEx_1 = __webpack_require__(42);
 	var AppInfo_1 = __webpack_require__(8);
 	var testPainter = function () {
-	    var painter = new Painter_1.Painter();
-	    painter.lockHistory();
-	    painter.setCanvasSize(1280, 720, 0, 0);
-	    painter.addLayer();
-	    painter.fillLayer('#fff');
-	    painter.selectLayer(1);
-	    painter.unlockHistory();
-	    var brush = new Brush_1.Brush();
-	    brush.setSize(20);
-	    brush.setColor('#fff');
-	    brush.setSpacing(0.2);
-	    painter.setTool(brush);
-	    painter.setToolStabilizeLevel(10);
-	    painter.setToolStabilizeWeight(0.5);
-	    document.body.appendChild(painter.paintingCanvas);
-	    function getRelativePosition(absoluteX, absoluteY) {
-	        var rect = painter.paintingCanvas.getBoundingClientRect();
-	        return { x: absoluteX - rect.left, y: absoluteY - rect.top };
-	    }
-	    function canvasPointerMove(e) {
-	        var pointerPosition = getRelativePosition(e.clientX, e.clientY);
-	        painter.move(pointerPosition.x, pointerPosition.y, e.pointerType === "pen" ? e.pressure : 1);
-	    }
-	    function canvasPointerUp(e) {
-	        var pointerPosition = getRelativePosition(e.clientX, e.clientY);
-	        painter.up(pointerPosition.x, pointerPosition.y, e.pointerType === "pen" ? e.pressure : 1);
-	        if (e.pointerType === "pen" && e.button == 5)
-	            setTimeout(function () { painter.setPaintingKnockout(false); }, 30);
-	        Input_1.input.del(Input_1.InputEvent.MOUSE_MOVE, moveFuncId);
-	        Input_1.input.del(Input_1.InputEvent.MOUSE_UP, upFuncId);
-	    }
-	    var moveFuncId = null, upFuncId = null;
-	    function canvasPointerDown(e) {
-	        var pointerPosition = getRelativePosition(e.clientX, e.clientY);
-	        painter.down(pointerPosition.x, pointerPosition.y, e.pointerType === "pen" ? e.pressure : 1);
-	        moveFuncId = Input_1.input.on(Input_1.InputEvent.MOUSE_MOVE, canvasPointerMove);
-	        upFuncId = Input_1.input.on(Input_1.InputEvent.MOUSE_UP, canvasPointerUp);
-	    }
-	    Input_1.input.on(Input_1.InputEvent.MOUSE_DOWN, canvasPointerDown);
 	};
 	exports.initTest = function () {
 	    testPainter();
@@ -2217,6 +2176,9 @@
 	            AppInfo_1.appInfo.curComp().makePsd(function () {
 	            });
 	        };
+	        exports.keyDownMap['f12'] = function () {
+	            window['remote'].getCurrentWindow().webContents.toggleDevTools();
+	        };
 	        if (exports.keyDownMap[k])
 	            exports.keyDownMap[k](e);
 	    });
@@ -2386,6 +2348,9 @@
 	        this.child1Space = by;
 	        this.child2Space = this.height - by - this.barSpace;
 	        this.mask1.height = by;
+	        if (this.child1) {
+	            this.child1.resize(null, by);
+	        }
 	        if (this.child2) {
 	            this.child2.y = by + this.barSpace;
 	        }
@@ -2732,6 +2697,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var PaintView_1 = __webpack_require__(67);
 	var ShortCut_1 = __webpack_require__(44);
 	var Input_1 = __webpack_require__(45);
 	var PixiEx_1 = __webpack_require__(47);
@@ -2744,6 +2710,8 @@
 	        _this.zoomStep = 0.20;
 	        _this.lastX = null;
 	        _this.lastY = null;
+	        _this.paintView = new PaintView_1.PaintView(const_1.ViewConst.COMP_WIDTH, const_1.ViewConst.COMP_HEIGHT);
+	        _this.paintView.painter.setShowRect(0, 0, 500, 500);
 	        _this.compView = new CompView_1.CompView(const_1.ViewConst.COMP_WIDTH, const_1.ViewConst.COMP_HEIGHT);
 	        _this.addChild(_this.compView);
 	        _this._pan(20, 20);
@@ -2791,6 +2759,17 @@
 	    Viewport.prototype._pan = function (x, y) {
 	        this.compView.x = x;
 	        this.compView.y = y;
+	        this.paintView.x = x;
+	        this.paintView.y = y;
+	        this.paintView.rectHeight = this._h - this.paintView.y;
+	        this.paintView.updateShowRect();
+	    };
+	    Viewport.prototype.resize = function (width, height) {
+	        if (width == null)
+	            width = this.width;
+	        this._h = height;
+	        this.paintView.rectHeight = this._h - this.paintView.y;
+	        this.paintView.updateShowRect();
 	    };
 	    return Viewport;
 	}(PIXI.Container));
@@ -3497,7 +3476,7 @@
 	        _this.addChild(_this.gBg);
 	        var newTrackBtn = new Button_1.Button({ text: "new" });
 	        newTrackBtn.x = -100;
-	        newTrackBtn.on(PixiEx_1.PIXI_MOUSE_EVENT.up, function () {
+	        newTrackBtn.on(PixiEx_1.PIXI_MOUSE_EVENT.down, function () {
 	            var dialog = __webpack_require__(62).remote.dialog;
 	            var ret = dialog.showOpenDialog({
 	                properties: ['openFile'], filters: [
@@ -3614,7 +3593,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var AnpUtil_1 = __webpack_require__(65);
+	var Stabilizer_1 = __webpack_require__(66);
 	var EventDispatcher_1 = __webpack_require__(14);
 	var Brush_1 = __webpack_require__(64);
 	var Painter = (function (_super) {
@@ -3659,13 +3638,27 @@
 	        _this.isStabilizing = false;
 	        _this.beforeKnockout = document.createElement('canvas');
 	        _this.knockoutTickInterval = 20;
-	        _this.domElement = document.createElement('div');
 	        _this.initPaintCanvas();
 	        _this.setTool(new Brush_1.Brush());
 	        return _this;
 	    }
+	    Painter.prototype.initPaintCanvas = function () {
+	        var paintingCanvas = this.paintingCanvas = document.createElement('canvas');
+	        this.paintingContext = this.paintingCanvas.getContext('2d');
+	        paintingCanvas.className = 'paint-painting-canvas';
+	        paintingCanvas.style.left = '0';
+	        paintingCanvas.style.top = '0';
+	        this.$el = document.createElement('div');
+	        this.$el.style.position = 'fixed';
+	        this.$el.style.overflow = 'hidden';
+	        this.$el.appendChild(this.paintingCanvas);
+	    };
+	    Painter.prototype.setShowRect = function (x, y, width, height) {
+	        this.$el.style.width = width + 'px';
+	        this.$el.style.height = height + 'px';
+	    };
 	    Painter.prototype.getRelativePosition = function (absoluteX, absoluteY) {
-	        var rect = this.domElement.getBoundingClientRect();
+	        var rect = this.$el.getBoundingClientRect();
 	        return { x: absoluteX - rect.left, y: absoluteY - rect.top };
 	    };
 	    Painter.prototype.getUndoLimit = function () {
@@ -3835,10 +3828,8 @@
 	        this.size.height = height = Math.floor(height);
 	        this.paintingCanvas.width = width;
 	        this.paintingCanvas.height = height;
-	        this.dirtyRectDisplay.width = width;
-	        this.dirtyRectDisplay.height = height;
-	        this.domElement.style.width = width + 'px';
-	        this.domElement.style.height = height + 'px';
+	        this.$el.style.width = width + 'px';
+	        this.$el.style.height = height + 'px';
 	        for (var i = 0; i < this.layers.length; ++i) {
 	            var canvas = this.getLayerCanvas(i);
 	            var context = this.getLayerContext(i);
@@ -3871,28 +3862,13 @@
 	    Painter.prototype.getLayerContext = function (index) {
 	        return this.getLayerCanvas(index).getContext('2d');
 	    };
-	    Painter.prototype.initPaintCanvas = function () {
-	        var paintingCanvas = this.paintingCanvas = document.createElement('canvas');
-	        this.paintingContext = this.paintingCanvas.getContext('2d');
-	        paintingCanvas.className = 'paint-painting-canvas';
-	        paintingCanvas.style.position = 'fixed';
-	        paintingCanvas.style.left = '0';
-	        paintingCanvas.style.top = '0';
-	        var dirtyRectDisplay = this.dirtyRectDisplay = document.createElement('canvas');
-	        this.dirtyRectDisplayContext = dirtyRectDisplay.getContext('2d');
-	        dirtyRectDisplay.className = 'paint-dirty-rect-display';
-	        dirtyRectDisplay.style.position = 'fixed';
-	        dirtyRectDisplay.style.left = '0';
-	        dirtyRectDisplay.style.top = '0';
-	    };
 	    Painter.prototype.sortLayers = function () {
-	        while (this.domElement.firstChild)
-	            this.domElement.removeChild(this.domElement.firstChild);
+	        while (this.$el.firstChild)
+	            this.$el.removeChild(this.$el.firstChild);
 	        for (var i = 0; i < this.layers.length; ++i) {
 	            var layer = this.layers[i];
-	            this.domElement.appendChild(layer);
+	            this.$el.appendChild(layer);
 	        }
-	        this.domElement.appendChild(this.dirtyRectDisplay);
 	    };
 	    Painter.prototype.drawDirtyRect = function (x, y, w, h) {
 	        var context = this.dirtyRectDisplayContext;
@@ -3925,7 +3901,7 @@
 	        canvas.height = this.size.height;
 	        canvas.style.position = 'absolute';
 	        layer.appendChild(canvas);
-	        this.domElement.appendChild(layer);
+	        this.$el.appendChild(layer);
 	        this.layers.splice(index, 0, layer);
 	        this.sortLayers();
 	        this.selectLayer(this.layerIndex);
@@ -3935,7 +3911,7 @@
 	    Painter.prototype.removeLayer = function (index) {
 	        index = (index == null) ? this.layerIndex : index;
 	        this.pushRemoveLayerUndo(index);
-	        this.domElement.removeChild(this.layers[index]);
+	        this.$el.removeChild(this.layers[index]);
 	        this.layers.splice(index, 1);
 	        if (this.layerIndex == this.layers.length)
 	            this.selectLayer(this.layerIndex - 1);
@@ -4009,8 +3985,7 @@
 	    Painter.prototype.setTool = function (value) {
 	        this.tool = value;
 	        this.paintingContext = this.paintingCanvas.getContext('2d');
-	        if (this.tool && this.tool.setContext)
-	            this.tool.setContext(this.paintingContext);
+	        this.tool.setContext(this.paintingContext);
 	    };
 	    Painter.prototype.getPaintingOpacity = function () {
 	        return this.paintingOpacity;
@@ -4092,7 +4067,7 @@
 	        }
 	        var down = this.tool.down;
 	        if (this.toolStabilizeLevel > 0) {
-	            this.stabilizer = new AnpUtil_1.Stabilizer(this.tool, this._move, this._up, this.toolStabilizeLevel, this.toolStabilizeWeight, x, y, pressure, this.stabilizerInterval);
+	            this.stabilizer = new Stabilizer_1.Stabilizer(this.tool, this._move, this._up, this.toolStabilizeLevel, this.toolStabilizeWeight, x, y, pressure, this.stabilizerInterval);
 	            this.isStabilizing = true;
 	        }
 	        else if (down != null)
@@ -4105,8 +4080,6 @@
 	            }
 	        }, this.knockoutTickInterval);
 	        this.tick = window.setInterval(function () {
-	            if (_this.tool.tick)
-	                _this.tool.tick();
 	            _this.emit('ontick');
 	        }, this.tickInterval);
 	    };
@@ -4420,213 +4393,11 @@
 
 
 /***/ },
-/* 65 */
+/* 65 */,
+/* 66 */
 /***/ function(module, exports) {
 
 	"use strict";
-	exports.createChecker = function (cellSize, colorA, colorB) {
-	    cellSize = (cellSize == null) ? 10 : cellSize;
-	    colorA = (colorA == null) ? '#fff' : colorA;
-	    colorB = (colorB == null) ? '#ccc' : colorB;
-	    var size = cellSize + cellSize;
-	    var checker = document.createElement('canvas');
-	    checker.width = checker.height = size;
-	    var context = checker.getContext('2d');
-	    context.fillStyle = colorB;
-	    context.fillRect(0, 0, size, size);
-	    context.fillStyle = colorA;
-	    context.fillRect(0, 0, cellSize, cellSize);
-	    context.fillRect(cellSize, cellSize, size, size);
-	    return checker;
-	};
-	exports.createBrushPointer = function (brushImage, brushSize, brushAngle, threshold, antialias, color) {
-	    brushSize = brushSize | 0;
-	    var pointer = document.createElement('canvas');
-	    var pointerContext = pointer.getContext('2d');
-	    if (brushSize == 0) {
-	        pointer.width = 1;
-	        pointer.height = 1;
-	        return pointer;
-	    }
-	    if (brushImage == null) {
-	        var halfSize = (brushSize * 0.5) | 0;
-	        pointer.width = brushSize;
-	        pointer.height = brushSize;
-	        pointerContext.fillStyle = '#000';
-	        pointerContext.beginPath();
-	        pointerContext.arc(halfSize, halfSize, halfSize, 0, Math.PI * 2);
-	        pointerContext.closePath();
-	        pointerContext.fill();
-	    }
-	    else {
-	        var width = brushSize;
-	        var height = brushSize * (brushImage.height / brushImage.width);
-	        var toRad = Math.PI / 180;
-	        var ra = brushAngle * toRad;
-	        var abs = Math.abs;
-	        var sin = Math.sin;
-	        var cos = Math.cos;
-	        var boundWidth = abs(height * sin(ra)) + abs(width * cos(ra));
-	        var boundHeight = abs(width * sin(ra)) + abs(height * cos(ra));
-	        pointer.width = boundWidth;
-	        pointer.height = boundHeight;
-	        pointerContext.save();
-	        pointerContext.translate(boundWidth * 0.5, boundHeight * 0.5);
-	        pointerContext.rotate(ra);
-	        pointerContext.translate(width * -0.5, height * -0.5);
-	        pointerContext.drawImage(brushImage, 0, 0, width, height);
-	        pointerContext.restore();
-	    }
-	    return exports.createAlphaThresholdBorder(pointer, threshold, antialias, color);
-	};
-	exports.createAlphaThresholdBorder = function (image, threshold, antialias, color) {
-	    threshold = (threshold == null) ? 0x80 : threshold;
-	    color = (color == null) ? '#000' : color;
-	    var width = image.width;
-	    var height = image.height;
-	    var canvas = document.createElement('canvas');
-	    var context = canvas.getContext('2d');
-	    canvas.width = width;
-	    canvas.height = height;
-	    try {
-	        context.drawImage(image, 0, 0, width, height);
-	    }
-	    catch (e) {
-	        return canvas;
-	    }
-	    var imageData = context.getImageData(0, 0, width, height);
-	    var d = imageData.data;
-	    function getAlphaIndex(index) {
-	        return d[index * 4 + 3];
-	    }
-	    function setRedIndex(index, red) {
-	        d[index * 4] = red;
-	    }
-	    function getRedXY(x, y) {
-	        var red = d[((y * width) + x) * 4];
-	        return red ? red : 0;
-	    }
-	    function getGreenXY(x, y) {
-	        var green = d[((y * width) + x) * 4 + 1];
-	        return green;
-	    }
-	    function setColorXY(x, y, red, green, alpha) {
-	        var i = ((y * width) + x) * 4;
-	        d[i] = red;
-	        d[i + 1] = green;
-	        d[i + 2] = 0;
-	        d[i + 3] = alpha;
-	    }
-	    var pixelCount = (d.length * 0.25) | 0;
-	    for (var i = 0; i < pixelCount; ++i)
-	        setRedIndex(i, (getAlphaIndex(i) < threshold) ? 0 : 1);
-	    var x;
-	    var y;
-	    for (x = 0; x < width; ++x) {
-	        for (y = 0; y < height; ++y) {
-	            if (!getRedXY(x, y)) {
-	                setColorXY(x, y, 0, 0, 0);
-	            }
-	            else {
-	                var redCount = 0;
-	                var left = x - 1;
-	                var right = x + 1;
-	                var up = y - 1;
-	                var down = y + 1;
-	                redCount += getRedXY(left, up);
-	                redCount += getRedXY(left, y);
-	                redCount += getRedXY(left, down);
-	                redCount += getRedXY(right, up);
-	                redCount += getRedXY(right, y);
-	                redCount += getRedXY(right, down);
-	                redCount += getRedXY(x, up);
-	                redCount += getRedXY(x, down);
-	                if (redCount != 8)
-	                    setColorXY(x, y, 1, 1, 255);
-	                else
-	                    setColorXY(x, y, 1, 0, 0);
-	            }
-	        }
-	    }
-	    if (antialias) {
-	        for (x = 0; x < width; ++x) {
-	            for (y = 0; y < height; ++y) {
-	                if (getGreenXY(x, y)) {
-	                    var alpha = 0;
-	                    if (getGreenXY(x - 1, y) != getGreenXY(x + 1, y))
-	                        setColorXY(x, y, 1, 1, alpha += 0x40);
-	                    if (getGreenXY(x, y - 1) != getGreenXY(x, y + 1))
-	                        setColorXY(x, y, 1, 1, alpha + 0x50);
-	                }
-	            }
-	        }
-	    }
-	    context.putImageData(imageData, 0, 0);
-	    context.globalCompositeOperation = 'source-in';
-	    context.fillStyle = color;
-	    context.fillRect(0, 0, width, height);
-	    return canvas;
-	};
-	exports.createFloodFill = function (canvas, x, y, r, g, b, a) {
-	    var result = document.createElement('canvas');
-	    var w = result.width = canvas.width;
-	    var h = result.height = canvas.height;
-	    if ((x < 0) || (x >= w) || (y < 0) || (y >= h) || !(r || g || b || a))
-	        return result;
-	    var originalContext = canvas.getContext('2d');
-	    var originalData = originalContext.getImageData(0, 0, w, h);
-	    var od = originalData.data;
-	    var resultContext = result.getContext('2d');
-	    var resultData = resultContext.getImageData(0, 0, w, h);
-	    var rd = resultData.data;
-	    var targetColor = getColor(x, y);
-	    var replacementColor = (r << 24) | (g << 16) | (b << 8) | a;
-	    function getColor(x, y) {
-	        var index = ((y * w) + x) * 4;
-	        return (rd[index] ? replacementColor :
-	            ((od[index] << 24) | (od[index + 1] << 16) |
-	                (od[index + 2] << 8) | od[index + 3]));
-	    }
-	    var queue = [];
-	    queue.push(x, y);
-	    while (queue.length) {
-	        var nx = queue.shift();
-	        var ny = queue.shift();
-	        if ((nx < 0) || (nx >= w) || (ny < 0) || (ny >= h) ||
-	            (getColor(nx, ny) !== targetColor))
-	            continue;
-	        var west, east;
-	        west = east = nx;
-	        do {
-	            var wc = getColor(--west, ny);
-	        } while ((west >= 0) && (wc === targetColor));
-	        do {
-	            var ec = getColor(++east, ny);
-	        } while ((east < w) && (ec === targetColor));
-	        for (var i = west + 1; i < east; ++i) {
-	            rd[((ny * w) + i) * 4] = 1;
-	            var north = ny - 1;
-	            var south = ny + 1;
-	            if (getColor(i, north) === targetColor)
-	                queue.push(i, north);
-	            if (getColor(i, south) === targetColor)
-	                queue.push(i, south);
-	        }
-	    }
-	    for (i = 0; i < w; ++i) {
-	        for (var j = 0; j < h; ++j) {
-	            var index = ((j * w) + i) * 4;
-	            if (rd[index] == 0)
-	                continue;
-	            rd[index] = r;
-	            rd[index + 1] = g;
-	            rd[index + 2] = b;
-	            rd[index + 3] = a;
-	        }
-	    }
-	    resultContext.putImageData(resultData, 0, 0);
-	    return result;
-	};
 	var Stabilizer = (function () {
 	    function Stabilizer(tool, move1, up, level, weight, x, y, pressure, interval) {
 	        var _this = this;
@@ -4703,61 +4474,92 @@
 	    return Stabilizer;
 	}());
 	exports.Stabilizer = Stabilizer;
-	exports.Random = { LFSR113: null };
-	exports.Random.LFSR113 = function (seed) {
-	    var IA = 16807;
-	    var IM = 2147483647;
-	    var IQ = 127773;
-	    var IR = 2836;
-	    var a, b, c, d, e;
-	    this.get = function () {
-	        var f = ((a << 6) ^ a) >> 13;
-	        a = ((a & 4294967294) << 18) ^ f;
-	        f = ((b << 2) ^ b) >> 27;
-	        b = ((b & 4294967288) << 2) ^ f;
-	        f = ((c << 13) ^ c) >> 21;
-	        c = ((c & 4294967280) << 7) ^ f;
-	        f = ((d << 3) ^ d) >> 12;
-	        d = ((d & 4294967168) << 13) ^ f;
-	        return (a ^ b ^ c ^ d) * 2.3283064365386963e-10 + 0.5;
+
+
+/***/ },
+/* 67 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var Brush_1 = __webpack_require__(64);
+	var Painter_1 = __webpack_require__(63);
+	var Input_1 = __webpack_require__(45);
+	var PaintView = (function () {
+	    function PaintView(width, height) {
+	        var _this = this;
+	        this.moveFuncId = null;
+	        this.upFuncId = null;
+	        this.rectWidth = width;
+	        this.rectHeight = height;
+	        var painter = new Painter_1.Painter();
+	        painter.lockHistory();
+	        painter.setCanvasSize(width, height, 0, 0);
+	        painter.unlockHistory();
+	        this.painter = painter;
+	        var brush = new Brush_1.Brush();
+	        brush.setSize(20);
+	        brush.setColor('#fff');
+	        brush.setSpacing(0.2);
+	        painter.setTool(brush);
+	        painter.setToolStabilizeLevel(10);
+	        painter.setToolStabilizeWeight(0.5);
+	        document.body.appendChild(painter.$el);
+	        var moveFuncId = null, upFuncId = null;
+	        Input_1.input.on(Input_1.InputEvent.MOUSE_DOWN, function (e) {
+	            _this.onDown(e);
+	        });
+	    }
+	    PaintView.prototype.updateShowRect = function () {
+	        this.painter.setShowRect(null, null, this.rectWidth, this.rectHeight);
 	    };
-	    seed |= 0;
-	    if (seed <= 0)
-	        seed = 1;
-	    e = (seed / IQ) | 0;
-	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
-	    if (seed < 0)
-	        seed = (seed + IM) | 0;
-	    if (seed < 2)
-	        a = (seed + 2) | 0;
-	    else
-	        a = seed;
-	    e = (seed / IQ) | 0;
-	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
-	    if (seed < 0)
-	        seed = (seed + IM) | 0;
-	    if (seed < 8)
-	        b = (seed + 8) | 0;
-	    else
-	        b = seed;
-	    e = (seed / IQ) | 0;
-	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
-	    if (seed < 0)
-	        seed = (seed + IM) | 0;
-	    if (seed < 16)
-	        c = (seed + 16) | 0;
-	    else
-	        c = seed;
-	    e = (seed / IQ) | 0;
-	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
-	    if (seed < 0)
-	        seed = (seed + IM) | 0;
-	    if (seed < 128)
-	        d = (seed + 128) | 0;
-	    else
-	        d = seed;
-	    this.get();
-	};
+	    Object.defineProperty(PaintView.prototype, "x", {
+	        get: function () { return this._x; },
+	        set: function (v) {
+	            this._x = v;
+	            this.painter.$el.style.left = v + "px";
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(PaintView.prototype, "y", {
+	        get: function () { return this._y; },
+	        set: function (v) {
+	            this._y = v;
+	            this.painter.$el.style.top = v + "px";
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    PaintView.prototype.onDown = function (e) {
+	        var _this = this;
+	        var pointerPosition = this.getRelativePosition(e.clientX, e.clientY);
+	        this.painter.down(pointerPosition.x, pointerPosition.y, e.pointerType === "pen" ? e.pressure : 1);
+	        this.moveFuncId = Input_1.input.on(Input_1.InputEvent.MOUSE_MOVE, function (e) {
+	            _this.onMove(e);
+	        });
+	        this.upFuncId = Input_1.input.on(Input_1.InputEvent.MOUSE_UP, function (e) {
+	            _this.onUp(e);
+	        });
+	    };
+	    PaintView.prototype.onMove = function (e) {
+	        var pointerPosition = this.getRelativePosition(e.clientX, e.clientY);
+	        this.painter.move(pointerPosition.x, pointerPosition.y, e.pointerType === "pen" ? e.pressure : 1);
+	    };
+	    PaintView.prototype.onUp = function (e) {
+	        var pointerPosition = this.getRelativePosition(e.clientX, e.clientY);
+	        this.painter.up(pointerPosition.x, pointerPosition.y, e.pointerType === "pen" ? e.pressure : 1);
+	        if (e.pointerType === "pen" && e.button == 5)
+	            setTimeout(function () { this.painter.setPaintingKnockout(false); }, 30);
+	        Input_1.input.del(Input_1.InputEvent.MOUSE_MOVE, this.moveFuncId);
+	        Input_1.input.del(Input_1.InputEvent.MOUSE_UP, this.upFuncId);
+	    };
+	    PaintView.prototype.getRelativePosition = function (absoluteX, absoluteY) {
+	        var rect = this.painter.paintingCanvas.getBoundingClientRect();
+	        return { x: absoluteX - rect.left, y: absoluteY - rect.top };
+	    };
+	    return PaintView;
+	}());
+	exports.PaintView = PaintView;
 
 
 /***/ }

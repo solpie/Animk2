@@ -73,7 +73,7 @@ export class TimestampBar extends PIXI.Sprite {
 
         let newTrackBtn = new Button({ text: "new" })
         newTrackBtn.x = -100
-        newTrackBtn.on(PIXI_MOUSE_EVENT.up, () => {
+        newTrackBtn.on(PIXI_MOUSE_EVENT.down, () => {
             const {dialog} = require('electron').remote
             let ret = dialog.showOpenDialog({
                 properties: ['openFile'], filters: [

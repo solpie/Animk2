@@ -1,3 +1,4 @@
+import { ITool } from './ITool';
 //  namespace Anmkp {
 const PI = Math.PI;
 const toRad = PI / 180;
@@ -12,7 +13,7 @@ const atan2 = Math.atan2;
 const ONE = PI + PI;
 const QUARTER = PI * 0.5;
 var random = Math.random;
-export class Brush {
+export class Brush implements ITool {
     // math shortcut
 
     setRandomFunction(value) {
@@ -35,7 +36,7 @@ export class Brush {
         return this.context;
     }
     setContext(value) {
-        console.log('brush set Context',value)
+        console.log('brush set Context', value)
         this.context = value;
     }
     color = '#000';
@@ -223,7 +224,7 @@ export class Brush {
     }
 
     down(x, y, scale) {
-        console.log('brush down',this)
+        console.log('brush down', this)
         // if (this.context == null)
         //     throw 'brush needs the context';
         this.dir = 0;

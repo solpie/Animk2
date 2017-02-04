@@ -28,6 +28,9 @@ export const initShortCut = () => {
             appInfo.curComp().makePsd(() => {
             })
         }
+        keyDownMap['f12'] = () => {
+           window['remote'].getCurrentWindow().webContents.toggleDevTools()
+        }
         if (keyDownMap[k])
             keyDownMap[k](e)
     })

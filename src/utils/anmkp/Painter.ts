@@ -1,9 +1,10 @@
-import { Stabilizer } from './AnpUtil';
+import { ITool } from './ITool';
+import { Stabilizer } from './Stabilizer';
 import { EventDispatcher } from '../EventDispatcher';
 import { Brush } from './Brush'
 
 export class Painter extends EventDispatcher {
-    domElement: any
+    $el: HTMLElement
     undoStack = []
     redoStack = []
     undoLimit = 10
@@ -16,13 +17,36 @@ export class Painter extends EventDispatcher {
 
     constructor() {
         super()
-        this.domElement = document.createElement('div')
         this.initPaintCanvas()
         this.setTool(new Brush())
     }
 
+    private initPaintCanvas() {
+        let paintingCanvas = this.paintingCanvas = document.createElement('canvas');
+        this.paintingContext = this.paintingCanvas.getContext('2d');
+        paintingCanvas.className = 'paint-painting-canvas';
+        // paintingCanvas.style.position = 'fixed';
+        paintingCanvas.style.left = '0';
+        paintingCanvas.style.top = '0';
+
+        // let dirtyRectDisplay = this.dirtyRectDisplay = document.createElement('canvas');
+        // this.dirtyRectDisplayContext = dirtyRectDisplay.getContext('2d');
+        // dirtyRectDisplay.className = 'paint-dirty-rect-display';
+        // // dirtyRectDisplay.style.position = 'fixed';
+        // dirtyRectDisplay.style.left = '0';
+        // dirtyRectDisplay.style.top = '0';
+
+        this.$el = document.createElement('div')
+        this.$el.style.position = 'fixed';
+        this.$el.style.overflow = 'hidden';
+        this.$el.appendChild(this.paintingCanvas)
+    }
+    setShowRect(x, y, width, height) {
+        this.$el.style.width = width + 'px';
+        this.$el.style.height = height + 'px';
+    }
     getRelativePosition(absoluteX, absoluteY) {
-        var rect = this.domElement.getBoundingClientRect();
+        var rect = this.$el.getBoundingClientRect();
         return { x: absoluteX - rect.left, y: absoluteY - rect.top };
     }
 
@@ -37,13 +61,16 @@ export class Painter extends EventDispatcher {
     lockHistory() {
         this.preventPushUndo = true;
     };
+
     unlockHistory() {
         this.preventPushUndo = false;
     };
+
     beginHistoryTransaction() {
         this.undoStack.push([]);
         this.pushToTransaction = true;
     };
+
     endHistoryTransaction() {
         this.pushToTransaction = false;
     };
@@ -194,10 +221,10 @@ export class Painter extends EventDispatcher {
         this.size.height = height = Math.floor(height);
         this.paintingCanvas.width = width;
         this.paintingCanvas.height = height;
-        this.dirtyRectDisplay.width = width;
-        this.dirtyRectDisplay.height = height;
-        this.domElement.style.width = width + 'px';
-        this.domElement.style.height = height + 'px';
+        // this.dirtyRectDisplay.width = width;
+        // this.dirtyRectDisplay.height = height;
+        this.$el.style.width = width + 'px';
+        this.$el.style.height = height + 'px';
         for (var i = 0; i < this.layers.length; ++i) {
             var canvas = this.getLayerCanvas(i);
             var context = this.getLayerContext(i);
@@ -229,36 +256,20 @@ export class Painter extends EventDispatcher {
 
     layers = [];
     layerIndex = 0;
-    paintingCanvas: any
+    paintingCanvas: HTMLCanvasElement
     paintingContext: any
-    dirtyRectDisplay: any
+    // dirtyRectDisplay: any
     dirtyRectDisplayContext: any
     renderDirtyRect = false;
 
-    private initPaintCanvas() {
-        let paintingCanvas = this.paintingCanvas = document.createElement('canvas');
-        this.paintingContext = this.paintingCanvas.getContext('2d');
-        paintingCanvas.className = 'paint-painting-canvas';
-        paintingCanvas.style.position = 'fixed';
-        paintingCanvas.style.left = '0';
-        paintingCanvas.style.top = '0';
-
-        let dirtyRectDisplay = this.dirtyRectDisplay = document.createElement('canvas');
-        this.dirtyRectDisplayContext = dirtyRectDisplay.getContext('2d');
-        dirtyRectDisplay.className = 'paint-dirty-rect-display';
-        dirtyRectDisplay.style.position = 'fixed';
-        dirtyRectDisplay.style.left = '0';
-        dirtyRectDisplay.style.top = '0';
-    }
-
     sortLayers() {
-        while (this.domElement.firstChild)
-            this.domElement.removeChild(this.domElement.firstChild);
+        while (this.$el.firstChild)
+            this.$el.removeChild(this.$el.firstChild);
         for (var i = 0; i < this.layers.length; ++i) {
             var layer = this.layers[i];
-            this.domElement.appendChild(layer);
+            this.$el.appendChild(layer);
         }
-        this.domElement.appendChild(this.dirtyRectDisplay);
+        // this.$el.appendChild(this.dirtyRectDisplay);
     }
 
     drawDirtyRect(x, y, w, h) {
@@ -316,7 +327,7 @@ export class Painter extends EventDispatcher {
         canvas.height = this.size.height;
         canvas.style.position = 'absolute';
         layer.appendChild(canvas);
-        this.domElement.appendChild(layer);
+        this.$el.appendChild(layer);
         this.layers.splice(index, 0, layer);
         this.sortLayers();
         this.selectLayer(this.layerIndex);
@@ -327,7 +338,7 @@ export class Painter extends EventDispatcher {
     removeLayer(index) {
         index = (index == null) ? this.layerIndex : index;
         this.pushRemoveLayerUndo(index);
-        this.domElement.removeChild(this.layers[index]);
+        this.$el.removeChild(this.layers[index]);
         this.layers.splice(index, 1);
         if (this.layerIndex == this.layers.length)
             this.selectLayer(this.layerIndex - 1);
@@ -402,7 +413,7 @@ export class Painter extends EventDispatcher {
         //todo
     }
 
-    tool: any
+    tool: ITool
     toolStabilizeLevel = 0;
     toolStabilizeWeight = 0.8;
     stabilizer: Stabilizer = null;
@@ -419,8 +430,7 @@ export class Painter extends EventDispatcher {
     setTool(value) {
         this.tool = value;
         this.paintingContext = this.paintingCanvas.getContext('2d');
-        if (this.tool && this.tool.setContext)
-            this.tool.setContext(this.paintingContext);
+        this.tool.setContext(this.paintingContext);
     }
 
     getPaintingOpacity() {
@@ -564,8 +574,8 @@ export class Painter extends EventDispatcher {
             }
         }, this.knockoutTickInterval);
         this.tick = window.setInterval(() => {
-            if (this.tool.tick)
-                this.tool.tick();
+            // if (this.tool.tick)
+            //     this.tool.tick();
             this.emit('ontick');
             // if (self.onTicked)
             //     self.onTicked();

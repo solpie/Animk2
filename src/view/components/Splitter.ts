@@ -1,3 +1,4 @@
+import { IResize } from './IResize';
 import { input, InputEvent } from '../../utils/Input';
 import { PIXI_RECT, setupDrag } from '../../utils/PixiEx';
 import { TweenEx } from '../../utils/TweenEx';
@@ -5,7 +6,7 @@ import { animk } from '../Animk';
 import { BaseEvent } from '../const';
 export class Splitter extends PIXI.Container {
     bar: PIXI.Sprite
-    child1: any;
+    child1: IResize;
     child2: any;
     dir
     child1Space
@@ -87,9 +88,13 @@ export class Splitter extends PIXI.Container {
         this.child1Space = by
         this.child2Space = this.height - by - this.barSpace
         this.mask1.height = by
+        if (this.child1) {
+            this.child1.resize(null,by)
+        }
         if (this.child2) {
             this.child2.y = by + this.barSpace
         }
+
         this.mask2.y = this.bar.y + this.barSpace
         this.mask2.height = this.child2Space
     }
@@ -98,7 +103,7 @@ export class Splitter extends PIXI.Container {
         this.child1Space = bx
         this.child2Space = this.width - bx - this.barSpace
     }
-    setChild(child: PIXI.DisplayObject) {
+    setChild(child: IResize) {
         // child.interactiveChildren = true
         // child.interactive = true
         // child.buttonMode = true

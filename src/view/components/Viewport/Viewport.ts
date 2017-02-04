@@ -1,3 +1,4 @@
+import { PaintView } from './PaintView';
 import { Painter } from '../../../utils/anmkp/Painter';
 import { keyDownMap } from '../../model/ShortCut';
 import { ImageLayerInfo } from '../../model/tm/ImageLayerInfo';
@@ -8,11 +9,15 @@ import { ViewConst } from '../../const';
 import { CompView } from './CompView';
 export class Viewport extends PIXI.Container {
     compView: CompView
-    paintCanvas: PaintCanvas
-    painter:Painter
+    // paintCanvas: PaintCanvas
+    paintView: PaintView
     zoomStep = 0.20
+    _h: number
     constructor() {
         super()
+        this.paintView = new PaintView(ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
+        this.paintView.painter.setShowRect(0, 0, 500, 500)
+
         this.compView = new CompView(ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
         this.addChild(this.compView)
         // this.paintCanvas = new PaintCanvas()
@@ -71,10 +76,19 @@ export class Viewport extends PIXI.Container {
     }
 
     _pan(x, y) {
-        // this.paintCanvas.x =
-            this.compView.x = x
-            // this.paintCanvas.y =
-                this.compView.y = y
+        this.compView.x = x
+        this.compView.y = y
+        this.paintView.x = x
+        this.paintView.y = y
+        this.paintView.rectHeight = this._h - this.paintView.y;
+        this.paintView.updateShowRect()
+        
     }
-
+    resize(width, height) {
+        if (width == null)
+            width = this.width
+        this._h = height
+        this.paintView.rectHeight = this._h - this.paintView.y;
+        this.paintView.updateShowRect()
+    }
 }
