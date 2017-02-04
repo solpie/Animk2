@@ -8,35 +8,20 @@ export class Viewport extends PIXI.Container {
     compView: CompView
     paintCanvas: PaintCanvas
 
-    zoomStep = 0.15
+    zoomStep = 0.20
     constructor() {
         super()
         this.compView = new CompView(ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
         this.addChild(this.compView)
         this.paintCanvas = new PaintCanvas()
         this._pan(20, 20)
-        // this.compView.x = 70
-        // this.compView.y = 70
-        // this.compView.scale.x = this.compView.scale.y = 0.5
-        // let pos = posInObj(this.compView, { mx: 10, my: 10 })
-        // console.log(pos)
         input.on(InputEvent.MOUSE_WHEEL, (e) => {
-            console.log('wheel', e)
-
-            //deltaY
-            if (e.deltaY > 0) {
-            }
             let d = this.compView
-            // setPivot(d)
-            let pos = posInObj(this.compView, e)
-            // if (pos.x > 0 && pos.y > 0)
-            setPivot(d, pos.x - d.x, pos.y - d.y)
+            let pos = posInObj(this.compView, e, true)
             let dtS = - e.deltaY / 200 * this.zoomStep
-            console.log(pos, dtS)
-
-            // else
-            //     setPivot(d, this.width / 2, this.height / 2)
-            let s = d.scale.x - e.deltaY / 200 * this.zoomStep
+            d.x -= dtS * pos.x
+            d.y -= dtS * pos.y
+            let s = d.scale.x + dtS
             d.scale.x = d.scale.y = s
         })
 
@@ -53,7 +38,7 @@ export class Viewport extends PIXI.Container {
                 // let sp = new PIXI.Sprite(imgToTex(this.paintCanvas.getImg()))
                 // this.addChild(sp)
             }
-           
+
         })
 
         input.on(InputEvent.KEY_UP, (e) => {

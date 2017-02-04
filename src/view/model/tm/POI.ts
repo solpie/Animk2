@@ -1,3 +1,4 @@
+import { PsdParser } from '../../../utils/psd2png/PsdParser';
 import { ImageLayerInfo } from './ImageLayerInfo';
 
 export class POI {

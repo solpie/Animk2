@@ -173,6 +173,7 @@ export class TheMachine extends EventDispatcher {
 
     watchPOI(poi: POI) {
         //fs.unwatchFile
+        const fs = require("fs")
         var path = poi.filename;
         poi.isBeingWatched = true;
         console.log(this, "watchPOI", path);
