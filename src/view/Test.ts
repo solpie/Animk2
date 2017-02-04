@@ -1,3 +1,6 @@
+import { Brush } from '../utils/anmkp/Brush';
+import { Painter } from '../utils/anmkp/Painter';
+import { input, InputEvent } from '../utils/Input';
 import { PsdParser } from '../utils/psd2png/PsdParser';
 import { CompInfoEvent } from './const';
 import { ImageLayerInfo } from './model/tm/ImageLayerInfo';
@@ -6,7 +9,67 @@ import { loadImg } from '../utils/JsFunc';
 import { ProjectInfoEvent } from './model/ProjectInfo';
 import { TweenEx } from '../utils/TweenEx';
 import { appInfo, AppInfoEvent } from './model/AppInfo';
+const testPainter = () => {
+
+    let painter = new Painter()
+    painter.lockHistory();
+    painter.setCanvasSize(1280, 720, 0, 0)
+    painter.addLayer();
+    painter.fillLayer('#fff');
+    painter.selectLayer(1);
+    painter.unlockHistory();
+
+    var brush = new Brush();
+    brush.setSize(20);
+    brush.setColor('#fff');
+    brush.setSpacing(0.2);
+
+    painter.setTool(brush);
+    painter.setToolStabilizeLevel(10);
+    painter.setToolStabilizeWeight(0.5);
+
+    document.body.appendChild(painter.paintingCanvas)
+
+    function getRelativePosition(absoluteX, absoluteY) {
+        var rect = painter.paintingCanvas.getBoundingClientRect();
+        return { x: absoluteX - rect.left, y: absoluteY - rect.top };
+    }
+    function canvasPointerMove(e) {
+        // setPointerEvent(e);
+        var pointerPosition = getRelativePosition(e.clientX, e.clientY);
+        painter.move(pointerPosition.x, pointerPosition.y, e.pointerType === "pen" ? e.pressure : 1);
+    }
+    function canvasPointerUp(e) {
+        // setPointerEvent(e);
+        var pointerPosition = getRelativePosition(e.clientX, e.clientY);
+        // if (pointerEventsNone)
+        //     canvasArea.style.setProperty('cursor', 'crosshair');
+        painter.up(pointerPosition.x, pointerPosition.y, e.pointerType === "pen" ? e.pressure : 1);
+        if (e.pointerType === "pen" && e.button == 5)
+            setTimeout(function () { painter.setPaintingKnockout(false) }, 30);
+        input.del(InputEvent.MOUSE_MOVE,moveFuncId)
+        input.del(InputEvent.MOUSE_UP,upFuncId)
+        // document.removeEventListener('pointermove', canvasPointerMove);
+        // document.removeEventListener('pointerup', canvasPointerUp);
+    }
+    var moveFuncId = null, upFuncId = null
+    function canvasPointerDown(e) {
+        // setPointerEvent(e);
+        var pointerPosition = getRelativePosition(e.clientX, e.clientY);
+        // if (pointerEventsNone)
+        //     canvasArea.style.setProperty('cursor', 'none');
+        // if (e.pointerType === "pen" && e.button == 5)
+        //     painter.setPaintingKnockout(true);
+        painter.down(pointerPosition.x, pointerPosition.y, e.pointerType === "pen" ? e.pressure : 1);
+        moveFuncId = input.on(InputEvent.MOUSE_MOVE, canvasPointerMove)
+        upFuncId = input.on(InputEvent.MOUSE_UP, canvasPointerUp)
+        // document.addEventListener('pointermove', canvasPointerMove);
+        // document.addEventListener('pointerup', canvasPointerUp);
+    }
+    input.on(InputEvent.MOUSE_DOWN, canvasPointerDown)
+}
 export const initTest = () => {
+    testPainter()
     appInfo.on(ProjectInfoEvent.NEW_PROJ, () => {
         // loadImg('d:\\test.png', (img) => {
         //     let t1 = new Date().getMilliseconds()
@@ -49,7 +112,7 @@ export const initTest = () => {
         // });
         appInfo.projectInfo.on(CompInfoEvent.NEW_COMP, () => {
             TweenEx.delayedCall(1000, () => {
-                appInfo.curComp().newTrack('D:/lsj/rkb2017/军哥/cut3/jg020114.924.png')
+                // appInfo.curComp().newTrack('D:/lsj/rkb2017/军哥/cut3/jg020114.924.png')
                 // appInfo.curComp().newTrack('D:\lsj\rkb2017\军哥\reto\101.png')
             })
         })

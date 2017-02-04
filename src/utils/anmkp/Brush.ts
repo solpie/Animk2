@@ -35,6 +35,7 @@ export class Brush {
         return this.context;
     }
     setContext(value) {
+        console.log('brush set Context',value)
         this.context = value;
     }
     color = '#000';
@@ -219,15 +220,12 @@ export class Brush {
             boundWidth, boundHeight);
     }
     constructor() {
-
-
-
     }
 
-
     down(x, y, scale) {
-        if (this.context == null)
-            throw 'brush needs the context';
+        console.log('brush down',this)
+        // if (this.context == null)
+        //     throw 'brush needs the context';
         this.dir = 0;
         this.dirtyRect = { x: 0, y: 0, width: 0, height: 0 };
         if (scale > 0) {

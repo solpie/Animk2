@@ -1,3 +1,4 @@
+import { Painter } from '../../../utils/anmkp/Painter';
 import { keyDownMap } from '../../model/ShortCut';
 import { ImageLayerInfo } from '../../model/tm/ImageLayerInfo';
 import { PaintCanvas } from './PaintCanvas';
@@ -8,13 +9,13 @@ import { CompView } from './CompView';
 export class Viewport extends PIXI.Container {
     compView: CompView
     paintCanvas: PaintCanvas
-
+    painter:Painter
     zoomStep = 0.20
     constructor() {
         super()
         this.compView = new CompView(ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
         this.addChild(this.compView)
-        this.paintCanvas = new PaintCanvas()
+        // this.paintCanvas = new PaintCanvas()
         this._pan(20, 20)
         input.on(InputEvent.MOUSE_WHEEL, (e) => {
             let d = this.compView
@@ -33,7 +34,7 @@ export class Viewport extends PIXI.Container {
                 panCompViewFunId = input.on(InputEvent.MOUSE_MOVE, (e) => {
                     this.panCompView(e)
                 })
-                upFuncId =input.on(InputEvent.KEY_UP, (e) => {
+                upFuncId = input.on(InputEvent.KEY_UP, (e) => {
                     if (panCompViewFunId) {
                         setCursor()
                         this.lastX = null
@@ -51,9 +52,9 @@ export class Viewport extends PIXI.Container {
         //         // let sp = new PIXI.Sprite(imgToTex(this.paintCanvas.getImg()))
         //         // this.addChild(sp)
         //     }
-    }
-    test() {
 
+        // this.painter = new Painter()
+        // document.body.appendChild(this.painter.paintingCanvas)
     }
     lastX = null
     lastY = null
@@ -70,8 +71,10 @@ export class Viewport extends PIXI.Container {
     }
 
     _pan(x, y) {
-        this.paintCanvas.x = this.compView.x = x
-        this.paintCanvas.y = this.compView.y = y
+        // this.paintCanvas.x =
+            this.compView.x = x
+            // this.paintCanvas.y =
+                this.compView.y = y
     }
 
 }

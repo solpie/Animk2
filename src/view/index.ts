@@ -1,10 +1,10 @@
 require(`script!./../libs/pixi.min.js`);
 require(`script!./../libs/Tween.min.js`);
-import { imgCache } from './model/ImageCache';
-import { appInfo } from './model/AppInfo';
-import { initTest } from './Test';
-import { ViewConst } from './const';
 import { animk } from './Animk';
+import { ViewConst } from './const';
+import { appInfo } from './model/AppInfo';
+import { imgCache } from './model/ImageCache';
+import { initTest } from './Test';
 // console.log('running!')
 declare const TWEEN
 let renderer: any
@@ -26,7 +26,6 @@ let main = () => {
     return renderer.stage;
 }
 
-
 initTest()
 imgCache
 animk.init(main(), appInfo)
@@ -38,5 +37,5 @@ window.addEventListener('resize', function (e) {
     let win = remote.getCurrentWindow();
     let size = win.getSize()
     renderer.resize(size[0], size[1])
-    animk.resize(size[0],size[1])
+    animk.resize(size[0], size[1])
 })

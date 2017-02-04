@@ -47,11 +47,11 @@
 	"use strict";
 	__webpack_require__(1);
 	__webpack_require__(4);
-	var ImageCache_1 = __webpack_require__(6);
-	var AppInfo_1 = __webpack_require__(8);
-	var Test_1 = __webpack_require__(31);
-	var const_1 = __webpack_require__(12);
 	var Animk_1 = __webpack_require__(43);
+	var const_1 = __webpack_require__(12);
+	var AppInfo_1 = __webpack_require__(8);
+	var ImageCache_1 = __webpack_require__(6);
+	var Test_1 = __webpack_require__(31);
 	var renderer;
 	var main = function () {
 	    renderer = PIXI.autoDetectRenderer(const_1.ViewConst.STAGE_WIDTH, const_1.ViewConst.STAGE_HEIGHT, { antialias: false, transparent: true, resolution: 1 });
@@ -1959,15 +1959,59 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	var Brush_1 = __webpack_require__(64);
+	var Painter_1 = __webpack_require__(63);
+	var Input_1 = __webpack_require__(45);
 	var const_1 = __webpack_require__(12);
 	var ProjectInfo_1 = __webpack_require__(24);
 	var TweenEx_1 = __webpack_require__(42);
 	var AppInfo_1 = __webpack_require__(8);
+	var testPainter = function () {
+	    var painter = new Painter_1.Painter();
+	    painter.lockHistory();
+	    painter.setCanvasSize(1280, 720, 0, 0);
+	    painter.addLayer();
+	    painter.fillLayer('#fff');
+	    painter.selectLayer(1);
+	    painter.unlockHistory();
+	    var brush = new Brush_1.Brush();
+	    brush.setSize(20);
+	    brush.setColor('#fff');
+	    brush.setSpacing(0.2);
+	    painter.setTool(brush);
+	    painter.setToolStabilizeLevel(10);
+	    painter.setToolStabilizeWeight(0.5);
+	    document.body.appendChild(painter.paintingCanvas);
+	    function getRelativePosition(absoluteX, absoluteY) {
+	        var rect = painter.paintingCanvas.getBoundingClientRect();
+	        return { x: absoluteX - rect.left, y: absoluteY - rect.top };
+	    }
+	    function canvasPointerMove(e) {
+	        var pointerPosition = getRelativePosition(e.clientX, e.clientY);
+	        painter.move(pointerPosition.x, pointerPosition.y, e.pointerType === "pen" ? e.pressure : 1);
+	    }
+	    function canvasPointerUp(e) {
+	        var pointerPosition = getRelativePosition(e.clientX, e.clientY);
+	        painter.up(pointerPosition.x, pointerPosition.y, e.pointerType === "pen" ? e.pressure : 1);
+	        if (e.pointerType === "pen" && e.button == 5)
+	            setTimeout(function () { painter.setPaintingKnockout(false); }, 30);
+	        Input_1.input.del(Input_1.InputEvent.MOUSE_MOVE, moveFuncId);
+	        Input_1.input.del(Input_1.InputEvent.MOUSE_UP, upFuncId);
+	    }
+	    var moveFuncId = null, upFuncId = null;
+	    function canvasPointerDown(e) {
+	        var pointerPosition = getRelativePosition(e.clientX, e.clientY);
+	        painter.down(pointerPosition.x, pointerPosition.y, e.pointerType === "pen" ? e.pressure : 1);
+	        moveFuncId = Input_1.input.on(Input_1.InputEvent.MOUSE_MOVE, canvasPointerMove);
+	        upFuncId = Input_1.input.on(Input_1.InputEvent.MOUSE_UP, canvasPointerUp);
+	    }
+	    Input_1.input.on(Input_1.InputEvent.MOUSE_DOWN, canvasPointerDown);
+	};
 	exports.initTest = function () {
+	    testPainter();
 	    AppInfo_1.appInfo.on(ProjectInfo_1.ProjectInfoEvent.NEW_PROJ, function () {
 	        AppInfo_1.appInfo.projectInfo.on(const_1.CompInfoEvent.NEW_COMP, function () {
 	            TweenEx_1.TweenEx.delayedCall(1000, function () {
-	                AppInfo_1.appInfo.curComp().newTrack('D:/lsj/rkb2017/军哥/cut3/jg020114.924.png');
 	            });
 	        });
 	    });
@@ -2689,7 +2733,6 @@
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var ShortCut_1 = __webpack_require__(44);
-	var PaintCanvas_1 = __webpack_require__(49);
 	var Input_1 = __webpack_require__(45);
 	var PixiEx_1 = __webpack_require__(47);
 	var const_1 = __webpack_require__(12);
@@ -2703,7 +2746,6 @@
 	        _this.lastY = null;
 	        _this.compView = new CompView_1.CompView(const_1.ViewConst.COMP_WIDTH, const_1.ViewConst.COMP_HEIGHT);
 	        _this.addChild(_this.compView);
-	        _this.paintCanvas = new PaintCanvas_1.PaintCanvas();
 	        _this._pan(20, 20);
 	        Input_1.input.on(Input_1.InputEvent.MOUSE_WHEEL, function (e) {
 	            var d = _this.compView;
@@ -2735,8 +2777,6 @@
 	        };
 	        return _this;
 	    }
-	    Viewport.prototype.test = function () {
-	    };
 	    Viewport.prototype.panCompView = function (e) {
 	        if (!this.lastX)
 	            this.lastX = e.mx;
@@ -2749,8 +2789,8 @@
 	        Input_1.setCursor(Input_1.Curosr.move);
 	    };
 	    Viewport.prototype._pan = function (x, y) {
-	        this.paintCanvas.x = this.compView.x = x;
-	        this.paintCanvas.y = this.compView.y = y;
+	        this.compView.x = x;
+	        this.compView.y = y;
 	    };
 	    return Viewport;
 	}(PIXI.Container));
@@ -2758,196 +2798,8 @@
 
 
 /***/ },
-/* 49 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var Input_1 = __webpack_require__(45);
-	exports.PaintEvent = {
-	    undo: 'undo',
-	    redo: 'redo'
-	};
-	var PaintCanvas = (function () {
-	    function PaintCanvas() {
-	        var _this = this;
-	        this.preDrawAry = [];
-	        this.nextDrawAry = [];
-	        this.middleAry = [];
-	        this.confing = {
-	            lineWidth: 6,
-	            lineColor: "red",
-	            shadowBlur: 0
-	        };
-	        this._x = 0;
-	        this._y = 0;
-	        this.canvas = document.getElementById('paintCanvas');
-	        this.canvas.style['pointer-events'] = 'none';
-	        this.context = this.canvas.getContext('2d');
-	        this.resize(1280, 720);
-	        this.context.lineJoin = 'round';
-	        this.context.lineCap = 'round';
-	        this._initDraw();
-	        this._initPaint();
-	        this.createPng();
-	        Input_1.input.on(Input_1.InputEvent.KEY_DOWN, function (e) {
-	            console.log(e);
-	            var k = e.key.toLowerCase();
-	            var isCtrl = e.ctrlKey;
-	            var isShift = e.shiftKey;
-	            if (k == 'z') {
-	                if (isCtrl) {
-	                    isShift ? _this._redo() : _this._undo();
-	                }
-	            }
-	        });
-	    }
-	    Object.defineProperty(PaintCanvas.prototype, "width", {
-	        get: function () {
-	            return this.canvas.width;
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(PaintCanvas.prototype, "height", {
-	        get: function () {
-	            return this.canvas.height;
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(PaintCanvas.prototype, "x", {
-	        set: function (v) {
-	            this._x = v;
-	            this.canvas.style.left = v + 'px';
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(PaintCanvas.prototype, "y", {
-	        set: function (v) {
-	            this._y = v;
-	            this.canvas.style.top = v + 'px';
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    PaintCanvas.prototype.resize = function (width, height) {
-	        this.canvas.width = width;
-	        this.canvas.height = height;
-	    };
-	    PaintCanvas.prototype._initDraw = function () {
-	        var preData = this.context.getImageData(0, 0, this.width, this.height);
-	        this.middleAry.push(preData);
-	    };
-	    PaintCanvas.prototype._initPaint = function () {
-	        var _this = this;
-	        var wintab = __webpack_require__(50);
-	        var moveFuncID = null;
-	        var upFuncID = null;
-	        Input_1.input.on(Input_1.InputEvent.MOUSE_DOWN, function (e) {
-	            var x = e.mx, y = e.my, canvasX = x - _this._x, canvasY = y - _this._y;
-	            console.log('down', x, y);
-	            _this._setCanvasStyle();
-	            if (wintab.allData().pressure) {
-	                _this.context.lineWidth = _this.confing.lineWidth * wintab.allData().pressure;
-	            }
-	            _this.context.beginPath();
-	            _this.context.moveTo(canvasX, canvasY);
-	            var preData = _this.context.getImageData(0, 0, _this.width, _this.height);
-	            _this.preDrawAry.push(preData);
-	            var step = 15;
-	            var countStep = 0;
-	            var p1, p2, p3;
-	            moveFuncID = Input_1.input.on(Input_1.InputEvent.MOUSE_MOVE, function (e) {
-	                var x2 = e.clientX, y2 = e.clientY, canvasX2 = x2 - _this._x, canvasY2 = y2 - _this._y;
-	                if (canvasX2 >= 0 && canvasY2 >= 0) {
-	                    _this.context.lineTo(canvasX2, canvasY2);
-	                    _this.context.stroke();
-	                }
-	                else {
-	                    _this.context.beginPath();
-	                }
-	            });
-	            upFuncID = Input_1.input.on(Input_1.InputEvent.MOUSE_UP, function (e) {
-	                Input_1.input.del(Input_1.InputEvent.MOUSE_UP, upFuncID);
-	                Input_1.input.del(Input_1.InputEvent.MOUSE_MOVE, moveFuncID);
-	                var preData = _this.context.getImageData(0, 0, _this.width, _this.height);
-	                if (_this.nextDrawAry.length == 0) {
-	                    _this.middleAry.push(preData);
-	                }
-	                else {
-	                    _this.middleAry = [];
-	                    _this.middleAry = _this.middleAry.concat(_this.preDrawAry);
-	                    _this.middleAry.push(preData);
-	                    _this.nextDrawAry = [];
-	                }
-	            });
-	        });
-	    };
-	    PaintCanvas.prototype.getImg = function () {
-	        var url = this.canvas.toDataURL('image/png'), img = new Image();
-	        img.src = url;
-	        return img;
-	    };
-	    PaintCanvas.prototype.getPixelBuf = function () {
-	        var pixel = this.context.getImageData(0, 0, this.width, this.height);
-	        return new Uint8Array(pixel.data.buffer);
-	    };
-	    PaintCanvas.prototype.createPng = function () {
-	        var canvas = document.createElement("canvas");
-	        canvas.width = this.width;
-	        canvas.height = this.height;
-	        canvas.getContext('2d').clearRect(0, 0, this.width, this.height);
-	        var img = new Image();
-	        var imgData = canvas.toDataURL('image/png');
-	        img.src = imgData;
-	        var base64Data = imgData.replace(/^data:image\/\w+;base64,/, "");
-	        var dataBuffer = new Buffer(base64Data, 'base64');
-	        var fs = __webpack_require__(20);
-	        fs.writeFile("out.png", dataBuffer, function (err) {
-	        });
-	        return img;
-	    };
-	    PaintCanvas.prototype._redo = function () {
-	        console.log('redo');
-	        if (this.nextDrawAry.length) {
-	            var popData = this.nextDrawAry.pop();
-	            var midData = this.middleAry[this.middleAry.length - this.nextDrawAry.length - 2];
-	            this.preDrawAry.push(midData);
-	            this.context.putImageData(popData, 0, 0);
-	        }
-	    };
-	    PaintCanvas.prototype._undo = function () {
-	        if (this.preDrawAry.length > 0) {
-	            var popData = this.preDrawAry.pop();
-	            var midData = this.middleAry[this.preDrawAry.length + 1];
-	            this.nextDrawAry.push(midData);
-	            this.context.putImageData(popData, 0, 0);
-	        }
-	    };
-	    PaintCanvas.prototype._clear = function () {
-	        var data = this.middleAry[0];
-	        this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-	        this.preDrawAry = [];
-	        this.nextDrawAry = [];
-	        this.middleAry = [this.middleAry[0]];
-	    };
-	    PaintCanvas.prototype._setCanvasStyle = function () {
-	        this.context.lineWidth = this.confing.lineWidth;
-	        this.context.strokeStyle = this.confing.lineColor;
-	    };
-	    return PaintCanvas;
-	}());
-	exports.PaintCanvas = PaintCanvas;
-
-
-/***/ },
-/* 50 */
-/***/ function(module, exports) {
-
-	module.exports = require("addon/node-wintab");
-
-/***/ },
+/* 49 */,
+/* 50 */,
 /* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -3751,6 +3603,1162 @@
 /***/ function(module, exports) {
 
 	module.exports = require("electron");
+
+/***/ },
+/* 63 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var AnpUtil_1 = __webpack_require__(65);
+	var EventDispatcher_1 = __webpack_require__(14);
+	var Brush_1 = __webpack_require__(64);
+	var Painter = (function (_super) {
+	    __extends(Painter, _super);
+	    function Painter() {
+	        var _this = _super.call(this) || this;
+	        _this.undoStack = [];
+	        _this.redoStack = [];
+	        _this.undoLimit = 10;
+	        _this.preventPushUndo = false;
+	        _this.pushToTransaction = false;
+	        _this.size = { width: 1280, height: 720 };
+	        _this.layers = [];
+	        _this.layerIndex = 0;
+	        _this.renderDirtyRect = false;
+	        _this.createLayerThumbnail = function (index, width, height) {
+	            index = (index == null) ? this.layerIndex : index;
+	            width = (width == null) ? this.size.width : width;
+	            height = (height == null) ? this.size.height : height;
+	            var canvas = this.getLayerCanvas(index);
+	            var thumbnail = document.createElement('canvas');
+	            var thumbnailContext = thumbnail.getContext('2d');
+	            thumbnail.width = width;
+	            thumbnail.height = height;
+	            thumbnailContext.drawImage(canvas, 0, 0, width, height);
+	            return thumbnail;
+	        };
+	        _this.getLayers = function () {
+	            return this.layers.concat();
+	        };
+	        _this.getLayerCount = function () {
+	            return this.layers.length;
+	        };
+	        _this.toolStabilizeLevel = 0;
+	        _this.toolStabilizeWeight = 0.8;
+	        _this.stabilizer = null;
+	        _this.stabilizerInterval = 5;
+	        _this.tickInterval = 20;
+	        _this.paintingOpacity = 1;
+	        _this.paintingKnockout = false;
+	        _this.isDrawing = false;
+	        _this.isStabilizing = false;
+	        _this.beforeKnockout = document.createElement('canvas');
+	        _this.knockoutTickInterval = 20;
+	        _this.domElement = document.createElement('div');
+	        _this.initPaintCanvas();
+	        _this.setTool(new Brush_1.Brush());
+	        return _this;
+	    }
+	    Painter.prototype.getRelativePosition = function (absoluteX, absoluteY) {
+	        var rect = this.domElement.getBoundingClientRect();
+	        return { x: absoluteX - rect.left, y: absoluteY - rect.top };
+	    };
+	    Painter.prototype.getUndoLimit = function () {
+	        return this.undoLimit;
+	    };
+	    Painter.prototype.setUndoLimit = function (limit) {
+	        this.undoLimit = limit;
+	    };
+	    Painter.prototype.lockHistory = function () {
+	        this.preventPushUndo = true;
+	    };
+	    ;
+	    Painter.prototype.unlockHistory = function () {
+	        this.preventPushUndo = false;
+	    };
+	    ;
+	    Painter.prototype.beginHistoryTransaction = function () {
+	        this.undoStack.push([]);
+	        this.pushToTransaction = true;
+	    };
+	    ;
+	    Painter.prototype.endHistoryTransaction = function () {
+	        this.pushToTransaction = false;
+	    };
+	    ;
+	    Painter.prototype.pushUndo = function (undoFunction) {
+	        if (this.preventPushUndo)
+	            return;
+	        this.redoStack = [];
+	        if (this.pushToTransaction)
+	            this.undoStack[this.undoStack.length - 1].push(undoFunction);
+	        else
+	            this.undoStack.push([undoFunction]);
+	        while (this.undoStack.length > this.undoLimit)
+	            this.undoStack.shift();
+	    };
+	    Painter.prototype.undo = function () {
+	        if (this.pushToTransaction)
+	            throw 'transaction is not ended';
+	        if (this.preventPushUndo)
+	            throw 'history is locked';
+	        if (this.isDrawing || this.isStabilizing)
+	            throw 'still drawing';
+	        if (this.undoStack.length == 0)
+	            throw 'no more undo data';
+	        var undoTransaction = this.undoStack.pop();
+	        var redoTransaction = [];
+	        while (undoTransaction.length)
+	            redoTransaction.push(undoTransaction.pop()());
+	        this.redoStack.push(redoTransaction);
+	    };
+	    Painter.prototype.redo = function () {
+	        if (this.pushToTransaction)
+	            throw 'transaction is not ended';
+	        if (this.preventPushUndo)
+	            throw 'history is locked';
+	        if (this.isDrawing || this.isStabilizing)
+	            throw 'still drawing';
+	        if (this.redoStack.length == 0)
+	            throw 'no more redo data';
+	        var redoTransaction = this.redoStack.pop();
+	        var undoTransaction = [];
+	        while (redoTransaction.length)
+	            undoTransaction.push(redoTransaction.pop()());
+	        this.undoStack.push(undoTransaction);
+	    };
+	    ;
+	    Painter.prototype.pushSwapLayerUndo = function (layerA, layerB) {
+	        var _this = this;
+	        var swap = function () {
+	            _this.lockHistory();
+	            _this.swapLayer(layerA, layerB);
+	            _this.unlockHistory();
+	            return swap;
+	        };
+	        this.pushUndo(swap);
+	    };
+	    Painter.prototype.pushAddLayerUndo = function (index) {
+	        var _this = this;
+	        var add = function () {
+	            _this.lockHistory();
+	            _this.addLayer(index);
+	            _this.unlockHistory();
+	            return remove;
+	        };
+	        var remove = function () {
+	            _this.lockHistory();
+	            _this.removeLayer(index);
+	            _this.unlockHistory();
+	            return add;
+	        };
+	        this.pushUndo(remove);
+	    };
+	    Painter.prototype.pushRemoveLayerUndo = function (index) {
+	        var _this = this;
+	        var layerContext = this.getLayerContext(index);
+	        var w = this.size.width;
+	        var h = this.size.height;
+	        var snapshotData = layerContext.getImageData(0, 0, w, h);
+	        var add = function () {
+	            _this.lockHistory();
+	            _this.addLayer(index);
+	            var layerContext = _this.getLayerContext(index);
+	            layerContext.putImageData(snapshotData, 0, 0);
+	            _this.unlockHistory();
+	            return remove;
+	        };
+	        var remove = function () {
+	            _this.lockHistory();
+	            _this.removeLayer(index);
+	            _this.unlockHistory();
+	            return add;
+	        };
+	        this.pushUndo(add);
+	    };
+	    Painter.prototype.pushDirtyRectUndo = function (x, y, width, height, index) {
+	        index = (index == null) ? this.layerIndex : index;
+	        var w = this.size.width;
+	        var h = this.size.height;
+	        var right = x + width;
+	        var bottom = y + height;
+	        x = Math.min(w, Math.max(0, x));
+	        y = Math.min(h, Math.max(0, y));
+	        width = Math.min(w, Math.max(x, right)) - x;
+	        height = Math.min(h, Math.max(y, bottom)) - y;
+	        if ((x % 1) > 0)
+	            ++width;
+	        if ((y % 1) > 0)
+	            ++height;
+	        x = x | 0;
+	        y = y | 0;
+	        width = Math.min(w - x, Math.ceil(width));
+	        height = Math.min(h - y, Math.ceil(height));
+	        if ((width == 0) || (height == 0)) {
+	            var doNothing = function () {
+	                return doNothing;
+	            };
+	            this.pushUndo(doNothing);
+	        }
+	        else {
+	            var layerContext = this.getLayerContext(index);
+	            var snapshotData = layerContext.getImageData(x, y, width, height);
+	            var swap = function () {
+	                var layerContext = this.getLayerContext(index);
+	                var tempData = layerContext.getImageData(x, y, width, height);
+	                layerContext.putImageData(snapshotData, x, y);
+	                snapshotData = tempData;
+	                return swap;
+	            };
+	            this.pushUndo(swap);
+	        }
+	        if (this.renderDirtyRect)
+	            this.drawDirtyRect(x, y, width, height);
+	    };
+	    Painter.prototype.pushContextUndo = function (index) {
+	        index = (index == null) ? this.layerIndex : index;
+	        this.pushDirtyRectUndo(0, 0, this.size.width, this.size.height, index);
+	    };
+	    Painter.prototype.getCanvasSize = function () {
+	        return { width: this.size.width, height: this.size.height };
+	    };
+	    ;
+	    Painter.prototype.setCanvasSize = function (width, height, offsetX, offsetY) {
+	        offsetX = (offsetX == null) ? 0 : offsetX;
+	        offsetY = (offsetY == null) ? 0 : offsetY;
+	        this.size.width = width = Math.floor(width);
+	        this.size.height = height = Math.floor(height);
+	        this.paintingCanvas.width = width;
+	        this.paintingCanvas.height = height;
+	        this.dirtyRectDisplay.width = width;
+	        this.dirtyRectDisplay.height = height;
+	        this.domElement.style.width = width + 'px';
+	        this.domElement.style.height = height + 'px';
+	        for (var i = 0; i < this.layers.length; ++i) {
+	            var canvas = this.getLayerCanvas(i);
+	            var context = this.getLayerContext(i);
+	            var imageData = context.getImageData(0, 0, width, height);
+	            canvas.width = width;
+	            canvas.height = height;
+	            context.putImageData(imageData, offsetX, offsetY);
+	        }
+	    };
+	    ;
+	    Painter.prototype.getCanvasWidth = function () {
+	        return this.size.width;
+	    };
+	    ;
+	    Painter.prototype.setCanvasWidth = function (width, offsetX) {
+	        this.setCanvasSize(width, this.size.height, offsetX, 0);
+	    };
+	    ;
+	    Painter.prototype.getCanvasHeight = function () {
+	        return this.size.height;
+	    };
+	    ;
+	    Painter.prototype.setCanvasHeight = function (height, offsetY) {
+	        this.setCanvasSize(this.size.width, height, 0, offsetY);
+	    };
+	    ;
+	    Painter.prototype.getLayerCanvas = function (index) {
+	        return this.layers[index].getElementsByClassName('paint-layer-canvas')[0];
+	    };
+	    Painter.prototype.getLayerContext = function (index) {
+	        return this.getLayerCanvas(index).getContext('2d');
+	    };
+	    Painter.prototype.initPaintCanvas = function () {
+	        var paintingCanvas = this.paintingCanvas = document.createElement('canvas');
+	        this.paintingContext = this.paintingCanvas.getContext('2d');
+	        paintingCanvas.className = 'paint-painting-canvas';
+	        paintingCanvas.style.position = 'fixed';
+	        paintingCanvas.style.left = '0';
+	        paintingCanvas.style.top = '0';
+	        var dirtyRectDisplay = this.dirtyRectDisplay = document.createElement('canvas');
+	        this.dirtyRectDisplayContext = dirtyRectDisplay.getContext('2d');
+	        dirtyRectDisplay.className = 'paint-dirty-rect-display';
+	        dirtyRectDisplay.style.position = 'fixed';
+	        dirtyRectDisplay.style.left = '0';
+	        dirtyRectDisplay.style.top = '0';
+	    };
+	    Painter.prototype.sortLayers = function () {
+	        while (this.domElement.firstChild)
+	            this.domElement.removeChild(this.domElement.firstChild);
+	        for (var i = 0; i < this.layers.length; ++i) {
+	            var layer = this.layers[i];
+	            this.domElement.appendChild(layer);
+	        }
+	        this.domElement.appendChild(this.dirtyRectDisplay);
+	    };
+	    Painter.prototype.drawDirtyRect = function (x, y, w, h) {
+	        var context = this.dirtyRectDisplayContext;
+	        context.fillStyle = '#f00';
+	        context.globalCompositeOperation = 'source-over';
+	        context.fillRect(x, y, w, h);
+	        if ((w > 2) && (h > 2)) {
+	            context.globalCompositeOperation = 'destination-out';
+	            context.fillRect(x + 1, y + 1, w - 2, h - 2);
+	        }
+	    };
+	    Painter.prototype.getRenderDirtyRect = function () {
+	        return this.renderDirtyRect;
+	    };
+	    Painter.prototype.setRenderDirtyRect = function (render) {
+	        this.renderDirtyRect = render;
+	        if (render == false)
+	            this.dirtyRectDisplayContext.clearRect(0, 0, this.size.width, this.size.height);
+	    };
+	    Painter.prototype.addLayer = function (index) {
+	        index = (index == null) ? this.layers.length : index;
+	        this.pushAddLayerUndo(index);
+	        var layer = document.createElement('div');
+	        layer.className = 'paint-layer';
+	        layer.style.visibility = 'visible';
+	        layer.style.opacity = '1';
+	        var canvas = document.createElement('canvas');
+	        canvas.className = 'paint-layer-canvas';
+	        canvas.width = this.size.width;
+	        canvas.height = this.size.height;
+	        canvas.style.position = 'absolute';
+	        layer.appendChild(canvas);
+	        this.domElement.appendChild(layer);
+	        this.layers.splice(index, 0, layer);
+	        this.sortLayers();
+	        this.selectLayer(this.layerIndex);
+	        this.emit('onlayeradd', { index: index });
+	        return layer;
+	    };
+	    Painter.prototype.removeLayer = function (index) {
+	        index = (index == null) ? this.layerIndex : index;
+	        this.pushRemoveLayerUndo(index);
+	        this.domElement.removeChild(this.layers[index]);
+	        this.layers.splice(index, 1);
+	        if (this.layerIndex == this.layers.length)
+	            this.selectLayer(this.layerIndex - 1);
+	        this.sortLayers();
+	        this.emit('onlayerremove', { index: index });
+	    };
+	    ;
+	    Painter.prototype.removeAllLayer = function () {
+	        while (this.layers.length)
+	            this.removeLayer(0);
+	    };
+	    ;
+	    Painter.prototype.swapLayer = function (layerA, layerB) {
+	        this.pushSwapLayerUndo(layerA, layerB);
+	        var layer = this.layers[layerA];
+	        this.layers[layerA] = this.layers[layerB];
+	        this.layers[layerB] = layer;
+	        this.sortLayers();
+	        this.emit('onlayerswap', { a: layerA, b: layerB });
+	    };
+	    ;
+	    Painter.prototype.getCurrentLayerIndex = function () {
+	        return this.layerIndex;
+	    };
+	    ;
+	    Painter.prototype.selectLayer = function (index) {
+	        var lastestLayerIndex = this.layers.length - 1;
+	        if (index > lastestLayerIndex)
+	            index = lastestLayerIndex;
+	        this.layerIndex = index;
+	        if (this.paintingCanvas.parentElement != null)
+	            this.paintingCanvas.parentElement.removeChild(this.paintingCanvas);
+	        this.layers[index].appendChild(this.paintingCanvas);
+	        this.emit('onlayerselect', { index: index });
+	    };
+	    ;
+	    Painter.prototype.clearLayer = function (index) {
+	        index = (index == null) ? this.layerIndex : index;
+	        this.pushContextUndo(index);
+	        var context = this.getLayerContext(index);
+	        context.clearRect(0, 0, this.size.width, this.size.height);
+	    };
+	    ;
+	    Painter.prototype.fillLayer = function (fillColor, index) {
+	        index = (index == null) ? this.layerIndex : index;
+	        this.pushContextUndo(index);
+	        var context = this.getLayerContext(index);
+	        context.fillStyle = fillColor;
+	        context.fillRect(0, 0, this.size.width, this.size.height);
+	    };
+	    Painter.prototype.fillLayerRect = function (fillColor, x, y, width, height, index) {
+	        index = (index == null) ? this.layerIndex : index;
+	        this.pushDirtyRectUndo(x, y, width, height, index);
+	        var context = this.getLayerContext(index);
+	        context.fillStyle = fillColor;
+	        context.fillRect(x, y, width, height);
+	    };
+	    Painter.prototype.floodFill = function () {
+	    };
+	    Painter.prototype.getLayerOpacity = function () {
+	    };
+	    Painter.prototype.setLayerOpacity = function () {
+	    };
+	    Painter.prototype.getLayerVisible = function () {
+	    };
+	    Painter.prototype.setLayerVisible = function () {
+	    };
+	    Painter.prototype.getTool = function () {
+	        return this.tool;
+	    };
+	    Painter.prototype.setTool = function (value) {
+	        this.tool = value;
+	        this.paintingContext = this.paintingCanvas.getContext('2d');
+	        if (this.tool && this.tool.setContext)
+	            this.tool.setContext(this.paintingContext);
+	    };
+	    Painter.prototype.getPaintingOpacity = function () {
+	        return this.paintingOpacity;
+	    };
+	    Painter.prototype.setPaintingOpacity = function (opacity) {
+	        this.paintingOpacity = opacity;
+	        this.paintingCanvas.style.opacity = opacity;
+	    };
+	    Painter.prototype.getPaintingKnockout = function () {
+	        return this.paintingKnockout;
+	    };
+	    Painter.prototype.setPaintingKnockout = function (knockout) {
+	        this.paintingKnockout = knockout;
+	        this.paintingCanvas.style.visibility = knockout ? 'hidden' : 'visible';
+	    };
+	    Painter.prototype.getTickInterval = function () {
+	        return this.tickInterval;
+	    };
+	    Painter.prototype.setTickInterval = function (interval) {
+	        this.tickInterval = interval;
+	    };
+	    Painter.prototype.getToolStabilizeLevel = function () {
+	        return this.toolStabilizeLevel;
+	    };
+	    Painter.prototype.setToolStabilizeLevel = function (level) {
+	        this.toolStabilizeLevel = (level < 0) ? 0 : level;
+	    };
+	    Painter.prototype.getToolStabilizeWeight = function () {
+	        return this.toolStabilizeWeight;
+	    };
+	    Painter.prototype.setToolStabilizeWeight = function (weight) {
+	        this.toolStabilizeWeight = weight;
+	    };
+	    Painter.prototype.getToolStabilizeInterval = function () {
+	        return this.stabilizerInterval;
+	    };
+	    Painter.prototype.setToolStabilizeInterval = function (interval) {
+	        this.stabilizerInterval = interval;
+	    };
+	    Painter.prototype.gotoBeforeKnockout = function () {
+	        var context = this.getLayerContext(this.layerIndex);
+	        var w = this.size.width;
+	        var h = this.size.height;
+	        context.clearRect(0, 0, w, h);
+	        context.drawImage(this.beforeKnockout, 0, 0, w, h);
+	    };
+	    Painter.prototype.drawPaintingCanvas = function () {
+	        var context = this.getLayerContext(this.layerIndex);
+	        var w = this.size.width;
+	        var h = this.size.height;
+	        context.save();
+	        context.globalAlpha = this.paintingOpacity;
+	        context.globalCompositeOperation = this.paintingKnockout ?
+	            'destination-out' : 'source-over';
+	        context.drawImage(this.paintingCanvas, 0, 0, w, h);
+	        context.restore();
+	    };
+	    Painter.prototype._move = function (x, y, pressure) {
+	        this.emit('onmove', { x: x, y: y, pressure: pressure });
+	    };
+	    Painter.prototype._up = function (x, y, pressure) {
+	    };
+	    Painter.prototype.down = function (x, y, pressure) {
+	        var _this = this;
+	        if (this.isDrawing || this.isStabilizing)
+	            throw 'still drawing';
+	        this.isDrawing = true;
+	        if (this.tool == null)
+	            return;
+	        if (this.paintingKnockout) {
+	            var w = this.size.width;
+	            var h = this.size.height;
+	            var canvas = this.getLayerCanvas(this.layerIndex);
+	            var beforeKnockoutContext = this.beforeKnockout.getContext('2d');
+	            this.beforeKnockout.width = w;
+	            this.beforeKnockout.height = h;
+	            beforeKnockoutContext.clearRect(0, 0, w, h);
+	            beforeKnockoutContext.drawImage(canvas, 0, 0, w, h);
+	        }
+	        var down = this.tool.down;
+	        if (this.toolStabilizeLevel > 0) {
+	            this.stabilizer = new AnpUtil_1.Stabilizer(this.tool, this._move, this._up, this.toolStabilizeLevel, this.toolStabilizeWeight, x, y, pressure, this.stabilizerInterval);
+	            this.isStabilizing = true;
+	        }
+	        else if (down != null)
+	            down(x, y, pressure);
+	        this.emit('ondown', { x: x, y: y, pressure: pressure });
+	        this.knockoutTick = window.setInterval(function () {
+	            if (_this.paintingKnockout) {
+	                _this.gotoBeforeKnockout();
+	                _this.drawPaintingCanvas();
+	            }
+	        }, this.knockoutTickInterval);
+	        this.tick = window.setInterval(function () {
+	            if (_this.tool.tick)
+	                _this.tool.tick();
+	            _this.emit('ontick');
+	        }, this.tickInterval);
+	    };
+	    ;
+	    Painter.prototype.move = function (x, y, pressure) {
+	        if (!this.isDrawing)
+	            throw 'you need to call \'down\' first';
+	        if (this.tool == null)
+	            return;
+	        if (this.stabilizer != null)
+	            this.stabilizer.move(x, y, pressure);
+	        else if (!this.isStabilizing)
+	            this._move(x, y, pressure);
+	    };
+	    ;
+	    Painter.prototype.up = function (x, y, pressure) {
+	        if (!this.isDrawing)
+	            throw 'you need to call \'down\' first';
+	        if (this.tool == null) {
+	            this.isDrawing = false;
+	            return;
+	        }
+	        this.isDrawing = false;
+	        this.isStabilizing = false;
+	        if (this.stabilizer != null)
+	            this.stabilizer.up(x, y, pressure);
+	        else
+	            this._up(x, y, pressure);
+	        this.stabilizer = null;
+	    };
+	    ;
+	    return Painter;
+	}(EventDispatcher_1.EventDispatcher));
+	exports.Painter = Painter;
+
+
+/***/ },
+/* 64 */
+/***/ function(module, exports) {
+
+	"use strict";
+	var PI = Math.PI;
+	var toRad = PI / 180;
+	var toDeg = 1 / toRad;
+	var min = Math.min;
+	var max = Math.max;
+	var abs = Math.abs;
+	var sin = Math.sin;
+	var cos = Math.cos;
+	var sqrt = Math.sqrt;
+	var atan2 = Math.atan2;
+	var ONE = PI + PI;
+	var QUARTER = PI * 0.5;
+	var random = Math.random;
+	var Brush = (function () {
+	    function Brush() {
+	        this.context = null;
+	        this.color = '#000';
+	        this.flow = 1;
+	        this.size = 10;
+	        this.spacing = 0.2;
+	        this.angle = 0;
+	        this.rotateToDirection = false;
+	        this.normalSpread = 0;
+	        this.tangentSpread = 0;
+	        this.image = null;
+	        this.transformedImage = null;
+	        this.transformedImageIsDirty = true;
+	        this.imageRatio = 1;
+	        this.delta = 0;
+	        this.prevX = 0;
+	        this.prevY = 0;
+	        this.lastX = 0;
+	        this.lastY = 0;
+	        this.dir = 0;
+	        this.prevScale = 0;
+	        this.drawFunction = this.drawCircle;
+	        this.reserved = null;
+	    }
+	    Brush.prototype.setRandomFunction = function (value) {
+	        random = value;
+	    };
+	    Brush.prototype.clone = function () {
+	    };
+	    Brush.prototype.getContext = function () {
+	        return this.context;
+	    };
+	    Brush.prototype.setContext = function (value) {
+	        console.log('brush set Context', value);
+	        this.context = value;
+	    };
+	    Brush.prototype.getColor = function () {
+	        return this.color;
+	    };
+	    Brush.prototype.setColor = function (value) {
+	        this.color = value;
+	        this.transformedImageIsDirty = true;
+	    };
+	    Brush.prototype.getFlow = function () {
+	        return this.flow;
+	    };
+	    Brush.prototype.setFlow = function (value) {
+	        this.flow = value;
+	        this.transformedImageIsDirty = true;
+	    };
+	    Brush.prototype.getSize = function () {
+	        return this.size;
+	    };
+	    Brush.prototype.setSize = function (value) {
+	        this.size = (value < 1) ? 1 : value;
+	        this.transformedImageIsDirty = true;
+	    };
+	    Brush.prototype.getSpacing = function () {
+	        return this.spacing;
+	    };
+	    Brush.prototype.setSpacing = function (value) {
+	        this.spacing = (value < 0.01) ? 0.01 : value;
+	    };
+	    Brush.prototype.getAngle = function () {
+	        return this.angle * toDeg;
+	    };
+	    Brush.prototype.setAngle = function (value) {
+	        this.angle = value * toRad;
+	    };
+	    Brush.prototype.getRotateToDirection = function () {
+	        return this.rotateToDirection;
+	    };
+	    Brush.prototype.setRotateToDirection = function (value) {
+	        this.rotateToDirection = value;
+	    };
+	    Brush.prototype.getNormalSpread = function () {
+	        return this.normalSpread;
+	    };
+	    Brush.prototype.setNormalSpread = function (value) {
+	        this.normalSpread = value;
+	    };
+	    Brush.prototype.getTangentSpread = function () {
+	        return this.tangentSpread;
+	    };
+	    Brush.prototype.setTangentSpread = function (value) {
+	        this.tangentSpread = value;
+	    };
+	    Brush.prototype.getImage = function () {
+	        return this.image;
+	    };
+	    Brush.prototype.setImage = function (value) {
+	        if (value == null) {
+	            this.transformedImage = this.image = null;
+	            this.imageRatio = 1;
+	            this.drawFunction = this.drawCircle;
+	        }
+	        else if (value != this.image) {
+	            this.image = value;
+	            this.imageRatio = this.image.height / this.image.width;
+	            this.transformedImage = document.createElement('canvas');
+	            this.drawFunction = this.drawImage;
+	            this.transformedImageIsDirty = true;
+	        }
+	    };
+	    Brush.prototype.spreadRandom = function () {
+	        return random() - 0.5;
+	    };
+	    Brush.prototype.drawReserved = function () {
+	        if (this.reserved != null) {
+	            this.drawTo(this.reserved.x, this.reserved.y, this.reserved.scale);
+	            this.reserved = null;
+	        }
+	    };
+	    Brush.prototype.appendDirtyRect = function (x, y, width, height) {
+	        if (!(width && height))
+	            return;
+	        var dxw = this.dirtyRect.x + this.dirtyRect.width;
+	        var dyh = this.dirtyRect.y + this.dirtyRect.height;
+	        var xw = x + width;
+	        var yh = y + height;
+	        var minX = this.dirtyRect.width ? min(this.dirtyRect.x, x) : x;
+	        var minY = this.dirtyRect.height ? min(this.dirtyRect.y, y) : y;
+	        this.dirtyRect.x = minX;
+	        this.dirtyRect.y = minY;
+	        this.dirtyRect.width = max(dxw, xw) - minX;
+	        this.dirtyRect.height = max(dyh, yh) - minY;
+	    };
+	    Brush.prototype.transformImage = function () {
+	        this.transformedImage.width = this.size;
+	        this.transformedImage.height = this.size * this.imageRatio;
+	        var brushContext = this.transformedImage.getContext('2d');
+	        brushContext.clearRect(0, 0, this.transformedImage.width, this.transformedImage.height);
+	        brushContext.drawImage(this.image, 0, 0, this.transformedImage.width, this.transformedImage.height);
+	        brushContext.globalCompositeOperation = 'source-in';
+	        brushContext.fillStyle = this.color;
+	        brushContext.globalAlpha = this.flow;
+	        brushContext.fillRect(0, 0, this.transformedImage.width, this.transformedImage.height);
+	    };
+	    Brush.prototype.drawCircle = function (size) {
+	        var halfSize = size * 0.5;
+	        var context = this.context;
+	        context.fillStyle = this.color;
+	        context.globalAlpha = this.flow;
+	        context.beginPath();
+	        context.arc(halfSize, halfSize, halfSize, 0, ONE);
+	        context.closePath();
+	        context.fill();
+	    };
+	    Brush.prototype.drawImage = function (size) {
+	        if (this.transformedImageIsDirty)
+	            this.transformImage();
+	        try {
+	            this.context.drawImage(this.transformedImage, 0, 0, size, size * this.imageRatio);
+	        }
+	        catch (e) {
+	            this.drawCircle(size);
+	        }
+	    };
+	    Brush.prototype.drawTo = function (x, y, scale) {
+	        var scaledSize = this.size * scale;
+	        var nrm = this.dir + QUARTER;
+	        var nr = this.normalSpread * scaledSize * this.spreadRandom();
+	        var tr = this.tangentSpread * scaledSize * this.spreadRandom();
+	        var ra = this.rotateToDirection ? this.angle + this.dir : this.angle;
+	        var width = scaledSize;
+	        var height = width * this.imageRatio;
+	        var boundWidth = abs(height * sin(ra)) + abs(width * cos(ra));
+	        var boundHeight = abs(width * sin(ra)) + abs(height * cos(ra));
+	        x += Math.cos(nrm) * nr + Math.cos(this.dir) * tr;
+	        y += Math.sin(nrm) * nr + Math.sin(this.dir) * tr;
+	        var context = this.context;
+	        context.save();
+	        context.translate(x, y);
+	        context.rotate(ra);
+	        context.translate(-(width * 0.5), -(height * 0.5));
+	        this.drawFunction(width);
+	        context.restore();
+	        this.appendDirtyRect(x - (boundWidth * 0.5), y - (boundHeight * 0.5), boundWidth, boundHeight);
+	    };
+	    Brush.prototype.down = function (x, y, scale) {
+	        console.log('brush down', this);
+	        this.dir = 0;
+	        this.dirtyRect = { x: 0, y: 0, width: 0, height: 0 };
+	        if (scale > 0) {
+	            if (this.rotateToDirection || this.normalSpread != 0 || this.tangentSpread != 0)
+	                this.reserved = { x: x, y: y, scale: scale };
+	            else
+	                this.drawTo(x, y, scale);
+	        }
+	        this.delta = 0;
+	        this.lastX = this.prevX = x;
+	        this.lastY = this.prevY = y;
+	        this.prevScale = scale;
+	    };
+	    Brush.prototype.move = function (x, y, scale) {
+	        if (this.context == null)
+	            throw 'brush needs the context';
+	        if (scale <= 0) {
+	            this.delta = 0;
+	            this.prevX = x;
+	            this.prevY = y;
+	            this.prevScale = scale;
+	            return;
+	        }
+	        var dx = x - this.prevX;
+	        var dy = y - this.prevY;
+	        var ds = scale - this.prevScale;
+	        var d = sqrt(dx * dx + dy * dy);
+	        this.prevX = x;
+	        this.prevY = y;
+	        this.delta += d;
+	        var midScale = (this.prevScale + scale) * 0.5;
+	        var drawSpacing = this.size * this.spacing * midScale;
+	        var ldx = x - this.lastX;
+	        var ldy = y - this.lastY;
+	        var ld = sqrt(ldx * ldx + ldy * ldy);
+	        this.dir = atan2(ldy, ldx);
+	        if (ldx || ldy)
+	            this.drawReserved();
+	        if (drawSpacing < 0.5)
+	            drawSpacing = 0.5;
+	        if (this.delta < drawSpacing) {
+	            this.prevScale = scale;
+	            return;
+	        }
+	        var scaleSpacing = ds * (drawSpacing / this.delta);
+	        if (ld < drawSpacing) {
+	            this.lastX = x;
+	            this.lastY = y;
+	            this.drawTo(this.lastX, this.lastY, scale);
+	            this.delta -= drawSpacing;
+	        }
+	        else {
+	            while (this.delta >= drawSpacing) {
+	                ldx = x - this.lastX;
+	                ldy = y - this.lastY;
+	                var tx = cos(this.dir);
+	                var ty = sin(this.dir);
+	                this.lastX += tx * drawSpacing;
+	                this.lastY += ty * drawSpacing;
+	                this.prevScale += scaleSpacing;
+	                this.drawTo(this.lastX, this.lastY, this.prevScale);
+	                this.delta -= drawSpacing;
+	            }
+	        }
+	        this.prevScale = scale;
+	    };
+	    Brush.prototype.up = function (x, y, scale) {
+	        this.dir = atan2(y - this.lastY, x - this.lastX);
+	        this.drawReserved();
+	        return this.dirtyRect;
+	    };
+	    return Brush;
+	}());
+	exports.Brush = Brush;
+
+
+/***/ },
+/* 65 */
+/***/ function(module, exports) {
+
+	"use strict";
+	exports.createChecker = function (cellSize, colorA, colorB) {
+	    cellSize = (cellSize == null) ? 10 : cellSize;
+	    colorA = (colorA == null) ? '#fff' : colorA;
+	    colorB = (colorB == null) ? '#ccc' : colorB;
+	    var size = cellSize + cellSize;
+	    var checker = document.createElement('canvas');
+	    checker.width = checker.height = size;
+	    var context = checker.getContext('2d');
+	    context.fillStyle = colorB;
+	    context.fillRect(0, 0, size, size);
+	    context.fillStyle = colorA;
+	    context.fillRect(0, 0, cellSize, cellSize);
+	    context.fillRect(cellSize, cellSize, size, size);
+	    return checker;
+	};
+	exports.createBrushPointer = function (brushImage, brushSize, brushAngle, threshold, antialias, color) {
+	    brushSize = brushSize | 0;
+	    var pointer = document.createElement('canvas');
+	    var pointerContext = pointer.getContext('2d');
+	    if (brushSize == 0) {
+	        pointer.width = 1;
+	        pointer.height = 1;
+	        return pointer;
+	    }
+	    if (brushImage == null) {
+	        var halfSize = (brushSize * 0.5) | 0;
+	        pointer.width = brushSize;
+	        pointer.height = brushSize;
+	        pointerContext.fillStyle = '#000';
+	        pointerContext.beginPath();
+	        pointerContext.arc(halfSize, halfSize, halfSize, 0, Math.PI * 2);
+	        pointerContext.closePath();
+	        pointerContext.fill();
+	    }
+	    else {
+	        var width = brushSize;
+	        var height = brushSize * (brushImage.height / brushImage.width);
+	        var toRad = Math.PI / 180;
+	        var ra = brushAngle * toRad;
+	        var abs = Math.abs;
+	        var sin = Math.sin;
+	        var cos = Math.cos;
+	        var boundWidth = abs(height * sin(ra)) + abs(width * cos(ra));
+	        var boundHeight = abs(width * sin(ra)) + abs(height * cos(ra));
+	        pointer.width = boundWidth;
+	        pointer.height = boundHeight;
+	        pointerContext.save();
+	        pointerContext.translate(boundWidth * 0.5, boundHeight * 0.5);
+	        pointerContext.rotate(ra);
+	        pointerContext.translate(width * -0.5, height * -0.5);
+	        pointerContext.drawImage(brushImage, 0, 0, width, height);
+	        pointerContext.restore();
+	    }
+	    return exports.createAlphaThresholdBorder(pointer, threshold, antialias, color);
+	};
+	exports.createAlphaThresholdBorder = function (image, threshold, antialias, color) {
+	    threshold = (threshold == null) ? 0x80 : threshold;
+	    color = (color == null) ? '#000' : color;
+	    var width = image.width;
+	    var height = image.height;
+	    var canvas = document.createElement('canvas');
+	    var context = canvas.getContext('2d');
+	    canvas.width = width;
+	    canvas.height = height;
+	    try {
+	        context.drawImage(image, 0, 0, width, height);
+	    }
+	    catch (e) {
+	        return canvas;
+	    }
+	    var imageData = context.getImageData(0, 0, width, height);
+	    var d = imageData.data;
+	    function getAlphaIndex(index) {
+	        return d[index * 4 + 3];
+	    }
+	    function setRedIndex(index, red) {
+	        d[index * 4] = red;
+	    }
+	    function getRedXY(x, y) {
+	        var red = d[((y * width) + x) * 4];
+	        return red ? red : 0;
+	    }
+	    function getGreenXY(x, y) {
+	        var green = d[((y * width) + x) * 4 + 1];
+	        return green;
+	    }
+	    function setColorXY(x, y, red, green, alpha) {
+	        var i = ((y * width) + x) * 4;
+	        d[i] = red;
+	        d[i + 1] = green;
+	        d[i + 2] = 0;
+	        d[i + 3] = alpha;
+	    }
+	    var pixelCount = (d.length * 0.25) | 0;
+	    for (var i = 0; i < pixelCount; ++i)
+	        setRedIndex(i, (getAlphaIndex(i) < threshold) ? 0 : 1);
+	    var x;
+	    var y;
+	    for (x = 0; x < width; ++x) {
+	        for (y = 0; y < height; ++y) {
+	            if (!getRedXY(x, y)) {
+	                setColorXY(x, y, 0, 0, 0);
+	            }
+	            else {
+	                var redCount = 0;
+	                var left = x - 1;
+	                var right = x + 1;
+	                var up = y - 1;
+	                var down = y + 1;
+	                redCount += getRedXY(left, up);
+	                redCount += getRedXY(left, y);
+	                redCount += getRedXY(left, down);
+	                redCount += getRedXY(right, up);
+	                redCount += getRedXY(right, y);
+	                redCount += getRedXY(right, down);
+	                redCount += getRedXY(x, up);
+	                redCount += getRedXY(x, down);
+	                if (redCount != 8)
+	                    setColorXY(x, y, 1, 1, 255);
+	                else
+	                    setColorXY(x, y, 1, 0, 0);
+	            }
+	        }
+	    }
+	    if (antialias) {
+	        for (x = 0; x < width; ++x) {
+	            for (y = 0; y < height; ++y) {
+	                if (getGreenXY(x, y)) {
+	                    var alpha = 0;
+	                    if (getGreenXY(x - 1, y) != getGreenXY(x + 1, y))
+	                        setColorXY(x, y, 1, 1, alpha += 0x40);
+	                    if (getGreenXY(x, y - 1) != getGreenXY(x, y + 1))
+	                        setColorXY(x, y, 1, 1, alpha + 0x50);
+	                }
+	            }
+	        }
+	    }
+	    context.putImageData(imageData, 0, 0);
+	    context.globalCompositeOperation = 'source-in';
+	    context.fillStyle = color;
+	    context.fillRect(0, 0, width, height);
+	    return canvas;
+	};
+	exports.createFloodFill = function (canvas, x, y, r, g, b, a) {
+	    var result = document.createElement('canvas');
+	    var w = result.width = canvas.width;
+	    var h = result.height = canvas.height;
+	    if ((x < 0) || (x >= w) || (y < 0) || (y >= h) || !(r || g || b || a))
+	        return result;
+	    var originalContext = canvas.getContext('2d');
+	    var originalData = originalContext.getImageData(0, 0, w, h);
+	    var od = originalData.data;
+	    var resultContext = result.getContext('2d');
+	    var resultData = resultContext.getImageData(0, 0, w, h);
+	    var rd = resultData.data;
+	    var targetColor = getColor(x, y);
+	    var replacementColor = (r << 24) | (g << 16) | (b << 8) | a;
+	    function getColor(x, y) {
+	        var index = ((y * w) + x) * 4;
+	        return (rd[index] ? replacementColor :
+	            ((od[index] << 24) | (od[index + 1] << 16) |
+	                (od[index + 2] << 8) | od[index + 3]));
+	    }
+	    var queue = [];
+	    queue.push(x, y);
+	    while (queue.length) {
+	        var nx = queue.shift();
+	        var ny = queue.shift();
+	        if ((nx < 0) || (nx >= w) || (ny < 0) || (ny >= h) ||
+	            (getColor(nx, ny) !== targetColor))
+	            continue;
+	        var west, east;
+	        west = east = nx;
+	        do {
+	            var wc = getColor(--west, ny);
+	        } while ((west >= 0) && (wc === targetColor));
+	        do {
+	            var ec = getColor(++east, ny);
+	        } while ((east < w) && (ec === targetColor));
+	        for (var i = west + 1; i < east; ++i) {
+	            rd[((ny * w) + i) * 4] = 1;
+	            var north = ny - 1;
+	            var south = ny + 1;
+	            if (getColor(i, north) === targetColor)
+	                queue.push(i, north);
+	            if (getColor(i, south) === targetColor)
+	                queue.push(i, south);
+	        }
+	    }
+	    for (i = 0; i < w; ++i) {
+	        for (var j = 0; j < h; ++j) {
+	            var index = ((j * w) + i) * 4;
+	            if (rd[index] == 0)
+	                continue;
+	            rd[index] = r;
+	            rd[index + 1] = g;
+	            rd[index + 2] = b;
+	            rd[index + 3] = a;
+	        }
+	    }
+	    resultContext.putImageData(resultData, 0, 0);
+	    return result;
+	};
+	var Stabilizer = (function () {
+	    function Stabilizer(tool, move1, up, level, weight, x, y, pressure, interval) {
+	        var _this = this;
+	        this.paramTable = [];
+	        this.upCalled = false;
+	        this.interval = interval || 5;
+	        this.current = { x: x, y: y, pressure: pressure };
+	        this.follow = 1 - Math.min(0.95, Math.max(0, weight));
+	        for (var i = 0; i < level; ++i)
+	            this.paramTable.push({ x: x, y: y, pressure: pressure });
+	        this.first = this.paramTable[0];
+	        this.last = this.paramTable[this.paramTable.length - 1];
+	        if (tool != null)
+	            tool.down(x, y, pressure);
+	        this.tool = tool;
+	        window.setTimeout(function () {
+	            _this._move();
+	        }, this.interval);
+	    }
+	    Stabilizer.prototype.getParamTable = function () {
+	        return this.paramTable;
+	    };
+	    Stabilizer.prototype.move = function (x, y, pressure) {
+	        this.current.x = x;
+	        this.current.y = y;
+	        this.current.pressure = pressure;
+	    };
+	    Stabilizer.prototype.up = function (x, y, pressure) {
+	        this.current.x = x;
+	        this.current.y = y;
+	        this.current.pressure = pressure;
+	        this.upCalled = true;
+	    };
+	    Stabilizer.prototype._move = function (justCalc) {
+	        var _this = this;
+	        var curr;
+	        var prev;
+	        var dx;
+	        var dy;
+	        var dp;
+	        var delta = 0;
+	        this.first.x = this.current.x;
+	        this.first.y = this.current.y;
+	        this.first.pressure = this.current.pressure;
+	        for (var i = 1; i < this.paramTable.length; ++i) {
+	            curr = this.paramTable[i];
+	            prev = this.paramTable[i - 1];
+	            dx = prev.x - curr.x;
+	            dy = prev.y - curr.y;
+	            dp = prev.pressure - curr.pressure;
+	            delta += Math.abs(dx);
+	            delta += Math.abs(dy);
+	            curr.x = this.dlerp(curr.x, dx, this.follow);
+	            curr.y = this.dlerp(curr.y, dy, this.follow);
+	            curr.pressure = this.dlerp(curr.pressure, dp, this.follow);
+	        }
+	        if (justCalc)
+	            return delta;
+	        if (this.upCalled) {
+	            while (delta > 1) {
+	                this.tool.move(this.last.x, this.last.y, this.last.pressure);
+	                delta = this._move(true);
+	            }
+	            this.up(this.last.x, this.last.y, this.last.pressure);
+	        }
+	        else {
+	            this.tool.move(this.last.x, this.last.y, this.last.pressure);
+	            window.setTimeout(function () { _this._move(); }, this.interval);
+	        }
+	    };
+	    Stabilizer.prototype.dlerp = function (a, d, t) {
+	        return a + d * t;
+	    };
+	    return Stabilizer;
+	}());
+	exports.Stabilizer = Stabilizer;
+	exports.Random = { LFSR113: null };
+	exports.Random.LFSR113 = function (seed) {
+	    var IA = 16807;
+	    var IM = 2147483647;
+	    var IQ = 127773;
+	    var IR = 2836;
+	    var a, b, c, d, e;
+	    this.get = function () {
+	        var f = ((a << 6) ^ a) >> 13;
+	        a = ((a & 4294967294) << 18) ^ f;
+	        f = ((b << 2) ^ b) >> 27;
+	        b = ((b & 4294967288) << 2) ^ f;
+	        f = ((c << 13) ^ c) >> 21;
+	        c = ((c & 4294967280) << 7) ^ f;
+	        f = ((d << 3) ^ d) >> 12;
+	        d = ((d & 4294967168) << 13) ^ f;
+	        return (a ^ b ^ c ^ d) * 2.3283064365386963e-10 + 0.5;
+	    };
+	    seed |= 0;
+	    if (seed <= 0)
+	        seed = 1;
+	    e = (seed / IQ) | 0;
+	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
+	    if (seed < 0)
+	        seed = (seed + IM) | 0;
+	    if (seed < 2)
+	        a = (seed + 2) | 0;
+	    else
+	        a = seed;
+	    e = (seed / IQ) | 0;
+	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
+	    if (seed < 0)
+	        seed = (seed + IM) | 0;
+	    if (seed < 8)
+	        b = (seed + 8) | 0;
+	    else
+	        b = seed;
+	    e = (seed / IQ) | 0;
+	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
+	    if (seed < 0)
+	        seed = (seed + IM) | 0;
+	    if (seed < 16)
+	        c = (seed + 16) | 0;
+	    else
+	        c = seed;
+	    e = (seed / IQ) | 0;
+	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
+	    if (seed < 0)
+	        seed = (seed + IM) | 0;
+	    if (seed < 128)
+	        d = (seed + 128) | 0;
+	    else
+	        d = seed;
+	    this.get();
+	};
+
 
 /***/ }
 /******/ ]);

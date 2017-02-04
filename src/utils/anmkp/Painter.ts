@@ -1,5 +1,6 @@
+import { Stabilizer } from './AnpUtil';
 import { EventDispatcher } from '../EventDispatcher';
-import {Brush} from './Brush'
+import { Brush } from './Brush'
 
 export class Painter extends EventDispatcher {
     domElement: any
@@ -15,8 +16,9 @@ export class Painter extends EventDispatcher {
 
     constructor() {
         super()
-        this.domElement = document.createElement('div');
-        this.setTool(new Brush());
+        this.domElement = document.createElement('div')
+        this.initPaintCanvas()
+        this.setTool(new Brush())
     }
 
     getRelativePosition(absoluteX, absoluteY) {
@@ -232,16 +234,21 @@ export class Painter extends EventDispatcher {
     dirtyRectDisplay: any
     dirtyRectDisplayContext: any
     renderDirtyRect = false;
+
     private initPaintCanvas() {
         let paintingCanvas = this.paintingCanvas = document.createElement('canvas');
         this.paintingContext = this.paintingCanvas.getContext('2d');
         paintingCanvas.className = 'paint-painting-canvas';
-        paintingCanvas.style.position = 'absolute';
+        paintingCanvas.style.position = 'fixed';
+        paintingCanvas.style.left = '0';
+        paintingCanvas.style.top = '0';
 
         let dirtyRectDisplay = this.dirtyRectDisplay = document.createElement('canvas');
         this.dirtyRectDisplayContext = dirtyRectDisplay.getContext('2d');
         dirtyRectDisplay.className = 'paint-dirty-rect-display';
-        dirtyRectDisplay.style.position = 'absolute';
+        dirtyRectDisplay.style.position = 'fixed';
+        dirtyRectDisplay.style.left = '0';
+        dirtyRectDisplay.style.top = '0';
     }
 
     sortLayers() {
@@ -295,7 +302,7 @@ export class Painter extends EventDispatcher {
         return this.layers.length;
     };
 
-    addLayer(index) {
+    addLayer(index?) {
         index = (index == null) ? this.layers.length : index;
         //todo:
         this.pushAddLayerUndo(index);
@@ -364,7 +371,7 @@ export class Painter extends EventDispatcher {
     };
 
 
-    fillLayer(fillColor, index) {
+    fillLayer(fillColor, index?) {
         index = (index == null) ? this.layerIndex : index;
         this.pushContextUndo(index);
         var context = this.getLayerContext(index);
@@ -398,7 +405,7 @@ export class Painter extends EventDispatcher {
     tool: any
     toolStabilizeLevel = 0;
     toolStabilizeWeight = 0.8;
-    stabilizer = null;
+    stabilizer: Stabilizer = null;
     stabilizerInterval = 5;
     tick: any
     tickInterval = 20;
@@ -489,35 +496,35 @@ export class Painter extends EventDispatcher {
         context.restore();
     }
     _move(x, y, pressure) {
-        if (this.tool.move)
-            this.tool.move(x, y, pressure);
+        // if (this.tool.move)
+        // this.tool.move(x, y, pressure);
         this.emit('onmove', { x: x, y: y, pressure: pressure });
         // if (self.onMoved)
         //     self.onMoved(x, y, pressure);
     }
     _up(x, y, pressure) {
-        this.isDrawing = false;
-        this.isStabilizing = false;
-        var dirtyRect;
-        if (this.tool.up)
-            dirtyRect = this.tool.up(x, y, pressure);
-        if (this.paintingKnockout)
-            this.gotoBeforeKnockout();
-        if (dirtyRect)
-            this.pushDirtyRectUndo(dirtyRect.x, dirtyRect.y,
-                dirtyRect.width, dirtyRect.height);
-        else
-            this.pushContextUndo();
-        this.drawPaintingCanvas();
-        this.paintingContext.clearRect(0, 0, this.size.width, this.size.height);
-        dirtyRect = dirtyRect ||
-            { x: 0, y: 0, width: this.size.width, height: this.size.height };
-        this.emit('onup',
-            { x: x, y: y, pressure: pressure, dirtyRect: dirtyRect });
-        // if (self.onUpped)
-        //     self.onUpped(x, y, pressure, dirtyRect);
-        window.clearInterval(this.knockoutTick);
-        window.clearInterval(this.tick);
+        // this.isDrawing = false;
+        // this.isStabilizing = false;
+        // var dirtyRect;
+        // if (this.tool.up)
+        //     dirtyRect = this.tool.up(x, y, pressure);
+        // if (this.paintingKnockout)
+        //     this.gotoBeforeKnockout();
+        // if (dirtyRect)
+        //     this.pushDirtyRectUndo(dirtyRect.x, dirtyRect.y,
+        //         dirtyRect.width, dirtyRect.height);
+        // else
+        //     this.pushContextUndo();
+        // this.drawPaintingCanvas();
+        // this.paintingContext.clearRect(0, 0, this.size.width, this.size.height);
+        // dirtyRect = dirtyRect ||
+        //     { x: 0, y: 0, width: this.size.width, height: this.size.height };
+        // this.emit('onup',
+        //     { x: x, y: y, pressure: pressure, dirtyRect: dirtyRect });
+        // // if (self.onUpped)
+        // //     self.onUpped(x, y, pressure, dirtyRect);
+        // window.clearInterval(this.knockoutTick);
+        // window.clearInterval(this.tick);
     }
 
     down(x, y, pressure) {
@@ -540,7 +547,7 @@ export class Painter extends EventDispatcher {
         // pressure = (pressure == null) ? .Tablet.pressure() : pressure;
         var down = this.tool.down;
         if (this.toolStabilizeLevel > 0) {
-            this.stabilizer = new Anmkp.Stabilizer(down, this._move, this._up,
+            this.stabilizer = new Stabilizer(this.tool, this._move, this._up,
                 this.toolStabilizeLevel, this.toolStabilizeWeight,
                 x, y, pressure, this.stabilizerInterval);
             this.isStabilizing = true;
@@ -550,13 +557,13 @@ export class Painter extends EventDispatcher {
         this.emit('ondown', { x: x, y: y, pressure: pressure });
         // if (this.onDowned)
         //     self.onDowned(x, y, pressure);
-        this.knockoutTick = window.setInterval(function () {
+        this.knockoutTick = window.setInterval(() => {
             if (this.paintingKnockout) {
                 this.gotoBeforeKnockout();
                 this.drawPaintingCanvas();
             }
         }, this.knockoutTickInterval);
-        this.tick = window.setInterval(function () {
+        this.tick = window.setInterval(() => {
             if (this.tool.tick)
                 this.tool.tick();
             this.emit('ontick');
@@ -569,7 +576,7 @@ export class Painter extends EventDispatcher {
             throw 'you need to call \'down\' first';
         if (this.tool == null)
             return;
-        //todo
+        //todo pressure
         // pressure = (pressure == null) ? .Tablet.pressure() : pressure;
         if (this.stabilizer != null)
             this.stabilizer.move(x, y, pressure);
@@ -583,6 +590,9 @@ export class Painter extends EventDispatcher {
             this.isDrawing = false;
             return;
         }
+        this.isDrawing = false;
+        this.isStabilizing = false;
+
         //todo
         // pressure = (pressure == null) ? .Tablet.pressure() : pressure;
         if (this.stabilizer != null)
