@@ -10,11 +10,8 @@ export class Painter extends EventDispatcher {
     undoLimit = 10
     preventPushUndo = false
     pushToTransaction = false
-
-
     size = { width: 1280, height: 720 };
-
-
+    private _scale: number = 1
     constructor() {
         super()
         this.initPaintCanvas()
@@ -35,19 +32,24 @@ export class Painter extends EventDispatcher {
         // // dirtyRectDisplay.style.position = 'fixed';
         // dirtyRectDisplay.style.left = '0';
         // dirtyRectDisplay.style.top = '0';
-
         this.$el = document.createElement('div')
         this.$el.style.position = 'fixed';
         this.$el.style.overflow = 'hidden';
         this.$el.appendChild(this.paintingCanvas)
     }
     setShowRect(x, y, width, height) {
-        this.$el.style.width = width + 'px';
-        this.$el.style.height = height + 'px';
+        this.$el.style.width = Math.floor(width * this._scale) + 'px';
+        this.$el.style.height = Math.floor(height * this._scale) + 'px';
     }
-    getRelativePosition(absoluteX, absoluteY) {
-        var rect = this.$el.getBoundingClientRect();
-        return { x: absoluteX - rect.left, y: absoluteY - rect.top };
+    get scale(){return this._scale}
+    
+    zoom(scale) {
+        this._scale = scale
+        this.paintingCanvas.style.zoom =scale
+        for (var i = 0; i < this.layers.length; ++i) {
+            var layer = this.layers[i];
+            layer.style.zoom = scale
+        }
     }
 
     getUndoLimit() {
@@ -543,6 +545,8 @@ export class Painter extends EventDispatcher {
         this.isDrawing = true;
         if (this.tool == null)
             return;
+        // x *= this._scale
+        // y *= this._scale
         if (this.paintingKnockout) {
             var w = this.size.width;
             var h = this.size.height;
@@ -586,6 +590,9 @@ export class Painter extends EventDispatcher {
             throw 'you need to call \'down\' first';
         if (this.tool == null)
             return;
+
+        // x *= this._scale
+        // y *= this._scale
         //todo pressure
         // pressure = (pressure == null) ? .Tablet.pressure() : pressure;
         if (this.stabilizer != null)
@@ -603,6 +610,8 @@ export class Painter extends EventDispatcher {
         this.isDrawing = false;
         this.isStabilizing = false;
 
+        // x /= this._scale
+        // y /= this._scale
         //todo
         // pressure = (pressure == null) ? .Tablet.pressure() : pressure;
         if (this.stabilizer != null)

@@ -13,23 +13,18 @@ export class Viewport extends PIXI.Container {
     paintView: PaintView
     zoomStep = 0.20
     _h: number
+
     constructor() {
         super()
         this.paintView = new PaintView(ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
-        this.paintView.painter.setShowRect(0, 0, 500, 500)
+        // this.paintView.painter.setShowRect(0, 0, 500, 500)
 
         this.compView = new CompView(ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
         this.addChild(this.compView)
         // this.paintCanvas = new PaintCanvas()
         this._pan(20, 20)
         input.on(InputEvent.MOUSE_WHEEL, (e) => {
-            let d = this.compView
-            let pos = posInObj(this.compView, e, true)
-            let dtS = - e.deltaY / 200 * this.zoomStep
-            d.x -= dtS * pos.x
-            d.y -= dtS * pos.y
-            let s = d.scale.x + dtS
-            d.scale.x = d.scale.y = s
+            this._zoom(e)
         })
 
         var panCompViewFunId = null, upFuncId = null
@@ -74,21 +69,41 @@ export class Viewport extends PIXI.Container {
         this.lastY = e.my
         setCursor(Curosr.move)
     }
+    private _zoom(e) {
+        let d = this.compView
+        let pos = posInObj(this.compView, e, true)
+        let dtS = - e.deltaY / 200 * this.zoomStep
+        d.x -= dtS * pos.x
+        d.y -= dtS * pos.y
+        let s = d.scale.x + dtS
+        if (s < .05)
+            s = 0.05
+        d.scale.x = d.scale.y = s
 
+        this.paintView.x = d.x
+        this.paintView.y = d.y
+        this.paintView.zoom(s)
+        this._updatePainterRect()
+
+    }
     _pan(x, y) {
         this.compView.x = x
         this.compView.y = y
+
         this.paintView.x = x
         this.paintView.y = y
+        this._updatePainterRect()
+
+    }
+    _updatePainterRect() {
         this.paintView.rectHeight = this._h - this.paintView.y;
+        this.paintView.rectHeight /= this.paintView.painter.scale
         this.paintView.updateShowRect()
-        
     }
     resize(width, height) {
         if (width == null)
             width = this.width
         this._h = height
-        this.paintView.rectHeight = this._h - this.paintView.y;
-        this.paintView.updateShowRect()
+        this._updatePainterRect()
     }
 }

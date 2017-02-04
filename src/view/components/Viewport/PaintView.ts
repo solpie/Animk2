@@ -40,6 +40,10 @@ export class PaintView {
     updateShowRect() {
         this.painter.setShowRect(null, null, this.rectWidth, this.rectHeight)
     }
+    zoom(scale) {
+        this.painter.zoom(scale)
+    }
+
     set x(v) {
         this._x = v
         this.painter.$el.style.left = v + "px"
@@ -56,6 +60,7 @@ export class PaintView {
     onDown(e) {
         // setPointerEvent(e);
         var pointerPosition = this.getRelativePosition(e.clientX, e.clientY);
+        console.log(pointerPosition)
         // if (pointerEventsNone)
         //     canvasArea.style.setProperty('cursor', 'none');
         // if (e.pointerType === "pen" && e.button == 5)
@@ -88,7 +93,9 @@ export class PaintView {
     }
 
     getRelativePosition(absoluteX, absoluteY) {
-        var rect = this.painter.paintingCanvas.getBoundingClientRect();
-        return { x: absoluteX - rect.left, y: absoluteY - rect.top };
+        return {
+            x: (absoluteX - this.x) / this.painter.scale,
+            y: (absoluteY - this.y) / this.painter.scale
+        };
     }
 }

@@ -2711,18 +2711,11 @@
 	        _this.lastX = null;
 	        _this.lastY = null;
 	        _this.paintView = new PaintView_1.PaintView(const_1.ViewConst.COMP_WIDTH, const_1.ViewConst.COMP_HEIGHT);
-	        _this.paintView.painter.setShowRect(0, 0, 500, 500);
 	        _this.compView = new CompView_1.CompView(const_1.ViewConst.COMP_WIDTH, const_1.ViewConst.COMP_HEIGHT);
 	        _this.addChild(_this.compView);
 	        _this._pan(20, 20);
 	        Input_1.input.on(Input_1.InputEvent.MOUSE_WHEEL, function (e) {
-	            var d = _this.compView;
-	            var pos = PixiEx_1.posInObj(_this.compView, e, true);
-	            var dtS = -e.deltaY / 200 * _this.zoomStep;
-	            d.x -= dtS * pos.x;
-	            d.y -= dtS * pos.y;
-	            var s = d.scale.x + dtS;
-	            d.scale.x = d.scale.y = s;
+	            _this._zoom(e);
 	        });
 	        var panCompViewFunId = null, upFuncId = null;
 	        ShortCut_1.keyDownMap[' '] = function (e) {
@@ -2756,20 +2749,38 @@
 	        this.lastY = e.my;
 	        Input_1.setCursor(Input_1.Curosr.move);
 	    };
+	    Viewport.prototype._zoom = function (e) {
+	        var d = this.compView;
+	        var pos = PixiEx_1.posInObj(this.compView, e, true);
+	        var dtS = -e.deltaY / 200 * this.zoomStep;
+	        d.x -= dtS * pos.x;
+	        d.y -= dtS * pos.y;
+	        var s = d.scale.x + dtS;
+	        if (s < .05)
+	            s = 0.05;
+	        d.scale.x = d.scale.y = s;
+	        this.paintView.x = d.x;
+	        this.paintView.y = d.y;
+	        this.paintView.zoom(s);
+	        this._updatePainterRect();
+	    };
 	    Viewport.prototype._pan = function (x, y) {
 	        this.compView.x = x;
 	        this.compView.y = y;
 	        this.paintView.x = x;
 	        this.paintView.y = y;
+	        this._updatePainterRect();
+	    };
+	    Viewport.prototype._updatePainterRect = function () {
 	        this.paintView.rectHeight = this._h - this.paintView.y;
+	        this.paintView.rectHeight /= this.paintView.painter.scale;
 	        this.paintView.updateShowRect();
 	    };
 	    Viewport.prototype.resize = function (width, height) {
 	        if (width == null)
 	            width = this.width;
 	        this._h = height;
-	        this.paintView.rectHeight = this._h - this.paintView.y;
-	        this.paintView.updateShowRect();
+	        this._updatePainterRect();
 	    };
 	    return Viewport;
 	}(PIXI.Container));
@@ -3606,6 +3617,7 @@
 	        _this.preventPushUndo = false;
 	        _this.pushToTransaction = false;
 	        _this.size = { width: 1280, height: 720 };
+	        _this._scale = 1;
 	        _this.layers = [];
 	        _this.layerIndex = 0;
 	        _this.renderDirtyRect = false;
@@ -3654,12 +3666,21 @@
 	        this.$el.appendChild(this.paintingCanvas);
 	    };
 	    Painter.prototype.setShowRect = function (x, y, width, height) {
-	        this.$el.style.width = width + 'px';
-	        this.$el.style.height = height + 'px';
+	        this.$el.style.width = Math.floor(width * this._scale) + 'px';
+	        this.$el.style.height = Math.floor(height * this._scale) + 'px';
 	    };
-	    Painter.prototype.getRelativePosition = function (absoluteX, absoluteY) {
-	        var rect = this.$el.getBoundingClientRect();
-	        return { x: absoluteX - rect.left, y: absoluteY - rect.top };
+	    Object.defineProperty(Painter.prototype, "scale", {
+	        get: function () { return this._scale; },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Painter.prototype.zoom = function (scale) {
+	        this._scale = scale;
+	        this.paintingCanvas.style.zoom = scale;
+	        for (var i = 0; i < this.layers.length; ++i) {
+	            var layer = this.layers[i];
+	            layer.style.zoom = scale;
+	        }
 	    };
 	    Painter.prototype.getUndoLimit = function () {
 	        return this.undoLimit;
@@ -4512,6 +4533,9 @@
 	    PaintView.prototype.updateShowRect = function () {
 	        this.painter.setShowRect(null, null, this.rectWidth, this.rectHeight);
 	    };
+	    PaintView.prototype.zoom = function (scale) {
+	        this.painter.zoom(scale);
+	    };
 	    Object.defineProperty(PaintView.prototype, "x", {
 	        get: function () { return this._x; },
 	        set: function (v) {
@@ -4533,6 +4557,7 @@
 	    PaintView.prototype.onDown = function (e) {
 	        var _this = this;
 	        var pointerPosition = this.getRelativePosition(e.clientX, e.clientY);
+	        console.log(pointerPosition);
 	        this.painter.down(pointerPosition.x, pointerPosition.y, e.pointerType === "pen" ? e.pressure : 1);
 	        this.moveFuncId = Input_1.input.on(Input_1.InputEvent.MOUSE_MOVE, function (e) {
 	            _this.onMove(e);
@@ -4554,8 +4579,10 @@
 	        Input_1.input.del(Input_1.InputEvent.MOUSE_UP, this.upFuncId);
 	    };
 	    PaintView.prototype.getRelativePosition = function (absoluteX, absoluteY) {
-	        var rect = this.painter.paintingCanvas.getBoundingClientRect();
-	        return { x: absoluteX - rect.left, y: absoluteY - rect.top };
+	        return {
+	            x: (absoluteX - this.x) / this.painter.scale,
+	            y: (absoluteY - this.y) / this.painter.scale
+	        };
 	    };
 	    return PaintView;
 	}());
