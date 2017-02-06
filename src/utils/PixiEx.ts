@@ -271,7 +271,7 @@ export const posInObj = (obj, e, isScale = false) => {
     return ret
 }
 
-export const MakeMatrixGraphics = (alphaM: Array<string>, color: number, g: PIXI.Graphics, ofsX = 0, ofsY = 0) => {
+export const PIXI_MakeMatrixGraphics = (alphaM: Array<string>, color: number, g: PIXI.Graphics, ofsX = 0, ofsY = 0) => {
     for (var i = 0; i < alphaM.length; i++) {
         var s = alphaM[i];
         for (var j = 0; j < s.length; j++) {

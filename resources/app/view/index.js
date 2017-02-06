@@ -51,10 +51,10 @@
 	var const_1 = __webpack_require__(12);
 	var AppInfo_1 = __webpack_require__(8);
 	var ImageCache_1 = __webpack_require__(27);
-	var Test_1 = __webpack_require__(57);
+	var Test_1 = __webpack_require__(56);
 	var renderer;
 	var main = function () {
-	    renderer = PIXI.autoDetectRenderer(const_1.ViewConst.STAGE_WIDTH, const_1.ViewConst.STAGE_HEIGHT, { antialias: false, transparent: true, resolution: 1 });
+	    renderer = PIXI.autoDetectRenderer(const_1.ViewConst.STAGE_WIDTH, const_1.ViewConst.STAGE_HEIGHT, { antialias: true, transparent: false, resolution: 1 });
 	    document.body.appendChild(renderer.view);
 	    renderer.stage = new PIXI.Container();
 	    renderer.backgroundColor = 0x00000000;
@@ -70,7 +70,7 @@
 	ImageCache_1.imgCache;
 	Animk_1.animk.init(main(), AppInfo_1.appInfo);
 	window['animk'] = Animk_1.animk;
-	var remote = __webpack_require__(56).remote;
+	var remote = __webpack_require__(55).remote;
 	window['remote'] = remote;
 	window.addEventListener('resize', function (e) {
 	    e.preventDefault();
@@ -135,7 +135,7 @@
 	var Splitter_1 = __webpack_require__(34);
 	var Viewport_1 = __webpack_require__(37);
 	var const_1 = __webpack_require__(12);
-	var LayerTracker_1 = __webpack_require__(47);
+	var LayerTracker_1 = __webpack_require__(46);
 	var Animk = (function (_super) {
 	    __extends(Animk, _super);
 	    function Animk() {
@@ -2553,7 +2553,7 @@
 	    }
 	    return ret;
 	};
-	exports.MakeMatrixGraphics = function (alphaM, color, g, ofsX, ofsY) {
+	exports.PIXI_MakeMatrixGraphics = function (alphaM, color, g, ofsX, ofsY) {
 	    if (ofsX === void 0) { ofsX = 0; }
 	    if (ofsY === void 0) { ofsY = 0; }
 	    for (var i = 0; i < alphaM.length; i++) {
@@ -2673,12 +2673,12 @@
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var ColorPicker_1 = __webpack_require__(38);
-	var PaintView_1 = __webpack_require__(42);
+	var PaintView_1 = __webpack_require__(41);
 	var ShortCut_1 = __webpack_require__(7);
 	var Input_1 = __webpack_require__(33);
 	var PixiEx_1 = __webpack_require__(35);
 	var const_1 = __webpack_require__(12);
-	var CompView_1 = __webpack_require__(46);
+	var CompView_1 = __webpack_require__(45);
 	var Viewport = (function (_super) {
 	    __extends(Viewport, _super);
 	    function Viewport() {
@@ -2773,16 +2773,71 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var HSBRect_1 = __webpack_require__(39);
-	var Docker_1 = __webpack_require__(40);
+	var Docker_1 = __webpack_require__(39);
+	function mixRGB(color1, color2, weight, value) {
+	    if (value === void 0) { value = 1; }
+	    var p = weight;
+	    var w = p * 2 - 1;
+	    var w1 = (w / 1 + 1) / 2;
+	    var w2 = 1 - w1;
+	    w1 *= value;
+	    w2 *= value;
+	    return (Math.round(color1[0] * w1 + color2[0] * w2) * 0x010000) + (Math.round(color1[1] * w1 + color2[1] * w2) * 0x0100)
+	        + Math.round(color1[2] * w1 + color2[2] * w2);
+	}
+	function mix(a, b, v) {
+	    return (1 - v) * a + v * b;
+	}
+	function HSVtoRGB(H, S, V) {
+	    var V2 = V * (1 - S);
+	    var r = ((H >= 0 && H <= 60) || (H >= 300 && H <= 360)) ? V : ((H >= 120 && H <= 240) ? V2 : ((H >= 60 && H <= 120) ? mix(V, V2, (H - 60) / 60) : ((H >= 240 && H <= 300) ? mix(V2, V, (H - 240) / 60) : 0)));
+	    var g = (H >= 60 && H <= 180) ? V : ((H >= 240 && H <= 360) ? V2 : ((H >= 0 && H <= 60) ? mix(V2, V, H / 60) : ((H >= 180 && H <= 240) ? mix(V, V2, (H - 180) / 60) : 0)));
+	    var b = (H >= 0 && H <= 120) ? V2 : ((H >= 180 && H <= 300) ? V : ((H >= 120 && H <= 180) ? mix(V2, V, (H - 120) / 60) : ((H >= 300 && H <= 360) ? mix(V, V2, (H - 300) / 60) : 0)));
+	    return Math.round(r * 255) * 0x010000 +
+	        Math.round(g * 255) * 0x0100
+	        + Math.round(b * 255);
+	}
 	var ColorPicker = (function (_super) {
 	    __extends(ColorPicker, _super);
 	    function ColorPicker() {
 	        var _this = _super.call(this) || this;
-	        _this._hsbRect = new HSBRect_1.HSBRect(280, 280);
-	        document.body.appendChild(_this._hsbRect.DOMElement);
+	        _this._map = new PIXI.Graphics();
+	        _this.addChild(_this._map);
+	        _this._resizeColorMapWheel(_this.width - 150);
 	        return _this;
 	    }
+	    ColorPicker.prototype.resize = function (width, height) {
+	        _super.prototype.resize.call(this, width, height);
+	        this._resizeColorMapWheel(width - 150);
+	    };
+	    ColorPicker.prototype._resizeColorMapWheel = function (width) {
+	        this._map.clear();
+	        var w = width;
+	        var col1 = [255, 255, 255];
+	        var col2 = [255, 0, 0];
+	        var weight = 1;
+	        for (var i = 0; i < w; i++) {
+	            weight = 1 - i / w;
+	            for (var j = 0; j < w; j++) {
+	                var c = mixRGB(col1, col2, weight, 1 - j / w);
+	                this._map.beginFill(c).drawRect(i, j, 1, 1);
+	            }
+	        }
+	        this._map.endFill();
+	        this._map.x = (this.width - this._map.width) * .5;
+	        this._map.y = (this.height - this._map.height) * .5;
+	        var cx = w * .5;
+	        var r = cx * 1.414 + 20;
+	        for (var i = 0; i < 360; i++) {
+	            this._map.lineStyle(20, HSVtoRGB(i, 1, 1));
+	            var startDeg = i - 90 - 45;
+	            this._map.arc(cx, cx, r, startDeg * PIXI.DEG_TO_RAD, (startDeg + 1.1) * PIXI.DEG_TO_RAD);
+	        }
+	        this._map.lineStyle(3, 0);
+	        this._map.drawCircle(cx, cx, r - 10);
+	        this._map.drawCircle(cx, cx, r + 10);
+	        this._map.cacheAsBitmap = true;
+	    };
 	    return ColorPicker;
 	}(Docker_1.Docker));
 	exports.ColorPicker = ColorPicker;
@@ -2790,110 +2845,6 @@
 
 /***/ },
 /* 39 */
-/***/ function(module, exports) {
-
-	"use strict";
-	var HSBRect = (function () {
-	    function HSBRect(width, height) {
-	        if (width === void 0) { width = 0x80; }
-	        if (height === void 0) { height = 0x80; }
-	        this._hue = 0;
-	        this._sa = document.createElement('canvas');
-	        this._sa.height = 1;
-	        this._sa.style.setProperty('position', 'absolute');
-	        this._br = document.createElement('canvas');
-	        this._br.width = 1;
-	        this._br.style.setProperty('position', 'absolute');
-	        this._div = document.createElement('div');
-	        this._div.style.setProperty('background-color', 'white');
-	        this._div.appendChild(this._sa);
-	        this._div.appendChild(this._br);
-	        this.width = width;
-	        this.height = height;
-	    }
-	    HSBRect.prototype._renderSa = function () {
-	        var ctx = this._sa.getContext('2d');
-	        var grad = ctx.createLinearGradient(0, 0, this._sa.width, 1);
-	        var c = 'hsla(' + this._hue + ',100%,50%,';
-	        grad.addColorStop(0, c + '0)');
-	        grad.addColorStop(1, c + '1)');
-	        ctx.fillStyle = grad;
-	        ctx.clearRect(0, 0, this._sa.width, 1);
-	        ctx.fillRect(0, 0, this._sa.width, 1);
-	    };
-	    HSBRect.prototype.getImg = function () {
-	        var url = this._br.toDataURL('image/png'), img = new Image();
-	        img.src = url;
-	        return img;
-	    };
-	    HSBRect.prototype._renderBr = function () {
-	        var ctx = this._br.getContext('2d');
-	        var grad = ctx.createLinearGradient(0, 0, 1, this._br.height);
-	        grad.addColorStop(0, 'rgba(0,0,0,0)');
-	        grad.addColorStop(1, 'black');
-	        ctx.fillStyle = grad;
-	        ctx.clearRect(0, 0, 1, this._br.height);
-	        ctx.fillRect(0, 0, 1, this._br.height);
-	    };
-	    HSBRect.prototype._size = function () {
-	        var w = this._sa.width + 'px';
-	        var h = this._br.height + 'px';
-	        this._div.style.setProperty('width', w);
-	        this._div.style.setProperty('height', h);
-	        this._sa.style.setProperty('width', w);
-	        this._sa.style.setProperty('height', h);
-	        this._br.style.setProperty('width', w);
-	        this._br.style.setProperty('height', h);
-	    };
-	    Object.defineProperty(HSBRect.prototype, "DOMElement", {
-	        get: function () {
-	            return this._div;
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(HSBRect.prototype, "hue", {
-	        get: function () {
-	            return this._hue;
-	        },
-	        set: function (value) {
-	            this._hue = value;
-	            this._renderSa();
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(HSBRect.prototype, "width", {
-	        get: function () {
-	            return this._sa.width;
-	        },
-	        set: function (value) {
-	            this._sa.width = value;
-	            this._size();
-	            this._renderSa();
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(HSBRect.prototype, "height", {
-	        get: function () {
-	            return this._br.height;
-	        },
-	        set: function (value) {
-	            this._br.height = value;
-	            this._size();
-	            this._renderBr();
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    return HSBRect;
-	}());
-	exports.HSBRect = HSBRect;
-
-
-/***/ },
-/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2902,7 +2853,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Color_1 = __webpack_require__(41);
+	var Color_1 = __webpack_require__(40);
 	var PixiEx_1 = __webpack_require__(35);
 	var Docker = (function (_super) {
 	    __extends(Docker, _super);
@@ -2922,7 +2873,7 @@
 
 
 /***/ },
-/* 41 */
+/* 40 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -2945,12 +2896,12 @@
 
 
 /***/ },
-/* 42 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var Brush_1 = __webpack_require__(43);
-	var Painter_1 = __webpack_require__(44);
+	var Brush_1 = __webpack_require__(42);
+	var Painter_1 = __webpack_require__(43);
 	var Input_1 = __webpack_require__(33);
 	var PaintView = (function () {
 	    function PaintView(width, height) {
@@ -3044,7 +2995,7 @@
 
 
 /***/ },
-/* 43 */
+/* 42 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -3320,7 +3271,7 @@
 
 
 /***/ },
-/* 44 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3329,9 +3280,9 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Stabilizer_1 = __webpack_require__(45);
+	var Stabilizer_1 = __webpack_require__(44);
 	var EventDispatcher_1 = __webpack_require__(14);
-	var Brush_1 = __webpack_require__(43);
+	var Brush_1 = __webpack_require__(42);
 	var Painter = (function (_super) {
 	    __extends(Painter, _super);
 	    function Painter() {
@@ -3863,7 +3814,7 @@
 
 
 /***/ },
-/* 45 */
+/* 44 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -3946,7 +3897,7 @@
 
 
 /***/ },
-/* 46 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4021,7 +3972,7 @@
 
 
 /***/ },
-/* 47 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4030,11 +3981,11 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Scroller_1 = __webpack_require__(48);
+	var Scroller_1 = __webpack_require__(47);
 	var const_1 = __webpack_require__(12);
 	var Command_1 = __webpack_require__(31);
-	var Stacker_1 = __webpack_require__(49);
-	var TimestampBar_1 = __webpack_require__(54);
+	var Stacker_1 = __webpack_require__(48);
+	var TimestampBar_1 = __webpack_require__(53);
 	var LayerTracker = (function (_super) {
 	    __extends(LayerTracker, _super);
 	    function LayerTracker() {
@@ -4098,7 +4049,7 @@
 
 
 /***/ },
-/* 48 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4221,7 +4172,7 @@
 
 
 /***/ },
-/* 49 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4230,14 +4181,14 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Combobox_1 = __webpack_require__(50);
-	var Slider_1 = __webpack_require__(51);
-	var CheckBox_1 = __webpack_require__(52);
+	var Combobox_1 = __webpack_require__(49);
+	var Slider_1 = __webpack_require__(50);
+	var CheckBox_1 = __webpack_require__(51);
 	var PixiEx_1 = __webpack_require__(35);
-	var Color_1 = __webpack_require__(41);
+	var Color_1 = __webpack_require__(40);
 	var Animk_1 = __webpack_require__(6);
 	var const_1 = __webpack_require__(12);
-	var Clip_1 = __webpack_require__(53);
+	var Clip_1 = __webpack_require__(52);
 	var Stacker = (function (_super) {
 	    __extends(Stacker, _super);
 	    function Stacker(trackInfo) {
@@ -4306,7 +4257,7 @@
 
 
 /***/ },
-/* 50 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4315,7 +4266,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Color_1 = __webpack_require__(41);
+	var Color_1 = __webpack_require__(40);
 	var Combobox = (function (_super) {
 	    __extends(Combobox, _super);
 	    function Combobox(options, width, height) {
@@ -4339,7 +4290,7 @@
 
 
 /***/ },
-/* 51 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4350,7 +4301,7 @@
 	};
 	var Input_1 = __webpack_require__(33);
 	var const_1 = __webpack_require__(12);
-	var Color_1 = __webpack_require__(41);
+	var Color_1 = __webpack_require__(40);
 	var PixiEx_1 = __webpack_require__(35);
 	var Slider = (function (_super) {
 	    __extends(Slider, _super);
@@ -4427,7 +4378,7 @@
 
 
 /***/ },
-/* 52 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4438,7 +4389,7 @@
 	};
 	var PixiEx_1 = __webpack_require__(35);
 	var const_1 = __webpack_require__(12);
-	var Color_1 = __webpack_require__(41);
+	var Color_1 = __webpack_require__(40);
 	var CheckBox = (function (_super) {
 	    __extends(CheckBox, _super);
 	    function CheckBox() {
@@ -4489,7 +4440,7 @@
 
 
 /***/ },
-/* 53 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4553,7 +4504,7 @@
 
 
 /***/ },
-/* 54 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4565,9 +4516,9 @@
 	var Input_1 = __webpack_require__(33);
 	var PixiEx_1 = __webpack_require__(35);
 	var Animk_1 = __webpack_require__(6);
-	var Button_1 = __webpack_require__(55);
+	var Button_1 = __webpack_require__(54);
 	var const_1 = __webpack_require__(12);
-	var Color_1 = __webpack_require__(41);
+	var Color_1 = __webpack_require__(40);
 	var TimestampBar = (function (_super) {
 	    __extends(TimestampBar, _super);
 	    function TimestampBar() {
@@ -4596,7 +4547,7 @@
 	            '   19 91   ',
 	        ];
 	        _this.gCursor = new PIXI.Graphics();
-	        PixiEx_1.MakeMatrixGraphics(m2, Color_1.Col.cursor, _this.gCursor, -6, 0);
+	        PixiEx_1.PIXI_MakeMatrixGraphics(m2, Color_1.Col.cursor, _this.gCursor, -6, 0);
 	        _this.gCursor
 	            .lineStyle(1, Color_1.Col.cursor)
 	            .moveTo(0, 15)
@@ -4622,7 +4573,7 @@
 	        var newTrackBtn = new Button_1.Button({ text: "new" });
 	        newTrackBtn.x = -100;
 	        newTrackBtn.on(PixiEx_1.PIXI_MOUSE_EVENT.down, function () {
-	            var dialog = __webpack_require__(56).remote.dialog;
+	            var dialog = __webpack_require__(55).remote.dialog;
 	            var ret = dialog.showOpenDialog({
 	                properties: ['openFile'], filters: [
 	                    { name: 'Images(png)', extensions: ['png'] },
@@ -4682,7 +4633,7 @@
 
 
 /***/ },
-/* 55 */
+/* 54 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -4723,13 +4674,13 @@
 
 
 /***/ },
-/* 56 */
+/* 55 */
 /***/ function(module, exports) {
 
 	module.exports = require("electron");
 
 /***/ },
-/* 57 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";

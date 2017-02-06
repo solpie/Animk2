@@ -1,5 +1,5 @@
 import { input , InputEvent} from '../../utils/Input';
-import { MakeMatrixGraphics, PIXI_MOUSE_EVENT } from '../../utils/PixiEx';
+import { PIXI_MakeMatrixGraphics, PIXI_MOUSE_EVENT } from '../../utils/PixiEx';
 import { animk } from '../Animk';
 import { Button } from '../components/Button';
 import { CompInfoEvent } from '../const';
@@ -41,7 +41,7 @@ export class TimestampBar extends PIXI.Sprite {
         ]
        
         this.gCursor = new PIXI.Graphics()
-        MakeMatrixGraphics(m2, Col.cursor, this.gCursor, -6, 0)
+        PIXI_MakeMatrixGraphics(m2, Col.cursor, this.gCursor, -6, 0)
 
         this.gCursor
             .lineStyle(1, Col.cursor)

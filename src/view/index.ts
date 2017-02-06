@@ -10,7 +10,7 @@ declare const TWEEN
 let renderer: any
 let main = () => {
     renderer = PIXI.autoDetectRenderer(ViewConst.STAGE_WIDTH, ViewConst.STAGE_HEIGHT,
-        { antialias: false, transparent: true, resolution: 1 });
+        { antialias: true, transparent: false, resolution:1 });
     document.body.appendChild(renderer.view);
     renderer.stage = new PIXI.Container();
     renderer.backgroundColor = 0x00000000;
