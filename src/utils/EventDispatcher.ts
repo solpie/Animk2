@@ -35,7 +35,7 @@ export class EventDispatcher {
                     if (f) {
                         if (f.id == funcId) {
                             delete this._func[type][i];
-                            console.log('del event', type, funcId);
+                            // console.log('del event', type, funcId);
                             break;
                         }
                     }

@@ -999,7 +999,6 @@
 	                    if (f) {
 	                        if (f.id == funcId) {
 	                            delete this._func[type][i];
-	                            console.log('del event', type, funcId);
 	                            break;
 	                        }
 	                    }
@@ -2773,6 +2772,8 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var Input_1 = __webpack_require__(33);
+	var PixiEx_1 = __webpack_require__(35);
 	var Docker_1 = __webpack_require__(39);
 	function mixRGB(color1, color2, weight, value) {
 	    if (value === void 0) { value = 1; }
@@ -2788,11 +2789,14 @@
 	function mix(a, b, v) {
 	    return (1 - v) * a + v * b;
 	}
-	function HSVtoRGB(H, S, V) {
+	function HSVtoRGB(H, S, V, isArray) {
+	    if (isArray === void 0) { isArray = false; }
 	    var V2 = V * (1 - S);
 	    var r = ((H >= 0 && H <= 60) || (H >= 300 && H <= 360)) ? V : ((H >= 120 && H <= 240) ? V2 : ((H >= 60 && H <= 120) ? mix(V, V2, (H - 60) / 60) : ((H >= 240 && H <= 300) ? mix(V2, V, (H - 240) / 60) : 0)));
 	    var g = (H >= 60 && H <= 180) ? V : ((H >= 240 && H <= 360) ? V2 : ((H >= 0 && H <= 60) ? mix(V2, V, H / 60) : ((H >= 180 && H <= 240) ? mix(V, V2, (H - 180) / 60) : 0)));
 	    var b = (H >= 0 && H <= 120) ? V2 : ((H >= 180 && H <= 300) ? V : ((H >= 120 && H <= 180) ? mix(V2, V, (H - 120) / 60) : ((H >= 300 && H <= 360) ? mix(V, V2, (H - 300) / 60) : 0)));
+	    if (isArray)
+	        return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 	    return Math.round(r * 255) * 0x010000 +
 	        Math.round(g * 255) * 0x0100
 	        + Math.round(b * 255);
@@ -2801,42 +2805,149 @@
 	    __extends(ColorPicker, _super);
 	    function ColorPicker() {
 	        var _this = _super.call(this) || this;
-	        _this._map = new PIXI.Graphics();
-	        _this.addChild(_this._map);
+	        _this._colorMapWidth = 0;
+	        _this._hueDeg = 0;
+	        _this._v = 1;
+	        _this._s = 1;
+	        _this._colorMap = new PIXI.Graphics();
+	        _this._colorWheel = new PIXI.Graphics();
+	        _this._cursorWheel = new PIXI.Graphics();
+	        _this._cursorMap = new PIXI.Graphics();
+	        _this.addChild(_this._colorMap);
+	        _this.addChild(_this._colorWheel);
+	        _this.addChild(_this._cursorWheel);
+	        _this.addChild(_this._cursorMap);
 	        _this._resizeColorMapWheel(_this.width - 150);
+	        _this._initCursor();
+	        _this._initColorFgBg();
+	        _this.setHue(0);
+	        Input_1.input.on(Input_1.InputEvent.MOUSE_DOWN, function (e) {
+	            var mid = null, uid = null;
+	            var isin = PixiEx_1.isIn(e, _this._colorMap);
+	            if (isin) {
+	                _this._onMove(e);
+	                mid = Input_1.input.on(Input_1.InputEvent.MOUSE_MOVE, function (e) {
+	                    _this._onMove(e);
+	                });
+	                uid = Input_1.input.on(Input_1.InputEvent.MOUSE_UP, function (e) {
+	                    _this._onMove(e);
+	                    Input_1.input.del(Input_1.InputEvent.MOUSE_MOVE, mid);
+	                    Input_1.input.del(Input_1.InputEvent.MOUSE_UP, uid);
+	                });
+	            }
+	        });
 	        return _this;
 	    }
+	    ColorPicker.prototype._onMove = function (e) {
+	        var isin = PixiEx_1.isIn(e, this._colorMap);
+	        if (isin) {
+	            var pos = PixiEx_1.posInObj(this._colorMap, e);
+	            this._cursorMap.x = this._colorMap.x + pos.x - 3;
+	            this._cursorMap.y = this._colorMap.y + pos.y - 3;
+	            this._s = pos.x / this._colorMapWidth;
+	            this._v = 1 - pos.y / this._colorMapWidth;
+	            this._updateFg();
+	        }
+	    };
+	    ColorPicker.prototype._initColorFgBg = function () {
+	        this._colorFg = new PIXI.Graphics;
+	        this.addChild(this._colorFg);
+	        this._colorFg.x = 5;
+	        this._colorFg.y = 155;
+	    };
+	    ColorPicker.prototype.setRgb = function (rgb) {
+	    };
+	    ColorPicker.prototype._initCursor = function () {
+	        var b = [
+	            '.......',
+	            '.     .',
+	            '.     .',
+	            '.     .',
+	            '.     .',
+	            '.     .',
+	            '.......',
+	        ];
+	        var w = [
+	            '.....',
+	            '.   .',
+	            '.   .',
+	            '.   .',
+	            '.....'
+	        ];
+	        PixiEx_1.PIXI_MakeMatrixGraphics(b, 0, this._cursorMap);
+	        PixiEx_1.PIXI_MakeMatrixGraphics(w, 0xffffff, this._cursorMap, 1, 1);
+	        this._cursorMap.cacheAsBitmap = true;
+	    };
 	    ColorPicker.prototype.resize = function (width, height) {
 	        _super.prototype.resize.call(this, width, height);
 	        this._resizeColorMapWheel(width - 150);
 	    };
-	    ColorPicker.prototype._resizeColorMapWheel = function (width) {
-	        this._map.clear();
-	        var w = width;
+	    ColorPicker.prototype.setHue = function (v) {
+	        this._hueDeg = v;
+	        this._cursorWheel.rotation = (v - 135) * PIXI.DEG_TO_RAD;
+	        this._updateMap();
+	    };
+	    ColorPicker.prototype.getColor = function () {
+	    };
+	    ColorPicker.prototype._updateFg = function () {
+	        this._colorFg.beginFill(HSVtoRGB(this._hueDeg, this._s, this._v))
+	            .drawRect(0, 0, 35, 35);
+	    };
+	    ColorPicker.prototype._updateMap = function (width) {
+	        var w;
+	        if (width != null)
+	            w = this._colorMapWidth = width;
+	        else
+	            w = this._colorMapWidth;
+	        this._colorMap.cacheAsBitmap = false;
+	        this._colorMap.clear();
 	        var col1 = [255, 255, 255];
-	        var col2 = [255, 0, 0];
-	        var weight = 1;
-	        for (var i = 0; i < w; i++) {
-	            weight = 1 - i / w;
-	            for (var j = 0; j < w; j++) {
-	                var c = mixRGB(col1, col2, weight, 1 - j / w);
-	                this._map.beginFill(c).drawRect(i, j, 1, 1);
+	        var col2 = HSVtoRGB(this._hueDeg, 1, 1, true);
+	        var weight;
+	        var wInner = w - 1;
+	        for (var i = 0; i < wInner; i++) {
+	            weight = 1 - i / wInner;
+	            for (var j = 0; j < wInner; j++) {
+	                var c = mixRGB(col1, col2, weight, 1 - j / wInner);
+	                this._colorMap.beginFill(c).drawRect(i + 1, j + 1, 1, 1);
 	            }
 	        }
-	        this._map.endFill();
-	        this._map.x = (this.width - this._map.width) * .5;
-	        this._map.y = (this.height - this._map.height) * .5;
+	        this._colorMap.endFill()
+	            .lineStyle(1, 0x000000)
+	            .drawRect(0, 0, w, w)
+	            .cacheAsBitmap = true;
+	    };
+	    ColorPicker.prototype._resizeColorMapWheel = function (width) {
+	        var w = width;
+	        this._updateMap(width);
+	        var wheelWidth = 20;
+	        this._colorMap.x = (this.width - this._colorMap.width) * .5;
+	        this._colorMap.y = (this.height - this._colorMap.height) * .5;
+	        this._colorWheel.x = this._colorMap.x;
+	        this._colorWheel.y = this._colorMap.y;
 	        var cx = w * .5;
-	        var r = cx * 1.414 + 20;
+	        var r = cx * 1.414 + wheelWidth - 5;
+	        this._colorWheel.clear();
 	        for (var i = 0; i < 360; i++) {
-	            this._map.lineStyle(20, HSVtoRGB(i, 1, 1));
+	            this._colorWheel.lineStyle(wheelWidth, HSVtoRGB(i, 1, 1));
 	            var startDeg = i - 90 - 45;
-	            this._map.arc(cx, cx, r, startDeg * PIXI.DEG_TO_RAD, (startDeg + 1.1) * PIXI.DEG_TO_RAD);
+	            this._colorWheel.arc(cx, cx, r, startDeg * PIXI.DEG_TO_RAD, (startDeg + 1.1) * PIXI.DEG_TO_RAD);
 	        }
-	        this._map.lineStyle(3, 0);
-	        this._map.drawCircle(cx, cx, r - 10);
-	        this._map.drawCircle(cx, cx, r + 10);
-	        this._map.cacheAsBitmap = true;
+	        this._colorWheel.lineStyle(3, 0)
+	            .drawCircle(cx, cx, r - wheelWidth * .5)
+	            .drawCircle(cx, cx, r + wheelWidth * .5)
+	            .cacheAsBitmap = true;
+	        r = r - 10;
+	        this._cursorWheel.clear()
+	            .lineStyle(2, 0)
+	            .moveTo(r - 4, -2)
+	            .lineTo(r + wheelWidth + 4, -4)
+	            .lineTo(r + wheelWidth + 4, 4)
+	            .lineTo(r - 4, 4)
+	            .lineTo(r - 4, -2)
+	            .cacheAsBitmap = true;
+	        this._cursorWheel.x = this._colorMap.x + cx;
+	        this._cursorWheel.y = this._colorMap.y + cx;
 	    };
 	    return ColorPicker;
 	}(Docker_1.Docker));
@@ -3193,7 +3304,7 @@
 	        this.appendDirtyRect(x - (boundWidth * 0.5), y - (boundHeight * 0.5), boundWidth, boundHeight);
 	    };
 	    Brush.prototype.down = function (x, y, scale) {
-	        console.log('brush down', this);
+	        console.log('brush down');
 	        this.dir = 0;
 	        this.dirtyRect = { x: 0, y: 0, width: 0, height: 0 };
 	        if (scale > 0) {

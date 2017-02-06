@@ -224,7 +224,7 @@ export class Brush implements ITool {
     }
 
     down(x, y, scale) {
-        console.log('brush down', this)
+        console.log('brush down')
         // if (this.context == null)
         //     throw 'brush needs the context';
         this.dir = 0;
