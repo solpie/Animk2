@@ -53,18 +53,33 @@
 	var ImageCache_1 = __webpack_require__(27);
 	var Test_1 = __webpack_require__(56);
 	var renderer;
+	var compRender;
 	var main = function () {
-	    renderer = PIXI.autoDetectRenderer(const_1.ViewConst.STAGE_WIDTH, const_1.ViewConst.STAGE_HEIGHT, { antialias: true, transparent: false, resolution: 1 });
-	    document.body.appendChild(renderer.view);
-	    renderer.stage = new PIXI.Container();
+	    compRender = PIXI.autoDetectRenderer(const_1.ViewConst.STAGE_WIDTH, const_1.ViewConst.STAGE_HEIGHT, { antialias: true, transparent: true, resolution: 1 });
+	    compRender.stage = new PIXI.Container();
+	    renderer = PIXI.autoDetectRenderer(const_1.ViewConst.STAGE_WIDTH, const_1.ViewConst.STAGE_HEIGHT, { antialias: true, transparent: true, resolution: 1 });
 	    renderer.backgroundColor = 0x00000000;
+	    renderer.stage = new PIXI.Container();
+	    document.body.appendChild(renderer.view);
+	    document.body.appendChild(compRender.view);
+	    compRender.view.style.position = 'fixed';
+	    compRender.view.style.top = '0';
+	    compRender.view.style.left = '0';
+	    compRender.view.style.margin = '0';
+	    compRender.view.style['z-index'] = '0';
+	    renderer.view.style.position = 'fixed';
+	    renderer.view.style.top = '0';
+	    renderer.view.style.left = '0';
+	    renderer.view.style.margin = '0';
+	    renderer.view.style['z-index'] = '1';
 	    renderer.renderStage = function (time) {
 	        requestAnimationFrame(renderer.renderStage);
 	        TWEEN.update(time);
+	        compRender.render(compRender.stage);
 	        renderer.render(renderer.stage);
 	    };
 	    renderer.renderStage();
-	    return renderer.stage;
+	    return { compRender: compRender.stage, uiRender: renderer.stage };
 	};
 	Test_1.initTest();
 	ImageCache_1.imgCache;
@@ -141,12 +156,12 @@
 	    function Animk() {
 	        return _super.call(this) || this;
 	    }
-	    Animk.prototype.initUI = function () {
+	    Animk.prototype.initUI = function (compRender) {
 	        var _this = this;
 	        var vs = new Splitter_1.Splitter('v', 1600, 1000);
 	        this.vSplitter = vs;
 	        this.addChild(vs);
-	        var vp = new Viewport_1.Viewport();
+	        var vp = new Viewport_1.Viewport(compRender);
 	        vs.setChild(vp);
 	        this.viewport = vp;
 	        var tk = new LayerTracker_1.LayerTracker();
@@ -160,8 +175,8 @@
 	    };
 	    Animk.prototype.init = function (stage, appInfo) {
 	        this.projInfo = appInfo.newProject();
-	        this.initUI();
-	        stage.addChild(this);
+	        this.initUI(stage.compRender);
+	        stage.uiRender.addChild(this);
 	        ShortCut_1.initShortCut();
 	        this.onload();
 	        this.test();
@@ -2680,14 +2695,14 @@
 	var CompView_1 = __webpack_require__(45);
 	var Viewport = (function (_super) {
 	    __extends(Viewport, _super);
-	    function Viewport() {
+	    function Viewport(compRender) {
 	        var _this = _super.call(this) || this;
 	        _this.zoomStep = 0.20;
 	        _this.lastX = null;
 	        _this.lastY = null;
 	        _this.paintView = new PaintView_1.PaintView(const_1.ViewConst.COMP_WIDTH, const_1.ViewConst.COMP_HEIGHT);
 	        _this.compView = new CompView_1.CompView(const_1.ViewConst.COMP_WIDTH, const_1.ViewConst.COMP_HEIGHT);
-	        _this.addChild(_this.compView);
+	        compRender.addChild(_this.compView);
 	        _this._pan(20, 20);
 	        Input_1.input.on(Input_1.InputEvent.MOUSE_WHEEL, function (e) {
 	            _this._zoom(e);
@@ -2741,21 +2756,17 @@
 	        this.paintView.x = d.x;
 	        this.paintView.y = d.y;
 	        this.paintView.zoom(s);
-	        this.paintView.updateShowRect();
 	    };
 	    Viewport.prototype._pan = function (x, y) {
 	        this.compView.x = x;
 	        this.compView.y = y;
 	        this.paintView.x = x;
 	        this.paintView.y = y;
-	        this.paintView.updateShowRect();
 	    };
 	    Viewport.prototype.resize = function (width, height) {
 	        if (width == null)
 	            width = this.width;
 	        this._h = height;
-	        this.paintView.setParentRect({ height: height });
-	        this.paintView.updateShowRect();
 	    };
 	    return Viewport;
 	}(PIXI.Container));

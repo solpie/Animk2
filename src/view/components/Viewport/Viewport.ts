@@ -15,11 +15,11 @@ export class Viewport extends PIXI.Container {
     zoomStep = 0.20
     _h: number
     dockerColorPicker:ColorPicker
-    constructor() {
+    constructor(compRender) {
         super()
         this.paintView = new PaintView(ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
         this.compView = new CompView(ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
-        this.addChild(this.compView)
+        compRender.addChild(this.compView)
         // this.paintCanvas = new PaintCanvas()
         this._pan(20, 20)
         input.on(InputEvent.MOUSE_WHEEL, (e) => {
@@ -86,7 +86,7 @@ export class Viewport extends PIXI.Container {
         this.paintView.x = d.x
         this.paintView.y = d.y
         this.paintView.zoom(s)
-        this.paintView.updateShowRect()
+        // this.paintView.updateShowRect()
     }
     _pan(x, y) {
         this.compView.x = x
@@ -94,15 +94,15 @@ export class Viewport extends PIXI.Container {
 
         this.paintView.x = x
         this.paintView.y = y
-        this.paintView.updateShowRect()
+        // this.paintView.updateShowRect()
 
     }
     resize(width, height) {
         if (width == null)
             width = this.width
         this._h = height
-        this.paintView.setParentRect({height:height})
-        this.paintView.updateShowRect()
+        // this.paintView.setParentRect({height:height})
+        // this.paintView.updateShowRect()
         
     }
 }

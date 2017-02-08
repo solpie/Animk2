@@ -23,12 +23,12 @@ export class Animk extends PIXI.Container {
         super()
     }
 
-    initUI() {
+    initUI(compRender) {
         let vs = new Splitter('v', 1600, 1000)
         this.vSplitter = vs
         this.addChild(vs)
 
-        let vp = new Viewport()
+        let vp = new Viewport(compRender)
         vs.setChild(vp)
         this.viewport = vp
 
@@ -42,10 +42,10 @@ export class Animk extends PIXI.Container {
         })
     }
 
-    init(stage: PIXI.Container, appInfo: AppInfo) {
+    init(stage: any, appInfo: AppInfo) {
         this.projInfo = appInfo.newProject()
-        this.initUI()
-        stage.addChild(this)
+        this.initUI(stage.compRender)
+        stage.uiRender.addChild(this)
 
         initShortCut()
         this.onload()
