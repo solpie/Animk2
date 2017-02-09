@@ -75,8 +75,8 @@ export class ColorPicker extends Docker {
     private _hueDeg = 0;
     private _v = 1
     private _s = 1
-    private _colorFg = { color: 0xff0000, hue: 0 }
-    private _colorBg = { color: 0, hue: 0 }
+    private _colorFg = { color: 0xff0000, hue: 0, v: 1, s: 1 }
+    private _colorBg = { color: 0, hue: 0, v: 1, s: 1 }
     constructor() {
         super()
         this._colorMap = new PIXI.Graphics()
@@ -125,9 +125,9 @@ export class ColorPicker extends Docker {
                     input.del(InputEvent.MOUSE_UP, uid2)
                 })
             }
-            return isIn(e, this)
+            if (isIn(e, this))
+                return InputEvent.stopPropagation
         })
-
         ///
         // var h = 0
         // setInterval(() => {
@@ -136,6 +136,7 @@ export class ColorPicker extends Docker {
         //     this.setHue(h++)
         // }, 50)
     }
+
     private _onMoveWheel(e, isMove = false) {
         let cpoint = { x: this._colorMap.x + this._colorMap.width * .5, y: this._colorMap.y + this._colorMap.height * .5 }
         let wheelPoint = posInObj(this, e)
@@ -143,14 +144,14 @@ export class ColorPicker extends Docker {
         // console.log('lineDistance', r)
         if (isMove || r > this._colorWheelRange.inner && r < this._colorWheelRange.outter) {
             let d = angleDeg(wheelPoint, cpoint) + 135
-            if (d > 360) {
+            if (d > 360)
                 d -= 360
-            }
             this.setHue(d)
             return true
         }
         return false
     }
+
     private _onMove(e) {
         let pos = posInObj(this._colorMap, e)
         if (pos.x < 0)
@@ -171,7 +172,16 @@ export class ColorPicker extends Docker {
 
     toggleFgBg() {
         this._isFg = !this._isFg
-        this._isFg ? this._frameFg() : this._frameBg()
+        if (this._isFg) {
+            this._frameFg()
+            console.log('Fg', this._colorFg);
+            this.setHue(this._colorFg.hue, this._colorFg.v, this._colorFg.s)
+        }
+        else {
+            this._frameBg()
+            console.log('Bg', this._colorBg);
+            this.setHue(this._colorBg.hue, this._colorBg.v, this._colorBg.s)
+        }
     }
 
     private _initColorFgBg() {
@@ -229,9 +239,17 @@ export class ColorPicker extends Docker {
         this._resizeColorMapWheel(width - 150)
     }
     //0~360
-    setHue(v) {
-        this._hueDeg = v
-        this._cursorWheel.rotation = (v - 135) * PIXI.DEG_TO_RAD
+    setHue(hue, v?, s?) {
+        this._hueDeg = hue
+        if (v != null) {
+            this._v = v
+            this._cursorMap.y = this._colorMap.y + (1 - v) * (this._colorMap.height - 1)
+        }
+        if (s != null) {
+            this._s = s
+            this._cursorMap.x = this._colorMap.x + s * (this._colorMap.width - 1)
+        }
+        this._cursorWheel.rotation = (hue - 135) * PIXI.DEG_TO_RAD
         this._updateMap()
         this._updateFg()
     }
@@ -245,14 +263,25 @@ export class ColorPicker extends Docker {
     setFgColor(color, hue?) {
         this._colorFg.color = color
         if (hue != null)
-            this._colorBg.hue = hue
-        else
-            this._colorBg.hue = 0
-
+            this._colorFg.hue = hue
+        else {
+            this._colorFg.hue = this._hueDeg
+            this._colorFg.v = this._v
+            this._colorFg.s = this._s
+        }
         this._gColorFg.beginFill(color)
             .drawRect(0, 0, 35, 35)
     }
-    setBgColor(color) {
+
+    setBgColor(color, hue?) {
+        this._colorBg.color = color
+        if (hue != null)
+            this._colorBg.hue = hue
+        else {
+            this._colorBg.hue = this._hueDeg
+            this._colorBg.v = this._v
+            this._colorBg.s = this._s
+        }
         this._gColorBg.beginFill(color)
             .drawRect(0, 0, 35, 35)
     }
@@ -264,6 +293,9 @@ export class ColorPicker extends Docker {
         else
             this.setBgColor(c)
         this.emit(BaseEvent.CHANGED)
+    }
+    private _updateMapCursor() {
+
     }
     private _updateMap(width?) {
         var w;

@@ -2,6 +2,7 @@ export class EventDispatcher {
     _func: Object;
     _funcId: number;
     isSort = false
+    
     constructor() {
         this._func = {};
         this._funcId = 0;

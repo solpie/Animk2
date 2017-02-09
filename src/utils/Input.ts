@@ -8,14 +8,15 @@ export const InputEvent = {
     MOUSE_UP: 'onmouseup',
     KEY_UP: 'onkeyup',
     KEY_DOWN: 'onkeydown',
+    stopPropagation: true
 };
 
 class Input extends EventDispatcher {
     isKeyPress = false
     isMousePress = false
-    
 }
 export const input = new Input()
+
 window.onmousedown = (e) => {
     e['mx'] = e.clientX
     e['my'] = e.clientY

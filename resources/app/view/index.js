@@ -51,7 +51,7 @@
 	var const_1 = __webpack_require__(12);
 	var AppInfo_1 = __webpack_require__(8);
 	var ImageCache_1 = __webpack_require__(27);
-	var Test_1 = __webpack_require__(56);
+	var Test_1 = __webpack_require__(57);
 	var renderer;
 	var compRender;
 	var main = function () {
@@ -85,7 +85,7 @@
 	ImageCache_1.imgCache;
 	Animk_1.animk.init(main(), AppInfo_1.appInfo);
 	window['animk'] = Animk_1.animk;
-	var remote = __webpack_require__(55).remote;
+	var remote = __webpack_require__(56).remote;
 	window['remote'] = remote;
 	window.addEventListener('resize', function (e) {
 	    e.preventDefault();
@@ -150,7 +150,7 @@
 	var Splitter_1 = __webpack_require__(34);
 	var Viewport_1 = __webpack_require__(37);
 	var const_1 = __webpack_require__(12);
-	var LayerTracker_1 = __webpack_require__(46);
+	var LayerTracker_1 = __webpack_require__(47);
 	var Animk = (function (_super) {
 	    __extends(Animk, _super);
 	    function Animk() {
@@ -2102,6 +2102,7 @@
 	    MOUSE_UP: 'onmouseup',
 	    KEY_UP: 'onkeyup',
 	    KEY_DOWN: 'onkeydown',
+	    stopPropagation: true
 	};
 	var Input = (function (_super) {
 	    __extends(Input, _super);
@@ -2694,7 +2695,7 @@
 	var Input_1 = __webpack_require__(33);
 	var PixiEx_1 = __webpack_require__(35);
 	var const_1 = __webpack_require__(12);
-	var CompView_1 = __webpack_require__(45);
+	var CompView_1 = __webpack_require__(46);
 	var Viewport = (function (_super) {
 	    __extends(Viewport, _super);
 	    function Viewport(compRender) {
@@ -2850,8 +2851,8 @@
 	        _this._hueDeg = 0;
 	        _this._v = 1;
 	        _this._s = 1;
-	        _this._colorFg = { color: 0xff0000, hue: 0 };
-	        _this._colorBg = { color: 0, hue: 0 };
+	        _this._colorFg = { color: 0xff0000, hue: 0, v: 1, s: 1 };
+	        _this._colorBg = { color: 0, hue: 0, v: 1, s: 1 };
 	        _this._colorMap = new PIXI.Graphics();
 	        _this._colorWheel = new PIXI.Graphics();
 	        _this._cursorWheel = new PIXI.Graphics();
@@ -2890,7 +2891,8 @@
 	                    Input_1.input.del(Input_1.InputEvent.MOUSE_UP, uid2_1);
 	                });
 	            }
-	            return PixiEx_1.isIn(e, _this);
+	            if (PixiEx_1.isIn(e, _this))
+	                return Input_1.InputEvent.stopPropagation;
 	        });
 	        return _this;
 	    }
@@ -2901,9 +2903,8 @@
 	        var r = lineDistance(wheelPoint, cpoint);
 	        if (isMove || r > this._colorWheelRange.inner && r < this._colorWheelRange.outter) {
 	            var d = angleDeg(wheelPoint, cpoint) + 135;
-	            if (d > 360) {
+	            if (d > 360)
 	                d -= 360;
-	            }
 	            this.setHue(d);
 	            return true;
 	        }
@@ -2927,7 +2928,16 @@
 	    };
 	    ColorPicker.prototype.toggleFgBg = function () {
 	        this._isFg = !this._isFg;
-	        this._isFg ? this._frameFg() : this._frameBg();
+	        if (this._isFg) {
+	            this._frameFg();
+	            console.log('Fg', this._colorFg);
+	            this.setHue(this._colorFg.hue, this._colorFg.v, this._colorFg.s);
+	        }
+	        else {
+	            this._frameBg();
+	            console.log('Bg', this._colorBg);
+	            this.setHue(this._colorBg.hue, this._colorBg.v, this._colorBg.s);
+	        }
 	    };
 	    ColorPicker.prototype._initColorFgBg = function () {
 	        this._gFgBgFrame = PixiEx_1.PIXI_RECT(0, 0, 0, 15, 15);
@@ -2980,9 +2990,17 @@
 	        _super.prototype.resize.call(this, width, height);
 	        this._resizeColorMapWheel(width - 150);
 	    };
-	    ColorPicker.prototype.setHue = function (v) {
-	        this._hueDeg = v;
-	        this._cursorWheel.rotation = (v - 135) * PIXI.DEG_TO_RAD;
+	    ColorPicker.prototype.setHue = function (hue, v, s) {
+	        this._hueDeg = hue;
+	        if (v != null) {
+	            this._v = v;
+	            this._cursorMap.y = this._colorMap.y + (1 - v) * (this._colorMap.height - 1);
+	        }
+	        if (s != null) {
+	            this._s = s;
+	            this._cursorMap.x = this._colorMap.x + s * (this._colorMap.width - 1);
+	        }
+	        this._cursorWheel.rotation = (hue - 135) * PIXI.DEG_TO_RAD;
 	        this._updateMap();
 	        this._updateFg();
 	    };
@@ -2994,13 +3012,24 @@
 	    ColorPicker.prototype.setFgColor = function (color, hue) {
 	        this._colorFg.color = color;
 	        if (hue != null)
-	            this._colorBg.hue = hue;
-	        else
-	            this._colorBg.hue = 0;
+	            this._colorFg.hue = hue;
+	        else {
+	            this._colorFg.hue = this._hueDeg;
+	            this._colorFg.v = this._v;
+	            this._colorFg.s = this._s;
+	        }
 	        this._gColorFg.beginFill(color)
 	            .drawRect(0, 0, 35, 35);
 	    };
-	    ColorPicker.prototype.setBgColor = function (color) {
+	    ColorPicker.prototype.setBgColor = function (color, hue) {
+	        this._colorBg.color = color;
+	        if (hue != null)
+	            this._colorBg.hue = hue;
+	        else {
+	            this._colorBg.hue = this._hueDeg;
+	            this._colorBg.v = this._v;
+	            this._colorBg.s = this._s;
+	        }
 	        this._gColorBg.beginFill(color)
 	            .drawRect(0, 0, 35, 35);
 	    };
@@ -3011,6 +3040,8 @@
 	        else
 	            this.setBgColor(c);
 	        this.emit(const_1.BaseEvent.CHANGED);
+	    };
+	    ColorPicker.prototype._updateMapCursor = function () {
 	    };
 	    ColorPicker.prototype._updateMap = function (width) {
 	        var w;
@@ -3132,9 +3163,9 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var AnpUtil_1 = __webpack_require__(57);
-	var Brush_1 = __webpack_require__(42);
-	var Painter_1 = __webpack_require__(43);
+	var AnpUtil_1 = __webpack_require__(42);
+	var Brush_1 = __webpack_require__(43);
+	var Painter_1 = __webpack_require__(44);
 	var Input_1 = __webpack_require__(33);
 	var PaintView = (function () {
 	    function PaintView(width, height) {
@@ -3234,6 +3265,276 @@
 
 /***/ },
 /* 42 */
+/***/ function(module, exports) {
+
+	"use strict";
+	exports.createChecker = function (cellSize, colorA, colorB) {
+	    cellSize = (cellSize == null) ? 10 : cellSize;
+	    colorA = (colorA == null) ? '#fff' : colorA;
+	    colorB = (colorB == null) ? '#ccc' : colorB;
+	    var size = cellSize + cellSize;
+	    var checker = document.createElement('canvas');
+	    checker.width = checker.height = size;
+	    var context = checker.getContext('2d');
+	    context.fillStyle = colorB;
+	    context.fillRect(0, 0, size, size);
+	    context.fillStyle = colorA;
+	    context.fillRect(0, 0, cellSize, cellSize);
+	    context.fillRect(cellSize, cellSize, size, size);
+	    return checker;
+	};
+	exports.createBrushPointer = function (brushImage, brushSize, brushAngle, threshold, antialias, color) {
+	    brushSize = brushSize | 0;
+	    var pointer = document.createElement('canvas');
+	    var pointerContext = pointer.getContext('2d');
+	    if (brushSize == 0) {
+	        pointer.width = 1;
+	        pointer.height = 1;
+	        return pointer;
+	    }
+	    if (brushImage == null) {
+	        var halfSize = (brushSize * 0.5) | 0;
+	        pointer.width = brushSize;
+	        pointer.height = brushSize;
+	        pointerContext.fillStyle = '#000';
+	        pointerContext.beginPath();
+	        pointerContext.arc(halfSize, halfSize, halfSize, 0, Math.PI * 2);
+	        pointerContext.closePath();
+	        pointerContext.fill();
+	    }
+	    else {
+	        var width = brushSize;
+	        var height = brushSize * (brushImage.height / brushImage.width);
+	        var toRad = Math.PI / 180;
+	        var ra = brushAngle * toRad;
+	        var abs = Math.abs;
+	        var sin = Math.sin;
+	        var cos = Math.cos;
+	        var boundWidth = abs(height * sin(ra)) + abs(width * cos(ra));
+	        var boundHeight = abs(width * sin(ra)) + abs(height * cos(ra));
+	        pointer.width = boundWidth;
+	        pointer.height = boundHeight;
+	        pointerContext.save();
+	        pointerContext.translate(boundWidth * 0.5, boundHeight * 0.5);
+	        pointerContext.rotate(ra);
+	        pointerContext.translate(width * -0.5, height * -0.5);
+	        pointerContext.drawImage(brushImage, 0, 0, width, height);
+	        pointerContext.restore();
+	    }
+	    return exports.createAlphaThresholdBorder(pointer, threshold, antialias, color);
+	};
+	exports.createAlphaThresholdBorder = function (image, threshold, antialias, color) {
+	    threshold = (threshold == null) ? 0x80 : threshold;
+	    color = (color == null) ? '#000' : color;
+	    var width = image.width;
+	    var height = image.height;
+	    var canvas = document.createElement('canvas');
+	    var context = canvas.getContext('2d');
+	    canvas.width = width;
+	    canvas.height = height;
+	    try {
+	        context.drawImage(image, 0, 0, width, height);
+	    }
+	    catch (e) {
+	        return canvas;
+	    }
+	    var imageData = context.getImageData(0, 0, width, height);
+	    var d = imageData.data;
+	    function getAlphaIndex(index) {
+	        return d[index * 4 + 3];
+	    }
+	    function setRedIndex(index, red) {
+	        d[index * 4] = red;
+	    }
+	    function getRedXY(x, y) {
+	        var red = d[((y * width) + x) * 4];
+	        return red ? red : 0;
+	    }
+	    function getGreenXY(x, y) {
+	        var green = d[((y * width) + x) * 4 + 1];
+	        return green;
+	    }
+	    function setColorXY(x, y, red, green, alpha) {
+	        var i = ((y * width) + x) * 4;
+	        d[i] = red;
+	        d[i + 1] = green;
+	        d[i + 2] = 0;
+	        d[i + 3] = alpha;
+	    }
+	    var pixelCount = (d.length * 0.25) | 0;
+	    for (var i = 0; i < pixelCount; ++i)
+	        setRedIndex(i, (getAlphaIndex(i) < threshold) ? 0 : 1);
+	    var x;
+	    var y;
+	    for (x = 0; x < width; ++x) {
+	        for (y = 0; y < height; ++y) {
+	            if (!getRedXY(x, y)) {
+	                setColorXY(x, y, 0, 0, 0);
+	            }
+	            else {
+	                var redCount = 0;
+	                var left = x - 1;
+	                var right = x + 1;
+	                var up = y - 1;
+	                var down = y + 1;
+	                redCount += getRedXY(left, up);
+	                redCount += getRedXY(left, y);
+	                redCount += getRedXY(left, down);
+	                redCount += getRedXY(right, up);
+	                redCount += getRedXY(right, y);
+	                redCount += getRedXY(right, down);
+	                redCount += getRedXY(x, up);
+	                redCount += getRedXY(x, down);
+	                if (redCount != 8)
+	                    setColorXY(x, y, 1, 1, 255);
+	                else
+	                    setColorXY(x, y, 1, 0, 0);
+	            }
+	        }
+	    }
+	    if (antialias) {
+	        for (x = 0; x < width; ++x) {
+	            for (y = 0; y < height; ++y) {
+	                if (getGreenXY(x, y)) {
+	                    var alpha = 0;
+	                    if (getGreenXY(x - 1, y) != getGreenXY(x + 1, y))
+	                        setColorXY(x, y, 1, 1, alpha += 0x40);
+	                    if (getGreenXY(x, y - 1) != getGreenXY(x, y + 1))
+	                        setColorXY(x, y, 1, 1, alpha + 0x50);
+	                }
+	            }
+	        }
+	    }
+	    context.putImageData(imageData, 0, 0);
+	    context.globalCompositeOperation = 'source-in';
+	    context.fillStyle = color;
+	    context.fillRect(0, 0, width, height);
+	    return canvas;
+	};
+	exports.createFloodFill = function (canvas, x, y, r, g, b, a) {
+	    var result = document.createElement('canvas');
+	    var w = result.width = canvas.width;
+	    var h = result.height = canvas.height;
+	    if ((x < 0) || (x >= w) || (y < 0) || (y >= h) || !(r || g || b || a))
+	        return result;
+	    var originalContext = canvas.getContext('2d');
+	    var originalData = originalContext.getImageData(0, 0, w, h);
+	    var od = originalData.data;
+	    var resultContext = result.getContext('2d');
+	    var resultData = resultContext.getImageData(0, 0, w, h);
+	    var rd = resultData.data;
+	    var targetColor = getColor(x, y);
+	    var replacementColor = (r << 24) | (g << 16) | (b << 8) | a;
+	    function getColor(x, y) {
+	        var index = ((y * w) + x) * 4;
+	        return (rd[index] ? replacementColor :
+	            ((od[index] << 24) | (od[index + 1] << 16) |
+	                (od[index + 2] << 8) | od[index + 3]));
+	    }
+	    var queue = [];
+	    queue.push(x, y);
+	    while (queue.length) {
+	        var nx = queue.shift();
+	        var ny = queue.shift();
+	        if ((nx < 0) || (nx >= w) || (ny < 0) || (ny >= h) ||
+	            (getColor(nx, ny) !== targetColor))
+	            continue;
+	        var west, east;
+	        west = east = nx;
+	        do {
+	            var wc = getColor(--west, ny);
+	        } while ((west >= 0) && (wc === targetColor));
+	        do {
+	            var ec = getColor(++east, ny);
+	        } while ((east < w) && (ec === targetColor));
+	        for (var i = west + 1; i < east; ++i) {
+	            rd[((ny * w) + i) * 4] = 1;
+	            var north = ny - 1;
+	            var south = ny + 1;
+	            if (getColor(i, north) === targetColor)
+	                queue.push(i, north);
+	            if (getColor(i, south) === targetColor)
+	                queue.push(i, south);
+	        }
+	    }
+	    for (i = 0; i < w; ++i) {
+	        for (var j = 0; j < h; ++j) {
+	            var index = ((j * w) + i) * 4;
+	            if (rd[index] == 0)
+	                continue;
+	            rd[index] = r;
+	            rd[index + 1] = g;
+	            rd[index + 2] = b;
+	            rd[index + 3] = a;
+	        }
+	    }
+	    resultContext.putImageData(resultData, 0, 0);
+	    return result;
+	};
+	function colorToHex(color) {
+	    return '#' + color.toString(16);
+	}
+	exports.colorToHex = colorToHex;
+	;
+	exports.Random = { LFSR113: null };
+	exports.Random.LFSR113 = function (seed) {
+	    var IA = 16807;
+	    var IM = 2147483647;
+	    var IQ = 127773;
+	    var IR = 2836;
+	    var a, b, c, d, e;
+	    this.get = function () {
+	        var f = ((a << 6) ^ a) >> 13;
+	        a = ((a & 4294967294) << 18) ^ f;
+	        f = ((b << 2) ^ b) >> 27;
+	        b = ((b & 4294967288) << 2) ^ f;
+	        f = ((c << 13) ^ c) >> 21;
+	        c = ((c & 4294967280) << 7) ^ f;
+	        f = ((d << 3) ^ d) >> 12;
+	        d = ((d & 4294967168) << 13) ^ f;
+	        return (a ^ b ^ c ^ d) * 2.3283064365386963e-10 + 0.5;
+	    };
+	    seed |= 0;
+	    if (seed <= 0)
+	        seed = 1;
+	    e = (seed / IQ) | 0;
+	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
+	    if (seed < 0)
+	        seed = (seed + IM) | 0;
+	    if (seed < 2)
+	        a = (seed + 2) | 0;
+	    else
+	        a = seed;
+	    e = (seed / IQ) | 0;
+	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
+	    if (seed < 0)
+	        seed = (seed + IM) | 0;
+	    if (seed < 8)
+	        b = (seed + 8) | 0;
+	    else
+	        b = seed;
+	    e = (seed / IQ) | 0;
+	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
+	    if (seed < 0)
+	        seed = (seed + IM) | 0;
+	    if (seed < 16)
+	        c = (seed + 16) | 0;
+	    else
+	        c = seed;
+	    e = (seed / IQ) | 0;
+	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
+	    if (seed < 0)
+	        seed = (seed + IM) | 0;
+	    if (seed < 128)
+	        d = (seed + 128) | 0;
+	    else
+	        d = seed;
+	    this.get();
+	};
+
+
+/***/ },
+/* 43 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -3509,7 +3810,7 @@
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3518,9 +3819,9 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Stabilizer_1 = __webpack_require__(44);
+	var Stabilizer_1 = __webpack_require__(45);
 	var EventDispatcher_1 = __webpack_require__(14);
-	var Brush_1 = __webpack_require__(42);
+	var Brush_1 = __webpack_require__(43);
 	var Painter = (function (_super) {
 	    __extends(Painter, _super);
 	    function Painter() {
@@ -4052,7 +4353,7 @@
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -4135,7 +4436,7 @@
 
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4210,7 +4511,7 @@
 
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4219,11 +4520,11 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Scroller_1 = __webpack_require__(47);
+	var Scroller_1 = __webpack_require__(48);
 	var const_1 = __webpack_require__(12);
 	var Command_1 = __webpack_require__(31);
-	var Stacker_1 = __webpack_require__(48);
-	var TimestampBar_1 = __webpack_require__(53);
+	var Stacker_1 = __webpack_require__(49);
+	var TimestampBar_1 = __webpack_require__(54);
 	var LayerTracker = (function (_super) {
 	    __extends(LayerTracker, _super);
 	    function LayerTracker() {
@@ -4287,7 +4588,7 @@
 
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4410,7 +4711,7 @@
 
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4419,14 +4720,14 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var Combobox_1 = __webpack_require__(49);
-	var Slider_1 = __webpack_require__(50);
-	var CheckBox_1 = __webpack_require__(51);
+	var Combobox_1 = __webpack_require__(50);
+	var Slider_1 = __webpack_require__(51);
+	var CheckBox_1 = __webpack_require__(52);
 	var PixiEx_1 = __webpack_require__(35);
 	var Color_1 = __webpack_require__(40);
 	var Animk_1 = __webpack_require__(6);
 	var const_1 = __webpack_require__(12);
-	var Clip_1 = __webpack_require__(52);
+	var Clip_1 = __webpack_require__(53);
 	var Stacker = (function (_super) {
 	    __extends(Stacker, _super);
 	    function Stacker(trackInfo) {
@@ -4495,7 +4796,7 @@
 
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4528,7 +4829,7 @@
 
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4616,7 +4917,7 @@
 
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4678,7 +4979,7 @@
 
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4742,7 +5043,7 @@
 
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4754,7 +5055,7 @@
 	var Input_1 = __webpack_require__(33);
 	var PixiEx_1 = __webpack_require__(35);
 	var Animk_1 = __webpack_require__(6);
-	var Button_1 = __webpack_require__(54);
+	var Button_1 = __webpack_require__(55);
 	var const_1 = __webpack_require__(12);
 	var Color_1 = __webpack_require__(40);
 	var TimestampBar = (function (_super) {
@@ -4811,7 +5112,7 @@
 	        var newTrackBtn = new Button_1.Button({ text: "new" });
 	        newTrackBtn.x = -100;
 	        newTrackBtn.on(PixiEx_1.PIXI_MOUSE_EVENT.down, function () {
-	            var dialog = __webpack_require__(55).remote.dialog;
+	            var dialog = __webpack_require__(56).remote.dialog;
 	            var ret = dialog.showOpenDialog({
 	                properties: ['openFile'], filters: [
 	                    { name: 'Images(png)', extensions: ['png'] },
@@ -4871,7 +5172,7 @@
 
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -4912,13 +5213,13 @@
 
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports) {
 
 	module.exports = require("electron");
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4936,276 +5237,6 @@
 	            });
 	        });
 	    });
-	};
-
-
-/***/ },
-/* 57 */
-/***/ function(module, exports) {
-
-	"use strict";
-	exports.createChecker = function (cellSize, colorA, colorB) {
-	    cellSize = (cellSize == null) ? 10 : cellSize;
-	    colorA = (colorA == null) ? '#fff' : colorA;
-	    colorB = (colorB == null) ? '#ccc' : colorB;
-	    var size = cellSize + cellSize;
-	    var checker = document.createElement('canvas');
-	    checker.width = checker.height = size;
-	    var context = checker.getContext('2d');
-	    context.fillStyle = colorB;
-	    context.fillRect(0, 0, size, size);
-	    context.fillStyle = colorA;
-	    context.fillRect(0, 0, cellSize, cellSize);
-	    context.fillRect(cellSize, cellSize, size, size);
-	    return checker;
-	};
-	exports.createBrushPointer = function (brushImage, brushSize, brushAngle, threshold, antialias, color) {
-	    brushSize = brushSize | 0;
-	    var pointer = document.createElement('canvas');
-	    var pointerContext = pointer.getContext('2d');
-	    if (brushSize == 0) {
-	        pointer.width = 1;
-	        pointer.height = 1;
-	        return pointer;
-	    }
-	    if (brushImage == null) {
-	        var halfSize = (brushSize * 0.5) | 0;
-	        pointer.width = brushSize;
-	        pointer.height = brushSize;
-	        pointerContext.fillStyle = '#000';
-	        pointerContext.beginPath();
-	        pointerContext.arc(halfSize, halfSize, halfSize, 0, Math.PI * 2);
-	        pointerContext.closePath();
-	        pointerContext.fill();
-	    }
-	    else {
-	        var width = brushSize;
-	        var height = brushSize * (brushImage.height / brushImage.width);
-	        var toRad = Math.PI / 180;
-	        var ra = brushAngle * toRad;
-	        var abs = Math.abs;
-	        var sin = Math.sin;
-	        var cos = Math.cos;
-	        var boundWidth = abs(height * sin(ra)) + abs(width * cos(ra));
-	        var boundHeight = abs(width * sin(ra)) + abs(height * cos(ra));
-	        pointer.width = boundWidth;
-	        pointer.height = boundHeight;
-	        pointerContext.save();
-	        pointerContext.translate(boundWidth * 0.5, boundHeight * 0.5);
-	        pointerContext.rotate(ra);
-	        pointerContext.translate(width * -0.5, height * -0.5);
-	        pointerContext.drawImage(brushImage, 0, 0, width, height);
-	        pointerContext.restore();
-	    }
-	    return exports.createAlphaThresholdBorder(pointer, threshold, antialias, color);
-	};
-	exports.createAlphaThresholdBorder = function (image, threshold, antialias, color) {
-	    threshold = (threshold == null) ? 0x80 : threshold;
-	    color = (color == null) ? '#000' : color;
-	    var width = image.width;
-	    var height = image.height;
-	    var canvas = document.createElement('canvas');
-	    var context = canvas.getContext('2d');
-	    canvas.width = width;
-	    canvas.height = height;
-	    try {
-	        context.drawImage(image, 0, 0, width, height);
-	    }
-	    catch (e) {
-	        return canvas;
-	    }
-	    var imageData = context.getImageData(0, 0, width, height);
-	    var d = imageData.data;
-	    function getAlphaIndex(index) {
-	        return d[index * 4 + 3];
-	    }
-	    function setRedIndex(index, red) {
-	        d[index * 4] = red;
-	    }
-	    function getRedXY(x, y) {
-	        var red = d[((y * width) + x) * 4];
-	        return red ? red : 0;
-	    }
-	    function getGreenXY(x, y) {
-	        var green = d[((y * width) + x) * 4 + 1];
-	        return green;
-	    }
-	    function setColorXY(x, y, red, green, alpha) {
-	        var i = ((y * width) + x) * 4;
-	        d[i] = red;
-	        d[i + 1] = green;
-	        d[i + 2] = 0;
-	        d[i + 3] = alpha;
-	    }
-	    var pixelCount = (d.length * 0.25) | 0;
-	    for (var i = 0; i < pixelCount; ++i)
-	        setRedIndex(i, (getAlphaIndex(i) < threshold) ? 0 : 1);
-	    var x;
-	    var y;
-	    for (x = 0; x < width; ++x) {
-	        for (y = 0; y < height; ++y) {
-	            if (!getRedXY(x, y)) {
-	                setColorXY(x, y, 0, 0, 0);
-	            }
-	            else {
-	                var redCount = 0;
-	                var left = x - 1;
-	                var right = x + 1;
-	                var up = y - 1;
-	                var down = y + 1;
-	                redCount += getRedXY(left, up);
-	                redCount += getRedXY(left, y);
-	                redCount += getRedXY(left, down);
-	                redCount += getRedXY(right, up);
-	                redCount += getRedXY(right, y);
-	                redCount += getRedXY(right, down);
-	                redCount += getRedXY(x, up);
-	                redCount += getRedXY(x, down);
-	                if (redCount != 8)
-	                    setColorXY(x, y, 1, 1, 255);
-	                else
-	                    setColorXY(x, y, 1, 0, 0);
-	            }
-	        }
-	    }
-	    if (antialias) {
-	        for (x = 0; x < width; ++x) {
-	            for (y = 0; y < height; ++y) {
-	                if (getGreenXY(x, y)) {
-	                    var alpha = 0;
-	                    if (getGreenXY(x - 1, y) != getGreenXY(x + 1, y))
-	                        setColorXY(x, y, 1, 1, alpha += 0x40);
-	                    if (getGreenXY(x, y - 1) != getGreenXY(x, y + 1))
-	                        setColorXY(x, y, 1, 1, alpha + 0x50);
-	                }
-	            }
-	        }
-	    }
-	    context.putImageData(imageData, 0, 0);
-	    context.globalCompositeOperation = 'source-in';
-	    context.fillStyle = color;
-	    context.fillRect(0, 0, width, height);
-	    return canvas;
-	};
-	exports.createFloodFill = function (canvas, x, y, r, g, b, a) {
-	    var result = document.createElement('canvas');
-	    var w = result.width = canvas.width;
-	    var h = result.height = canvas.height;
-	    if ((x < 0) || (x >= w) || (y < 0) || (y >= h) || !(r || g || b || a))
-	        return result;
-	    var originalContext = canvas.getContext('2d');
-	    var originalData = originalContext.getImageData(0, 0, w, h);
-	    var od = originalData.data;
-	    var resultContext = result.getContext('2d');
-	    var resultData = resultContext.getImageData(0, 0, w, h);
-	    var rd = resultData.data;
-	    var targetColor = getColor(x, y);
-	    var replacementColor = (r << 24) | (g << 16) | (b << 8) | a;
-	    function getColor(x, y) {
-	        var index = ((y * w) + x) * 4;
-	        return (rd[index] ? replacementColor :
-	            ((od[index] << 24) | (od[index + 1] << 16) |
-	                (od[index + 2] << 8) | od[index + 3]));
-	    }
-	    var queue = [];
-	    queue.push(x, y);
-	    while (queue.length) {
-	        var nx = queue.shift();
-	        var ny = queue.shift();
-	        if ((nx < 0) || (nx >= w) || (ny < 0) || (ny >= h) ||
-	            (getColor(nx, ny) !== targetColor))
-	            continue;
-	        var west, east;
-	        west = east = nx;
-	        do {
-	            var wc = getColor(--west, ny);
-	        } while ((west >= 0) && (wc === targetColor));
-	        do {
-	            var ec = getColor(++east, ny);
-	        } while ((east < w) && (ec === targetColor));
-	        for (var i = west + 1; i < east; ++i) {
-	            rd[((ny * w) + i) * 4] = 1;
-	            var north = ny - 1;
-	            var south = ny + 1;
-	            if (getColor(i, north) === targetColor)
-	                queue.push(i, north);
-	            if (getColor(i, south) === targetColor)
-	                queue.push(i, south);
-	        }
-	    }
-	    for (i = 0; i < w; ++i) {
-	        for (var j = 0; j < h; ++j) {
-	            var index = ((j * w) + i) * 4;
-	            if (rd[index] == 0)
-	                continue;
-	            rd[index] = r;
-	            rd[index + 1] = g;
-	            rd[index + 2] = b;
-	            rd[index + 3] = a;
-	        }
-	    }
-	    resultContext.putImageData(resultData, 0, 0);
-	    return result;
-	};
-	function colorToHex(color) {
-	    return '#' + color.toString(16);
-	}
-	exports.colorToHex = colorToHex;
-	;
-	exports.Random = { LFSR113: null };
-	exports.Random.LFSR113 = function (seed) {
-	    var IA = 16807;
-	    var IM = 2147483647;
-	    var IQ = 127773;
-	    var IR = 2836;
-	    var a, b, c, d, e;
-	    this.get = function () {
-	        var f = ((a << 6) ^ a) >> 13;
-	        a = ((a & 4294967294) << 18) ^ f;
-	        f = ((b << 2) ^ b) >> 27;
-	        b = ((b & 4294967288) << 2) ^ f;
-	        f = ((c << 13) ^ c) >> 21;
-	        c = ((c & 4294967280) << 7) ^ f;
-	        f = ((d << 3) ^ d) >> 12;
-	        d = ((d & 4294967168) << 13) ^ f;
-	        return (a ^ b ^ c ^ d) * 2.3283064365386963e-10 + 0.5;
-	    };
-	    seed |= 0;
-	    if (seed <= 0)
-	        seed = 1;
-	    e = (seed / IQ) | 0;
-	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
-	    if (seed < 0)
-	        seed = (seed + IM) | 0;
-	    if (seed < 2)
-	        a = (seed + 2) | 0;
-	    else
-	        a = seed;
-	    e = (seed / IQ) | 0;
-	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
-	    if (seed < 0)
-	        seed = (seed + IM) | 0;
-	    if (seed < 8)
-	        b = (seed + 8) | 0;
-	    else
-	        b = seed;
-	    e = (seed / IQ) | 0;
-	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
-	    if (seed < 0)
-	        seed = (seed + IM) | 0;
-	    if (seed < 16)
-	        c = (seed + 16) | 0;
-	    else
-	        c = seed;
-	    e = (seed / IQ) | 0;
-	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
-	    if (seed < 0)
-	        seed = (seed + IM) | 0;
-	    if (seed < 128)
-	        d = (seed + 128) | 0;
-	    else
-	        d = seed;
-	    this.get();
 	};
 
 
