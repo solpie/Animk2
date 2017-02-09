@@ -1,3 +1,4 @@
+import { colorToHex } from '../../../utils/anmkp/AnpUtil';
 import { Brush } from '../../../utils/anmkp/Brush';
 import { Painter } from '../../../utils/anmkp/Painter';
 import { input, InputEvent } from '../../../utils/Input';
@@ -6,7 +7,7 @@ export class PaintView {
     private painter: Painter
     private _x: number
     private _y: number
-    
+
     rectWidth: number
     rectHeight: number
 
@@ -40,6 +41,8 @@ export class PaintView {
 
         var moveFuncId = null, upFuncId = null
 
+    }
+    initEvent() {
         input.on(InputEvent.MOUSE_DOWN, (e) => {
             this.onDown(e)
         })
@@ -106,5 +109,9 @@ export class PaintView {
             x: (absoluteX - this.x) / this.painter.scale,
             y: (absoluteY - this.y) / this.painter.scale
         };
+    }
+
+    setBrushColor(color) {
+        this.painter.tool.setColor(colorToHex(color))
     }
 }

@@ -984,6 +984,7 @@
 	"use strict";
 	var EventDispatcher = (function () {
 	    function EventDispatcher() {
+	        this.isSort = false;
 	        this._func = {};
 	        this._funcId = 0;
 	    }
@@ -999,7 +1000,8 @@
 	            for (var i = 0; i < this._func[type].length; ++i) {
 	                var f = this._func[type][i];
 	                if (f)
-	                    f.func(param);
+	                    if (f.func(param))
+	                        break;
 	            }
 	    };
 	    EventDispatcher.prototype.del = function (type, funcId) {
@@ -2576,8 +2578,8 @@
 	            var c = s.charAt(j);
 	            if (c !== ' ') {
 	                var a;
-	                c == '.' ? a = 1 : a = Number(c) / 10;
-	                g.beginFill(color, a);
+	                c == '.' ? g.beginFill(color) :
+	                    g.beginFill(color, Number(c) / 10);
 	                g.drawRect(ofsX + j, ofsY + i, 1, 1);
 	            }
 	        }
@@ -2726,10 +2728,18 @@
 	                });
 	            }
 	        };
+	        ShortCut_1.keyDownMap['x'] = function () {
+	            _this.dockerColorPicker.toggleFgBg();
+	        };
 	        _this.dockerColorPicker = new ColorPicker_1.ColorPicker();
 	        _this.dockerColorPicker.x = 800;
 	        _this.dockerColorPicker.y = 10;
 	        _this.addChild(_this.dockerColorPicker);
+	        _this.dockerColorPicker.on(const_1.BaseEvent.CHANGED, function () {
+	            var color = _this.dockerColorPicker.getColor();
+	            _this.paintView.setBrushColor(color);
+	        });
+	        _this.paintView.initEvent();
 	        return _this;
 	    }
 	    Viewport.prototype.panCompView = function (e) {
@@ -2783,6 +2793,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var const_1 = __webpack_require__(12);
 	var Input_1 = __webpack_require__(33);
 	var PixiEx_1 = __webpack_require__(35);
 	var Docker_1 = __webpack_require__(39);
@@ -2800,6 +2811,14 @@
 	function mix(a, b, v) {
 	    return (1 - v) * a + v * b;
 	}
+	function angleDeg(p1, p2) {
+	    var angle = Math.atan2(p1.y - p2.y, p1.x - p2.x);
+	    angle = angle * 360 / (2 * Math.PI);
+	    if (angle < 0) {
+	        angle = angle + 360;
+	    }
+	    return angle;
+	}
 	function HSVtoRGB(H, S, V, isArray) {
 	    if (isArray === void 0) { isArray = false; }
 	    var V2 = V * (1 - S);
@@ -2812,14 +2831,27 @@
 	        Math.round(g * 255) * 0x0100
 	        + Math.round(b * 255);
 	}
+	function lineDistance(point1, point2) {
+	    var xs = 0;
+	    var ys = 0;
+	    xs = point2.x - point1.x;
+	    xs = xs * xs;
+	    ys = point2.y - point1.y;
+	    ys = ys * ys;
+	    return Math.sqrt(xs + ys);
+	}
 	var ColorPicker = (function (_super) {
 	    __extends(ColorPicker, _super);
 	    function ColorPicker() {
 	        var _this = _super.call(this) || this;
+	        _this._colorWheelRange = { inner: 0, outter: 0 };
 	        _this._colorMapWidth = 0;
+	        _this._isFg = true;
 	        _this._hueDeg = 0;
 	        _this._v = 1;
 	        _this._s = 1;
+	        _this._colorFg = { color: 0xff0000, hue: 0 };
+	        _this._colorBg = { color: 0, hue: 0 };
 	        _this._colorMap = new PIXI.Graphics();
 	        _this._colorWheel = new PIXI.Graphics();
 	        _this._cursorWheel = new PIXI.Graphics();
@@ -2828,10 +2860,11 @@
 	        _this.addChild(_this._colorWheel);
 	        _this.addChild(_this._cursorWheel);
 	        _this.addChild(_this._cursorMap);
+	        _this._initColorFgBg();
 	        _this._resizeColorMapWheel(_this.width - 150);
 	        _this._initCursor();
-	        _this._initColorFgBg();
 	        _this.setHue(0);
+	        _this.setBgColor(0);
 	        Input_1.input.on(Input_1.InputEvent.MOUSE_DOWN, function (e) {
 	            var mid = null, uid = null;
 	            var isin = PixiEx_1.isIn(e, _this._colorMap);
@@ -2846,27 +2879,79 @@
 	                    Input_1.input.del(Input_1.InputEvent.MOUSE_UP, uid);
 	                });
 	            }
+	            if (_this._onMoveWheel(e)) {
+	                var mid2_1 = null, uid2_1 = null;
+	                mid2_1 = Input_1.input.on(Input_1.InputEvent.MOUSE_MOVE, function (e) {
+	                    _this._onMoveWheel(e, true);
+	                });
+	                uid2_1 = Input_1.input.on(Input_1.InputEvent.MOUSE_UP, function (e) {
+	                    _this._onMoveWheel(e);
+	                    Input_1.input.del(Input_1.InputEvent.MOUSE_MOVE, mid2_1);
+	                    Input_1.input.del(Input_1.InputEvent.MOUSE_UP, uid2_1);
+	                });
+	            }
+	            return PixiEx_1.isIn(e, _this);
 	        });
 	        return _this;
 	    }
-	    ColorPicker.prototype._onMove = function (e) {
-	        var isin = PixiEx_1.isIn(e, this._colorMap);
-	        if (isin) {
-	            var pos = PixiEx_1.posInObj(this._colorMap, e);
-	            this._cursorMap.x = this._colorMap.x + pos.x - 3;
-	            this._cursorMap.y = this._colorMap.y + pos.y - 3;
-	            this._s = pos.x / this._colorMapWidth;
-	            this._v = 1 - pos.y / this._colorMapWidth;
-	            this._updateFg();
+	    ColorPicker.prototype._onMoveWheel = function (e, isMove) {
+	        if (isMove === void 0) { isMove = false; }
+	        var cpoint = { x: this._colorMap.x + this._colorMap.width * .5, y: this._colorMap.y + this._colorMap.height * .5 };
+	        var wheelPoint = PixiEx_1.posInObj(this, e);
+	        var r = lineDistance(wheelPoint, cpoint);
+	        if (isMove || r > this._colorWheelRange.inner && r < this._colorWheelRange.outter) {
+	            var d = angleDeg(wheelPoint, cpoint) + 135;
+	            if (d > 360) {
+	                d -= 360;
+	            }
+	            this.setHue(d);
+	            return true;
 	        }
+	        return false;
+	    };
+	    ColorPicker.prototype._onMove = function (e) {
+	        var pos = PixiEx_1.posInObj(this._colorMap, e);
+	        if (pos.x < 0)
+	            pos.x = 0;
+	        else if (pos.x > this._colorMap.width - 1)
+	            pos.x = this._colorMap.width - 1;
+	        if (pos.y < 0)
+	            pos.y = 0;
+	        else if (pos.y > this._colorMap.height - 1)
+	            pos.y = this._colorMap.height - 1;
+	        this._cursorMap.x = this._colorMap.x + pos.x - 3;
+	        this._cursorMap.y = this._colorMap.y + pos.y - 3;
+	        this._s = pos.x / this._colorMapWidth;
+	        this._v = 1 - pos.y / this._colorMapWidth;
+	        this._updateFg();
+	    };
+	    ColorPicker.prototype.toggleFgBg = function () {
+	        this._isFg = !this._isFg;
+	        this._isFg ? this._frameFg() : this._frameBg();
 	    };
 	    ColorPicker.prototype._initColorFgBg = function () {
-	        this._colorFg = new PIXI.Graphics;
-	        this.addChild(this._colorFg);
-	        this._colorFg.x = 5;
-	        this._colorFg.y = 155;
+	        this._gFgBgFrame = PixiEx_1.PIXI_RECT(0, 0, 0, 15, 15);
+	        this._gFgBgFrame.beginFill(0xffffff)
+	            .drawRect(1, 1, 13, 13)
+	            .cacheAsBitmap = true;
+	        this._gColorFg = new PIXI.Graphics;
+	        this._gColorFg.x = 10;
+	        this._gColorFg.y = 240;
+	        this._gColorBg = new PIXI.Graphics;
+	        this.addChild(this._gFgBgFrame);
+	        this.addChild(this._gColorBg);
+	        this.addChild(this._gColorFg);
+	        this._gColorBg.x = this._gColorFg.x + 20;
+	        this._gColorBg.y = this._gColorFg.y + 20;
+	        this._frameFg();
 	    };
-	    ColorPicker.prototype.setRgb = function (rgb) {
+	    ColorPicker.prototype._frameFg = function () {
+	        this._gFgBgFrame.x = this._gColorFg.x - 2;
+	        this._gFgBgFrame.y = this._gColorFg.y - 2;
+	    };
+	    ColorPicker.prototype._frameBg = function () {
+	        this._gFgBgFrame.x = this._gColorBg.x + 22;
+	        this._gFgBgFrame.y = this._gColorBg.y + 22;
 	    };
 	    ColorPicker.prototype._initCursor = function () {
 	        var b = [
@@ -2888,6 +2973,8 @@
 	        PixiEx_1.PIXI_MakeMatrixGraphics(b, 0, this._cursorMap);
 	        PixiEx_1.PIXI_MakeMatrixGraphics(w, 0xffffff, this._cursorMap, 1, 1);
 	        this._cursorMap.cacheAsBitmap = true;
+	        this._cursorMap.x = this._colorMap.x + this._colorMap.width - 1 - 3;
+	        this._cursorMap.y = this._colorMap.y - 3;
 	    };
 	    ColorPicker.prototype.resize = function (width, height) {
 	        _super.prototype.resize.call(this, width, height);
@@ -2897,12 +2984,33 @@
 	        this._hueDeg = v;
 	        this._cursorWheel.rotation = (v - 135) * PIXI.DEG_TO_RAD;
 	        this._updateMap();
+	        this._updateFg();
 	    };
 	    ColorPicker.prototype.getColor = function () {
+	        if (this._isFg)
+	            return this._colorFg.color;
+	        return this._colorBg.color;
+	    };
+	    ColorPicker.prototype.setFgColor = function (color, hue) {
+	        this._colorFg.color = color;
+	        if (hue != null)
+	            this._colorBg.hue = hue;
+	        else
+	            this._colorBg.hue = 0;
+	        this._gColorFg.beginFill(color)
+	            .drawRect(0, 0, 35, 35);
+	    };
+	    ColorPicker.prototype.setBgColor = function (color) {
+	        this._gColorBg.beginFill(color)
+	            .drawRect(0, 0, 35, 35);
 	    };
 	    ColorPicker.prototype._updateFg = function () {
-	        this._colorFg.beginFill(HSVtoRGB(this._hueDeg, this._s, this._v))
-	            .drawRect(0, 0, 35, 35);
+	        var c = HSVtoRGB(this._hueDeg, this._s, this._v);
+	        if (this._isFg)
+	            this.setFgColor(c);
+	        else
+	            this.setBgColor(c);
+	        this.emit(const_1.BaseEvent.CHANGED);
 	    };
 	    ColorPicker.prototype._updateMap = function (width) {
 	        var w;
@@ -2944,9 +3052,11 @@
 	            var startDeg = i - 90 - 45;
 	            this._colorWheel.arc(cx, cx, r, startDeg * PIXI.DEG_TO_RAD, (startDeg + 1.1) * PIXI.DEG_TO_RAD);
 	        }
+	        this._colorWheelRange.inner = r - wheelWidth * .5;
+	        this._colorWheelRange.outter = this._colorWheelRange.inner + wheelWidth;
 	        this._colorWheel.lineStyle(3, 0)
-	            .drawCircle(cx, cx, r - wheelWidth * .5)
-	            .drawCircle(cx, cx, r + wheelWidth * .5)
+	            .drawCircle(cx, cx, this._colorWheelRange.inner)
+	            .drawCircle(cx, cx, this._colorWheelRange.outter)
 	            .cacheAsBitmap = true;
 	        r = r - 10;
 	        this._cursorWheel.clear()
@@ -3022,12 +3132,12 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	var AnpUtil_1 = __webpack_require__(57);
 	var Brush_1 = __webpack_require__(42);
 	var Painter_1 = __webpack_require__(43);
 	var Input_1 = __webpack_require__(33);
 	var PaintView = (function () {
 	    function PaintView(width, height) {
-	        var _this = this;
 	        this.parentRect = { x: 0, y: 0, w: 0, h: 0 };
 	        this.moveFuncId = null;
 	        this.upFuncId = null;
@@ -3047,13 +3157,16 @@
 	        painter.setToolStabilizeWeight(0.5);
 	        document.body.appendChild(painter.$el);
 	        var moveFuncId = null, upFuncId = null;
-	        Input_1.input.on(Input_1.InputEvent.MOUSE_DOWN, function (e) {
-	            _this.onDown(e);
-	        });
 	    }
 	    PaintView.prototype.setParentRect = function (options) {
 	        if (options.height)
 	            this.parentRect.h = options.height;
+	    };
+	    PaintView.prototype.initEvent = function () {
+	        var _this = this;
+	        Input_1.input.on(Input_1.InputEvent.MOUSE_DOWN, function (e) {
+	            _this.onDown(e);
+	        });
 	    };
 	    PaintView.prototype.updateShowRect = function () {
 	        this.rectHeight = this.parentRect.h - this.y;
@@ -3110,6 +3223,9 @@
 	            x: (absoluteX - this.x) / this.painter.scale,
 	            y: (absoluteY - this.y) / this.painter.scale
 	        };
+	    };
+	    PaintView.prototype.setBrushColor = function (color) {
+	        this.painter.tool.setColor(AnpUtil_1.colorToHex(color));
 	    };
 	    return PaintView;
 	}());
@@ -4820,6 +4936,276 @@
 	            });
 	        });
 	    });
+	};
+
+
+/***/ },
+/* 57 */
+/***/ function(module, exports) {
+
+	"use strict";
+	exports.createChecker = function (cellSize, colorA, colorB) {
+	    cellSize = (cellSize == null) ? 10 : cellSize;
+	    colorA = (colorA == null) ? '#fff' : colorA;
+	    colorB = (colorB == null) ? '#ccc' : colorB;
+	    var size = cellSize + cellSize;
+	    var checker = document.createElement('canvas');
+	    checker.width = checker.height = size;
+	    var context = checker.getContext('2d');
+	    context.fillStyle = colorB;
+	    context.fillRect(0, 0, size, size);
+	    context.fillStyle = colorA;
+	    context.fillRect(0, 0, cellSize, cellSize);
+	    context.fillRect(cellSize, cellSize, size, size);
+	    return checker;
+	};
+	exports.createBrushPointer = function (brushImage, brushSize, brushAngle, threshold, antialias, color) {
+	    brushSize = brushSize | 0;
+	    var pointer = document.createElement('canvas');
+	    var pointerContext = pointer.getContext('2d');
+	    if (brushSize == 0) {
+	        pointer.width = 1;
+	        pointer.height = 1;
+	        return pointer;
+	    }
+	    if (brushImage == null) {
+	        var halfSize = (brushSize * 0.5) | 0;
+	        pointer.width = brushSize;
+	        pointer.height = brushSize;
+	        pointerContext.fillStyle = '#000';
+	        pointerContext.beginPath();
+	        pointerContext.arc(halfSize, halfSize, halfSize, 0, Math.PI * 2);
+	        pointerContext.closePath();
+	        pointerContext.fill();
+	    }
+	    else {
+	        var width = brushSize;
+	        var height = brushSize * (brushImage.height / brushImage.width);
+	        var toRad = Math.PI / 180;
+	        var ra = brushAngle * toRad;
+	        var abs = Math.abs;
+	        var sin = Math.sin;
+	        var cos = Math.cos;
+	        var boundWidth = abs(height * sin(ra)) + abs(width * cos(ra));
+	        var boundHeight = abs(width * sin(ra)) + abs(height * cos(ra));
+	        pointer.width = boundWidth;
+	        pointer.height = boundHeight;
+	        pointerContext.save();
+	        pointerContext.translate(boundWidth * 0.5, boundHeight * 0.5);
+	        pointerContext.rotate(ra);
+	        pointerContext.translate(width * -0.5, height * -0.5);
+	        pointerContext.drawImage(brushImage, 0, 0, width, height);
+	        pointerContext.restore();
+	    }
+	    return exports.createAlphaThresholdBorder(pointer, threshold, antialias, color);
+	};
+	exports.createAlphaThresholdBorder = function (image, threshold, antialias, color) {
+	    threshold = (threshold == null) ? 0x80 : threshold;
+	    color = (color == null) ? '#000' : color;
+	    var width = image.width;
+	    var height = image.height;
+	    var canvas = document.createElement('canvas');
+	    var context = canvas.getContext('2d');
+	    canvas.width = width;
+	    canvas.height = height;
+	    try {
+	        context.drawImage(image, 0, 0, width, height);
+	    }
+	    catch (e) {
+	        return canvas;
+	    }
+	    var imageData = context.getImageData(0, 0, width, height);
+	    var d = imageData.data;
+	    function getAlphaIndex(index) {
+	        return d[index * 4 + 3];
+	    }
+	    function setRedIndex(index, red) {
+	        d[index * 4] = red;
+	    }
+	    function getRedXY(x, y) {
+	        var red = d[((y * width) + x) * 4];
+	        return red ? red : 0;
+	    }
+	    function getGreenXY(x, y) {
+	        var green = d[((y * width) + x) * 4 + 1];
+	        return green;
+	    }
+	    function setColorXY(x, y, red, green, alpha) {
+	        var i = ((y * width) + x) * 4;
+	        d[i] = red;
+	        d[i + 1] = green;
+	        d[i + 2] = 0;
+	        d[i + 3] = alpha;
+	    }
+	    var pixelCount = (d.length * 0.25) | 0;
+	    for (var i = 0; i < pixelCount; ++i)
+	        setRedIndex(i, (getAlphaIndex(i) < threshold) ? 0 : 1);
+	    var x;
+	    var y;
+	    for (x = 0; x < width; ++x) {
+	        for (y = 0; y < height; ++y) {
+	            if (!getRedXY(x, y)) {
+	                setColorXY(x, y, 0, 0, 0);
+	            }
+	            else {
+	                var redCount = 0;
+	                var left = x - 1;
+	                var right = x + 1;
+	                var up = y - 1;
+	                var down = y + 1;
+	                redCount += getRedXY(left, up);
+	                redCount += getRedXY(left, y);
+	                redCount += getRedXY(left, down);
+	                redCount += getRedXY(right, up);
+	                redCount += getRedXY(right, y);
+	                redCount += getRedXY(right, down);
+	                redCount += getRedXY(x, up);
+	                redCount += getRedXY(x, down);
+	                if (redCount != 8)
+	                    setColorXY(x, y, 1, 1, 255);
+	                else
+	                    setColorXY(x, y, 1, 0, 0);
+	            }
+	        }
+	    }
+	    if (antialias) {
+	        for (x = 0; x < width; ++x) {
+	            for (y = 0; y < height; ++y) {
+	                if (getGreenXY(x, y)) {
+	                    var alpha = 0;
+	                    if (getGreenXY(x - 1, y) != getGreenXY(x + 1, y))
+	                        setColorXY(x, y, 1, 1, alpha += 0x40);
+	                    if (getGreenXY(x, y - 1) != getGreenXY(x, y + 1))
+	                        setColorXY(x, y, 1, 1, alpha + 0x50);
+	                }
+	            }
+	        }
+	    }
+	    context.putImageData(imageData, 0, 0);
+	    context.globalCompositeOperation = 'source-in';
+	    context.fillStyle = color;
+	    context.fillRect(0, 0, width, height);
+	    return canvas;
+	};
+	exports.createFloodFill = function (canvas, x, y, r, g, b, a) {
+	    var result = document.createElement('canvas');
+	    var w = result.width = canvas.width;
+	    var h = result.height = canvas.height;
+	    if ((x < 0) || (x >= w) || (y < 0) || (y >= h) || !(r || g || b || a))
+	        return result;
+	    var originalContext = canvas.getContext('2d');
+	    var originalData = originalContext.getImageData(0, 0, w, h);
+	    var od = originalData.data;
+	    var resultContext = result.getContext('2d');
+	    var resultData = resultContext.getImageData(0, 0, w, h);
+	    var rd = resultData.data;
+	    var targetColor = getColor(x, y);
+	    var replacementColor = (r << 24) | (g << 16) | (b << 8) | a;
+	    function getColor(x, y) {
+	        var index = ((y * w) + x) * 4;
+	        return (rd[index] ? replacementColor :
+	            ((od[index] << 24) | (od[index + 1] << 16) |
+	                (od[index + 2] << 8) | od[index + 3]));
+	    }
+	    var queue = [];
+	    queue.push(x, y);
+	    while (queue.length) {
+	        var nx = queue.shift();
+	        var ny = queue.shift();
+	        if ((nx < 0) || (nx >= w) || (ny < 0) || (ny >= h) ||
+	            (getColor(nx, ny) !== targetColor))
+	            continue;
+	        var west, east;
+	        west = east = nx;
+	        do {
+	            var wc = getColor(--west, ny);
+	        } while ((west >= 0) && (wc === targetColor));
+	        do {
+	            var ec = getColor(++east, ny);
+	        } while ((east < w) && (ec === targetColor));
+	        for (var i = west + 1; i < east; ++i) {
+	            rd[((ny * w) + i) * 4] = 1;
+	            var north = ny - 1;
+	            var south = ny + 1;
+	            if (getColor(i, north) === targetColor)
+	                queue.push(i, north);
+	            if (getColor(i, south) === targetColor)
+	                queue.push(i, south);
+	        }
+	    }
+	    for (i = 0; i < w; ++i) {
+	        for (var j = 0; j < h; ++j) {
+	            var index = ((j * w) + i) * 4;
+	            if (rd[index] == 0)
+	                continue;
+	            rd[index] = r;
+	            rd[index + 1] = g;
+	            rd[index + 2] = b;
+	            rd[index + 3] = a;
+	        }
+	    }
+	    resultContext.putImageData(resultData, 0, 0);
+	    return result;
+	};
+	function colorToHex(color) {
+	    return '#' + color.toString(16);
+	}
+	exports.colorToHex = colorToHex;
+	;
+	exports.Random = { LFSR113: null };
+	exports.Random.LFSR113 = function (seed) {
+	    var IA = 16807;
+	    var IM = 2147483647;
+	    var IQ = 127773;
+	    var IR = 2836;
+	    var a, b, c, d, e;
+	    this.get = function () {
+	        var f = ((a << 6) ^ a) >> 13;
+	        a = ((a & 4294967294) << 18) ^ f;
+	        f = ((b << 2) ^ b) >> 27;
+	        b = ((b & 4294967288) << 2) ^ f;
+	        f = ((c << 13) ^ c) >> 21;
+	        c = ((c & 4294967280) << 7) ^ f;
+	        f = ((d << 3) ^ d) >> 12;
+	        d = ((d & 4294967168) << 13) ^ f;
+	        return (a ^ b ^ c ^ d) * 2.3283064365386963e-10 + 0.5;
+	    };
+	    seed |= 0;
+	    if (seed <= 0)
+	        seed = 1;
+	    e = (seed / IQ) | 0;
+	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
+	    if (seed < 0)
+	        seed = (seed + IM) | 0;
+	    if (seed < 2)
+	        a = (seed + 2) | 0;
+	    else
+	        a = seed;
+	    e = (seed / IQ) | 0;
+	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
+	    if (seed < 0)
+	        seed = (seed + IM) | 0;
+	    if (seed < 8)
+	        b = (seed + 8) | 0;
+	    else
+	        b = seed;
+	    e = (seed / IQ) | 0;
+	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
+	    if (seed < 0)
+	        seed = (seed + IM) | 0;
+	    if (seed < 16)
+	        c = (seed + 16) | 0;
+	    else
+	        c = seed;
+	    e = (seed / IQ) | 0;
+	    seed = (((IA * (seed - ((e * IQ) | 0))) | 0) - ((IR * e) | 0)) | 0;
+	    if (seed < 0)
+	        seed = (seed + IM) | 0;
+	    if (seed < 128)
+	        d = (seed + 128) | 0;
+	    else
+	        d = seed;
+	    this.get();
 	};
 
 

@@ -278,8 +278,8 @@ export const PIXI_MakeMatrixGraphics = (alphaM: Array<string>, color: number, g:
             var c = s.charAt(j)
             if (c !== ' ') {
                 var a
-                c == '.' ? a = 1 : a = Number(c) / 10;
-                g.beginFill(color, a)
+                c == '.' ? g.beginFill(color) :
+                    g.beginFill(color, Number(c) / 10)
                 g.drawRect(ofsX + j, ofsY + i, 1, 1)
             }
         }

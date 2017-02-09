@@ -1,6 +1,7 @@
+import { BaseEvent } from '../../const';
 import { input, InputEvent } from '../../../utils/Input';
 import { isArray } from 'util';
-import { imgToTex, isIn, PIXI_MakeMatrixGraphics, PIXI_MOUSE_EVENT, posInObj } from '../../../utils/PixiEx';
+import { imgToTex, isIn, PIXI_MakeMatrixGraphics, PIXI_MOUSE_EVENT, PIXI_RECT, posInObj } from '../../../utils/PixiEx';
 import { Docker } from '../Docker';
 function mixRGB(color1, color2, weight, value = 1) {
     var p = weight;
@@ -19,13 +20,22 @@ function mixRGB(color1, color2, weight, value = 1) {
 function mix(a, b, v) {
     return (1 - v) * a + v * b;
 }
+function angleDeg(p1, p2) {
+    let angle = Math.atan2(p1.y - p2.y, p1.x - p2.x)
+    angle = angle * 360 / (2 * Math.PI);
+    if (angle < 0) {
+        angle = angle + 360;
+    }
+    return angle
+    // return Math.atan2(p2.y - p1.y, p2.x - p1.x) * 360 / Math.PI;
+}
+
 //0 <= h<=360, s, v <= 1
 function HSVtoRGB(H, S, V, isArray = false): any {
     var V2 = V * (1 - S);
     var r = ((H >= 0 && H <= 60) || (H >= 300 && H <= 360)) ? V : ((H >= 120 && H <= 240) ? V2 : ((H >= 60 && H <= 120) ? mix(V, V2, (H - 60) / 60) : ((H >= 240 && H <= 300) ? mix(V2, V, (H - 240) / 60) : 0)));
     var g = (H >= 60 && H <= 180) ? V : ((H >= 240 && H <= 360) ? V2 : ((H >= 0 && H <= 60) ? mix(V2, V, H / 60) : ((H >= 180 && H <= 240) ? mix(V, V2, (H - 180) / 60) : 0)));
     var b = (H >= 0 && H <= 120) ? V2 : ((H >= 180 && H <= 300) ? V : ((H >= 120 && H <= 180) ? mix(V2, V, (H - 120) / 60) : ((H >= 300 && H <= 360) ? mix(V, V2, (H - 300) / 60) : 0)));
-
     // return {
     //     r: Math.round(r * 255),
     //     g: Math.round(g * 255),
@@ -38,35 +48,54 @@ function HSVtoRGB(H, S, V, isArray = false): any {
         + Math.round(b * 255)
 }
 
-export class ColorPicker extends Docker {
-    _colorMap: PIXI.Graphics
-    _colorWheel: PIXI.Graphics
-    _colorFg: PIXI.Graphics
-    _colorBg: PIXI.Graphics
-    _cursorWheel: PIXI.Graphics
-    _cursorMap: PIXI.Graphics
-    _colorMapWidth = 0
+function lineDistance(point1, point2) {
+    var xs = 0;
+    var ys = 0;
+    xs = point2.x - point1.x;
+    xs = xs * xs;
 
-    _hueDeg = 0;
-    _v = 1
-    _s = 1
+    ys = point2.y - point1.y;
+    ys = ys * ys;
+
+    return Math.sqrt(xs + ys);
+}
+export class ColorPicker extends Docker {
+    private _colorMap: PIXI.Graphics
+    private _colorWheel: PIXI.Graphics
+    private _colorWheelRange = { inner: 0, outter: 0 }
+    private _gColorFg: PIXI.Graphics
+    private _gColorBg: PIXI.Graphics
+    private _cursorWheel: PIXI.Graphics
+    private _cursorMap: PIXI.Graphics
+    private _gFgBgFrame: PIXI.Graphics
+
+    private _colorMapWidth = 0
+    private _isFg = true
+
+    private _hueDeg = 0;
+    private _v = 1
+    private _s = 1
+    private _colorFg = { color: 0xff0000, hue: 0 }
+    private _colorBg = { color: 0, hue: 0 }
     constructor() {
         super()
         this._colorMap = new PIXI.Graphics()
         this._colorWheel = new PIXI.Graphics()
         this._cursorWheel = new PIXI.Graphics()
         this._cursorMap = new PIXI.Graphics()
+
         this.addChild(this._colorMap)
         this.addChild(this._colorWheel)
         this.addChild(this._cursorWheel)
         this.addChild(this._cursorMap)
+        this._initColorFgBg()
+
         this._resizeColorMapWheel(this.width - 150)
         this._initCursor()
 
-        this._initColorFgBg()
 
         this.setHue(0)
-
+        this.setBgColor(0)
         // this.interactive = true
         // this.on(PIXI_MOUSE_EVENT.down, () => {
         //     console.log('colorMap down')
@@ -85,7 +114,20 @@ export class ColorPicker extends Docker {
                     input.del(InputEvent.MOUSE_UP, uid)
                 })
             }
+            if (this._onMoveWheel(e)) {
+                let mid2 = null, uid2 = null
+                mid2 = input.on(InputEvent.MOUSE_MOVE, (e) => {
+                    this._onMoveWheel(e, true)
+                })
+                uid2 = input.on(InputEvent.MOUSE_UP, (e) => {
+                    this._onMoveWheel(e)
+                    input.del(InputEvent.MOUSE_MOVE, mid2)
+                    input.del(InputEvent.MOUSE_UP, uid2)
+                })
+            }
+            return isIn(e, this)
         })
+
         ///
         // var h = 0
         // setInterval(() => {
@@ -94,25 +136,69 @@ export class ColorPicker extends Docker {
         //     this.setHue(h++)
         // }, 50)
     }
-    _onMove(e) {
-        let isin = isIn(e, this._colorMap)
-        if (isin) {
-            let pos = posInObj(this._colorMap, e)
-            this._cursorMap.x = this._colorMap.x + pos.x - 3
-            this._cursorMap.y = this._colorMap.y + pos.y - 3
-            this._s = pos.x / this._colorMapWidth
-            this._v = 1 - pos.y / this._colorMapWidth
-            this._updateFg()
+    private _onMoveWheel(e, isMove = false) {
+        let cpoint = { x: this._colorMap.x + this._colorMap.width * .5, y: this._colorMap.y + this._colorMap.height * .5 }
+        let wheelPoint = posInObj(this, e)
+        let r = lineDistance(wheelPoint, cpoint)
+        // console.log('lineDistance', r)
+        if (isMove || r > this._colorWheelRange.inner && r < this._colorWheelRange.outter) {
+            let d = angleDeg(wheelPoint, cpoint) + 135
+            if (d > 360) {
+                d -= 360
+            }
+            this.setHue(d)
+            return true
         }
+        return false
     }
-    _initColorFgBg() {
-        this._colorFg = new PIXI.Graphics
-        this.addChild(this._colorFg)
-        this._colorFg.x = 5
-        this._colorFg.y = 155
-    }
-    setRgb(rgb: Array<Number>) {
+    private _onMove(e) {
+        let pos = posInObj(this._colorMap, e)
+        if (pos.x < 0)
+            pos.x = 0
+        else if (pos.x > this._colorMap.width - 1)
+            pos.x = this._colorMap.width - 1
+        if (pos.y < 0)
+            pos.y = 0
+        else if (pos.y > this._colorMap.height - 1)
+            pos.y = this._colorMap.height - 1
 
+        this._cursorMap.x = this._colorMap.x + pos.x - 3
+        this._cursorMap.y = this._colorMap.y + pos.y - 3
+        this._s = pos.x / this._colorMapWidth
+        this._v = 1 - pos.y / this._colorMapWidth
+        this._updateFg()
+    }
+
+    toggleFgBg() {
+        this._isFg = !this._isFg
+        this._isFg ? this._frameFg() : this._frameBg()
+    }
+
+    private _initColorFgBg() {
+        this._gFgBgFrame = PIXI_RECT(0, 0, 0, 15, 15)
+        this._gFgBgFrame.beginFill(0xffffff)
+            .drawRect(1, 1, 13, 13)
+            .cacheAsBitmap = true
+        this._gColorFg = new PIXI.Graphics
+        this._gColorFg.x = 10
+        this._gColorFg.y = 240
+
+        this._gColorBg = new PIXI.Graphics
+        this.addChild(this._gFgBgFrame)
+        this.addChild(this._gColorBg)
+        this.addChild(this._gColorFg)
+
+        this._gColorBg.x = this._gColorFg.x + 20
+        this._gColorBg.y = this._gColorFg.y + 20
+        this._frameFg()
+    }
+    private _frameFg() {
+        this._gFgBgFrame.x = this._gColorFg.x - 2
+        this._gFgBgFrame.y = this._gColorFg.y - 2
+    }
+    private _frameBg() {
+        this._gFgBgFrame.x = this._gColorBg.x + 22// + 2
+        this._gFgBgFrame.y = this._gColorBg.y + 22// + 2
     }
     private _initCursor() {
         let b = [
@@ -134,6 +220,8 @@ export class ColorPicker extends Docker {
         PIXI_MakeMatrixGraphics(b, 0, this._cursorMap)
         PIXI_MakeMatrixGraphics(w, 0xffffff, this._cursorMap, 1, 1)
         this._cursorMap.cacheAsBitmap = true
+        this._cursorMap.x = this._colorMap.x + this._colorMap.width - 1 - 3
+        this._cursorMap.y = this._colorMap.y - 3
     }
 
     resize(width, height) {
@@ -145,15 +233,39 @@ export class ColorPicker extends Docker {
         this._hueDeg = v
         this._cursorWheel.rotation = (v - 135) * PIXI.DEG_TO_RAD
         this._updateMap()
+        this._updateFg()
     }
+
     getColor() {
-        // return HSVtoRGB(this._hueDeg, 1, 1)
+        if (this._isFg)
+            return this._colorFg.color
+        return this._colorBg.color
     }
-    _updateFg() {
-        this._colorFg.beginFill(HSVtoRGB(this._hueDeg, this._s, this._v))
+
+    setFgColor(color, hue?) {
+        this._colorFg.color = color
+        if (hue != null)
+            this._colorBg.hue = hue
+        else
+            this._colorBg.hue = 0
+
+        this._gColorFg.beginFill(color)
             .drawRect(0, 0, 35, 35)
     }
-    _updateMap(width?) {
+    setBgColor(color) {
+        this._gColorBg.beginFill(color)
+            .drawRect(0, 0, 35, 35)
+    }
+
+    private _updateFg() {
+        let c = HSVtoRGB(this._hueDeg, this._s, this._v)
+        if (this._isFg)
+            this.setFgColor(c)
+        else
+            this.setBgColor(c)
+        this.emit(BaseEvent.CHANGED)
+    }
+    private _updateMap(width?) {
         var w;
         if (width != null)
             w = this._colorMapWidth = width
@@ -178,7 +290,7 @@ export class ColorPicker extends Docker {
             .cacheAsBitmap = true
     }
 
-    _resizeColorMapWheel(width) {
+    private _resizeColorMapWheel(width) {
         var w = width
         this._updateMap(width)
         var wheelWidth = 20
@@ -195,9 +307,11 @@ export class ColorPicker extends Docker {
             var startDeg = i - 90 - 45
             this._colorWheel.arc(cx, cx, r, startDeg * PIXI.DEG_TO_RAD, (startDeg + 1.1) * PIXI.DEG_TO_RAD)
         }
+        this._colorWheelRange.inner = r - wheelWidth * .5
+        this._colorWheelRange.outter = this._colorWheelRange.inner + wheelWidth
         this._colorWheel.lineStyle(3, 0)
-            .drawCircle(cx, cx, r - wheelWidth * .5)
-            .drawCircle(cx, cx, r + wheelWidth * .5)
+            .drawCircle(cx, cx, this._colorWheelRange.inner)
+            .drawCircle(cx, cx, this._colorWheelRange.outter)
             .cacheAsBitmap = true
 
         r = r - 10

@@ -13,6 +13,7 @@ export const InputEvent = {
 class Input extends EventDispatcher {
     isKeyPress = false
     isMousePress = false
+    
 }
 export const input = new Input()
 window.onmousedown = (e) => {

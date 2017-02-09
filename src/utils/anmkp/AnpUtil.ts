@@ -210,6 +210,10 @@ export const createFloodFill = function (canvas, x, y, r, g, b, a) {
     resultContext.putImageData(resultData, 0, 0);
     return result;
 }
+export function colorToHex(color) {
+    return '#' + color.toString(16);
+};
+
 export const Random = { LFSR113: null }
 Random.LFSR113 = function (seed) {
     var IA = 16807;

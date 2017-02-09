@@ -7,14 +7,14 @@ import { ImageLayerInfo } from '../../model/tm/ImageLayerInfo';
 import { PaintCanvas } from './PaintCanvas';
 import { Curosr, input, InputEvent, setCursor } from '../../../utils/Input';
 import { imgToTex, PIXI_MOUSE_EVENT, posInObj, setPivot } from '../../../utils/PixiEx';
-import { ViewConst } from '../../const';
+import { BaseEvent, ViewConst } from '../../const';
 import { CompView } from './CompView';
 export class Viewport extends PIXI.Container {
     compView: CompView
     paintView: PaintView
     zoomStep = 0.20
     _h: number
-    dockerColorPicker:ColorPicker
+    dockerColorPicker: ColorPicker
     constructor(compRender) {
         super()
         this.paintView = new PaintView(ViewConst.COMP_WIDTH, ViewConst.COMP_HEIGHT)
@@ -46,6 +46,9 @@ export class Viewport extends PIXI.Container {
                 })
             }
         }
+        keyDownMap['x'] = () => {
+            this.dockerColorPicker.toggleFgBg()
+        }
         //     else if (e.key == "r" && e.ctrlKey) {
         //         console.log('render')
         //         // let sp = new PIXI.Sprite(imgToTex(this.paintCanvas.getImg()))
@@ -55,9 +58,14 @@ export class Viewport extends PIXI.Container {
         // this.painter = new Painter()
         // document.body.appendChild(this.painter.paintingCanvas)
         this.dockerColorPicker = new ColorPicker()
-        this.dockerColorPicker.x =800
-        this.dockerColorPicker.y =10
+        this.dockerColorPicker.x = 800
+        this.dockerColorPicker.y = 10
         this.addChild(this.dockerColorPicker)
+        this.dockerColorPicker.on(BaseEvent.CHANGED, () => {
+            let color = this.dockerColorPicker.getColor()
+            this.paintView.setBrushColor(color)
+        })
+        this.paintView.initEvent()
     }
     lastX = null
     lastY = null
@@ -103,6 +111,6 @@ export class Viewport extends PIXI.Container {
         this._h = height
         // this.paintView.setParentRect({height:height})
         // this.paintView.updateShowRect()
-        
+
     }
 }

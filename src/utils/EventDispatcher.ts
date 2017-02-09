@@ -1,13 +1,13 @@
 export class EventDispatcher {
-    _func:Object;
-    _funcId:number;
-
+    _func: Object;
+    _funcId: number;
+    isSort = false
     constructor() {
         this._func = {};
         this._funcId = 0;
     }
 
-    on(type:any, func) {
+    on(type: any, func) {
         if (!this._func[type])
             this._func[type] = [];
         this._funcId++;
@@ -15,16 +15,17 @@ export class EventDispatcher {
         return this._funcId
     }
 
-    emit(type:any, param?) {
+    emit(type: any, param?) {
         if (this._func[type])
             for (var i = 0; i < this._func[type].length; ++i) {
                 var f = this._func[type][i];
                 if (f)
-                    f.func(param);
+                    if (f.func(param))
+                        break;
             }
     }
 
-    del(type:string, funcId:number = -1) {
+    del(type: string, funcId: number = -1) {
         if (this._func[type])
             if (funcId < 0) {
                 this._func[type] = [];
