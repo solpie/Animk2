@@ -210,8 +210,14 @@ export const createFloodFill = function (canvas, x, y, r, g, b, a) {
     resultContext.putImageData(resultData, 0, 0);
     return result;
 }
+function paddy(n, p, c?) {
+    var pad_char = typeof c !== 'undefined' ? c : '0';
+    var pad = new Array(1 + p).join(pad_char);
+    return (pad + n).slice(-pad.length);
+}
 export function colorToHex(color) {
-    return '#' + color.toString(16);
+    console.log('#' + color.toString(16));
+    return '#' + paddy(color.toString(16), 6);
 };
 
 export const Random = { LFSR113: null }

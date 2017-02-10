@@ -2110,8 +2110,25 @@
 	        var _this = _super !== null && _super.apply(this, arguments) || this;
 	        _this.isKeyPress = false;
 	        _this.isMousePress = false;
+	        _this._isDrag = false;
+	        _this._mid = null;
+	        _this._uid = null;
 	        return _this;
 	    }
+	    Input.prototype.startDrag = function (moveFunc, upFunc) {
+	        var _this = this;
+	        if (this._isDrag)
+	            throw 'drag overload!!';
+	        this._mid = this.on(exports.InputEvent.MOUSE_MOVE, function (e) {
+	            moveFunc(e);
+	        });
+	        this._uid = this.on(exports.InputEvent.MOUSE_UP, function (e) {
+	            if (upFunc)
+	                upFunc(e);
+	            _this.del(exports.InputEvent.MOUSE_MOVE, _this._mid);
+	            _this.del(exports.InputEvent.MOUSE_UP, _this._uid);
+	        });
+	    };
 	    return Input;
 	}(EventDispatcher_1.EventDispatcher));
 	exports.input = new Input();
@@ -2733,7 +2750,7 @@
 	            _this.dockerColorPicker.toggleFgBg();
 	        };
 	        _this.dockerColorPicker = new ColorPicker_1.ColorPicker();
-	        _this.dockerColorPicker.x = 800;
+	        _this.dockerColorPicker.x = 1300;
 	        _this.dockerColorPicker.y = 10;
 	        _this.addChild(_this.dockerColorPicker);
 	        _this.dockerColorPicker.on(const_1.BaseEvent.CHANGED, function () {
@@ -2852,7 +2869,7 @@
 	        _this._v = 1;
 	        _this._s = 1;
 	        _this._colorFg = { color: 0xff0000, hue: 0, v: 1, s: 1 };
-	        _this._colorBg = { color: 0, hue: 0, v: 1, s: 1 };
+	        _this._colorBg = { color: 0x0000ff, hue: 240, v: 1, s: 1 };
 	        _this._colorMap = new PIXI.Graphics();
 	        _this._colorWheel = new PIXI.Graphics();
 	        _this._cursorWheel = new PIXI.Graphics();
@@ -2865,7 +2882,7 @@
 	        _this._resizeColorMapWheel(_this.width - 150);
 	        _this._initCursor();
 	        _this.setHue(0);
-	        _this.setBgColor(0);
+	        _this.setBgColor(0x0000ff, 240, 1, 1);
 	        Input_1.input.on(Input_1.InputEvent.MOUSE_DOWN, function (e) {
 	            var mid = null, uid = null;
 	            var isin = PixiEx_1.isIn(e, _this._colorMap);
@@ -2994,11 +3011,11 @@
 	        this._hueDeg = hue;
 	        if (v != null) {
 	            this._v = v;
-	            this._cursorMap.y = this._colorMap.y + (1 - v) * (this._colorMap.height - 1);
+	            this._cursorMap.y = this._colorMap.y + (1 - v) * (this._colorMap.height - 1) - 3;
 	        }
 	        if (s != null) {
 	            this._s = s;
-	            this._cursorMap.x = this._colorMap.x + s * (this._colorMap.width - 1);
+	            this._cursorMap.x = this._colorMap.x + s * (this._colorMap.width - 1) - 3;
 	        }
 	        this._cursorWheel.rotation = (hue - 135) * PIXI.DEG_TO_RAD;
 	        this._updateMap();
@@ -3125,6 +3142,35 @@
 	        _this._bg = _this.addChild(PixiEx_1.PIXI_RECT(Color_1.Col.panelBg, 0, 0, 300, 300));
 	        _this._border = PixiEx_1.PIXI_BORDER(1, Color_1.Col.panelBorder, 300, 300);
 	        _this.addChild(_this._border);
+	        var dot = 2;
+	        _this._title = new PIXI.Graphics()
+	            .beginFill(Color_1.Col.panelBg)
+	            .drawRect(0, 0, 30, 80)
+	            .beginFill(Color_1.Col.tick)
+	            .drawRect(4, 4, dot, dot)
+	            .drawRect(10, 4, dot, dot)
+	            .drawRect(16, 4, dot, dot)
+	            .drawRect(22, 4, dot, dot)
+	            .drawRect(4, 10, dot, dot)
+	            .drawRect(10, 10, dot, dot)
+	            .drawRect(16, 10, dot, dot)
+	            .drawRect(22, 10, dot, dot);
+	        _this.addChild(_this._title);
+	        var lx, ly;
+	        PixiEx_1.setupDrag(_this._title, function (e) {
+	            lx = e.mx;
+	            ly = e.my;
+	        }, function (e) {
+	            if (lx != null) {
+	                _this.x += e.mx - lx;
+	                _this.y += e.my - ly;
+	                lx = e.mx;
+	                ly = e.my;
+	            }
+	        }, function (e) {
+	            lx = null;
+	            ly = null;
+	        });
 	        return _this;
 	    }
 	    Docker.prototype.resize = function (width, height) {
@@ -3471,8 +3517,14 @@
 	    resultContext.putImageData(resultData, 0, 0);
 	    return result;
 	};
+	function paddy(n, p, c) {
+	    var pad_char = typeof c !== 'undefined' ? c : '0';
+	    var pad = new Array(1 + p).join(pad_char);
+	    return (pad + n).slice(-pad.length);
+	}
 	function colorToHex(color) {
-	    return '#' + color.toString(16);
+	    console.log('#' + color.toString(16));
+	    return '#' + paddy(color.toString(16), 6);
 	}
 	exports.colorToHex = colorToHex;
 	;

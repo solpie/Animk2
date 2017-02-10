@@ -76,7 +76,7 @@ export class ColorPicker extends Docker {
     private _v = 1
     private _s = 1
     private _colorFg = { color: 0xff0000, hue: 0, v: 1, s: 1 }
-    private _colorBg = { color: 0, hue: 0, v: 1, s: 1 }
+    private _colorBg = { color: 0x0000ff, hue: 240, v: 1, s: 1 }
     constructor() {
         super()
         this._colorMap = new PIXI.Graphics()
@@ -95,7 +95,7 @@ export class ColorPicker extends Docker {
 
 
         this.setHue(0)
-        this.setBgColor(0)
+        this.setBgColor(0x0000ff, 240, 1, 1)
         // this.interactive = true
         // this.on(PIXI_MOUSE_EVENT.down, () => {
         //     console.log('colorMap down')
@@ -243,11 +243,11 @@ export class ColorPicker extends Docker {
         this._hueDeg = hue
         if (v != null) {
             this._v = v
-            this._cursorMap.y = this._colorMap.y + (1 - v) * (this._colorMap.height - 1)
+            this._cursorMap.y = this._colorMap.y + (1 - v) * (this._colorMap.height - 1) - 3
         }
         if (s != null) {
             this._s = s
-            this._cursorMap.x = this._colorMap.x + s * (this._colorMap.width - 1)
+            this._cursorMap.x = this._colorMap.x + s * (this._colorMap.width - 1) - 3
         }
         this._cursorWheel.rotation = (hue - 135) * PIXI.DEG_TO_RAD
         this._updateMap()

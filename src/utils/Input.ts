@@ -14,6 +14,25 @@ export const InputEvent = {
 class Input extends EventDispatcher {
     isKeyPress = false
     isMousePress = false
+    
+    private _isDrag = false
+    private _mid = null
+    private _uid = null
+
+    startDrag(moveFunc, upFunc) {
+        if (this._isDrag)
+            throw 'drag overload!!'
+        this._mid = this.on(InputEvent.MOUSE_MOVE, (e) => {
+            moveFunc(e)
+        })
+        this._uid = this.on(InputEvent.MOUSE_UP, (e) => {
+            if (upFunc)
+                upFunc(e)
+            this.del(InputEvent.MOUSE_MOVE, this._mid)
+            this.del(InputEvent.MOUSE_UP, this._uid)
+        })
+
+    }
 }
 export const input = new Input()
 

@@ -58,7 +58,7 @@ export class Viewport extends PIXI.Container {
         // this.painter = new Painter()
         // document.body.appendChild(this.painter.paintingCanvas)
         this.dockerColorPicker = new ColorPicker()
-        this.dockerColorPicker.x = 800
+        this.dockerColorPicker.x = 1300
         this.dockerColorPicker.y = 10
         this.addChild(this.dockerColorPicker)
         this.dockerColorPicker.on(BaseEvent.CHANGED, () => {
