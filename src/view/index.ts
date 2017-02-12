@@ -1,5 +1,5 @@
-require(`script!./../libs/pixi.min.js`);
-require(`script!./../libs/Tween.min.js`);
+require(`script-loader!./../libs/pixi.min.js`);
+require(`script-loader!./../libs/Tween.min.js`);
 import { animk } from './Animk';
 import { ViewConst } from './const';
 import { appInfo } from './model/AppInfo';

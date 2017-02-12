@@ -12,14 +12,14 @@ module.exports = {
         filename: "[name]"
     },
     resolve: {
-        extensions: ["", ".ts", ".tsx", ".js", '.html']
+        extensions: [".ts", ".tsx", ".js", '.html']
     },
     devtool: 'source-map',
     module: {
-        preLoaders: [{
-            test: /\.js$/,
-            loader: 'source-map-loader'
-        }],
+        // preLoaders: [{
+        //     test: /\.js$/,
+        //     loader: 'source-map-loader'
+        // }],
         loaders: [
             // all files with a `.ts` or `.tsx` extension will be handled by `ts-loader`
             { test: /\.tsx?$/, exclude: [/node_modules/], loader: 'ts-loader' },

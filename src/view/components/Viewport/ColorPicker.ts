@@ -95,7 +95,7 @@ export class ColorPicker extends Docker {
 
 
         this.setHue(0)
-        this.setBgColor(0x0000ff, 240, 1, 1)
+        this.setBgColor(0x0000ff, 240)
         // this.interactive = true
         // this.on(PIXI_MOUSE_EVENT.down, () => {
         //     console.log('colorMap down')

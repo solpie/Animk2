@@ -90,23 +90,23 @@ export class TheMachine extends EventDispatcher {
     }
     test2() {
         let t1 = new Date().getMilliseconds()
-        var addon = require('addon/psd');
-        addon.pngLoad("d:\\test.png", function (buf: ArrayBuffer, w, h) {
-            var view = new Uint8Array(buf);
-            // console.log(w, h, buf, view[0]);
-            let a: Array<ImageLayerInfo> = []
-            let imgLayer = new ImageLayerInfo()
-            imgLayer.width = w
-            imgLayer.height = h
-            imgLayer.pixels = view
-            a.push(imgLayer)
-            ImageLayerInfo.png2psd(a, w,
-                h, "rgba",
-                'd:\\2.psd', (p) => {
-                    let t2 = new Date().getMilliseconds()
-                    console.log('addon cast time:', t2 - t1)
-                });
-        })
+        // var addon = require('addon/psd');
+        // addon.pngLoad("d:\\test.png", function (buf: ArrayBuffer, w, h) {
+        //     var view = new Uint8Array(buf);
+        //     // console.log(w, h, buf, view[0]);
+        //     let a: Array<ImageLayerInfo> = []
+        //     let imgLayer = new ImageLayerInfo()
+        //     imgLayer.width = w
+        //     imgLayer.height = h
+        //     imgLayer.pixels = view
+        //     a.push(imgLayer)
+        //     ImageLayerInfo.png2psd(a, w,
+        //         h, "rgba",
+        //         'd:\\2.psd', (p) => {
+        //             let t2 = new Date().getMilliseconds()
+        //             console.log('addon cast time:', t2 - t1)
+        //         });
+        // })
     }
     watchCurFrame() {
         var existPOI = this._isExistPOI();

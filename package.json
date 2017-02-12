@@ -1,33 +1,35 @@
 {
-    "name": "animk2",
-    "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
-    "scripts": {
-        "start": "electron resources/app",
-        "app": "electron resources/app",
-        "addon_t": "cd src\\addon\\psd&&node-gyp configure&&node-gyp rebuild&&node test.js",
-        "addon": "cd src\\addon\\psd&&node-gyp configure&&node-gyp rebuild --target=1.4.14&&cd ../../../&&npm run app",
-        "server": "webpack --watch --progress --profile --colors --display-error-details --display-cached --config webpack.server.js",
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/solpie/Animk2.git"
-    },
-    "author": "",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/solpie/Animk2/issues"
-    },
-    "homepage": "https://github.com/solpie/Animk2#readme",
-    "devDependencies": {
-        "electron": "^1.4.14",
-        "electron-rebuild": "^1.5.7",
-        "html-loader": "^0.4.4",
-        "script-loader": "^0.7.0",
-        "source-map-loader": "^0.1.6",
-        "ts-loader": "^1.3.3",
-        "webpack-node-externals": "^1.5.4"
-    }
+  "name": "animk2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron resources/app",
+    "app": "electron resources/app",
+    "addon_t": "cd src\\addon\\psd&&node-gyp configure&&node-gyp rebuild&&node test.js",
+    "addon": "cd src\\addon\\psd&&node-gyp configure&&node-gyp rebuild --target=1.4.14&&cd ../../../&&npm run app",
+    "server": "webpack --watch --progress --profile --colors --display-error-details --display-cached --config webpack.server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/solpie/Animk2.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/solpie/Animk2/issues"
+  },
+  "homepage": "https://github.com/solpie/Animk2#readme",
+  "devDependencies": {
+    "copy-webpack-plugin": "^4.0.1",
+    "electron": "^1.4.14",
+    "electron-rebuild": "^1.5.7",
+    "html-loader": "^0.4.4",
+    "script-loader": "^0.7.0",
+    "source-map-loader": "^0.1.6",
+    "ts-loader": "^1.3.3",
+    "typescript": "^2.1.6",
+    "webpack-node-externals": "^1.5.4"
+  }
 }
