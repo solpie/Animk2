@@ -20,11 +20,11 @@ function openWin() {
         // width: 500, height: 540,
         frame: true,
         autoHideMenuBar: false
-        // webaudio: false
+            // webaudio: false
     });
     // win.setMenu(null);
     win.setMenuBarVisibility(false);
-    win.loadURL('file:///resources/app/index.html');
+    win.loadURL('file://' + __dirname + '/index.html');
     // if (isDev)
     win.toggleDevTools({ mode: 'detach' });
     // win.loadURL(`file:///app/reload.html`);
