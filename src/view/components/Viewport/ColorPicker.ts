@@ -1,8 +1,8 @@
-import { BaseEvent } from '../../const';
 import { input, InputEvent } from '../../../utils/Input';
-import { isArray } from 'util';
-import { imgToTex, isIn, PIXI_MakeMatrixGraphics, PIXI_MOUSE_EVENT, PIXI_RECT, posInObj } from '../../../utils/PixiEx';
+import { isIn, PIXI_MakeMatrixGraphics, PIXI_RECT, posInObj } from '../../../utils/PixiEx';
+import { BaseEvent } from '../../const';
 import { Docker } from '../Docker';
+import { isArray } from 'util';
 function mixRGB(color1, color2, weight, value = 1) {
     var p = weight;
     var w = p * 2 - 1;

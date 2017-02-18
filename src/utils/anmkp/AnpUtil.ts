@@ -215,6 +215,18 @@ function paddy(n, p, c?) {
     var pad = new Array(1 + p).join(pad_char);
     return (pad + n).slice(-pad.length);
 }
+function polygon(ctx, x, y, radius, sides, rotateAngle) {
+    if (sides < 3) return;
+    var a = (Math.PI * 2) / sides;
+    ctx.beginPath();
+    ctx.translate(x, y);
+    ctx.rotate(rotateAngle);
+    ctx.moveTo(radius, 0);
+    for (var i = 1; i < sides; i++) {
+        ctx.lineTo(radius * Math.cos(a * i), radius * Math.sin(a * i));
+    }
+    ctx.closePath();
+}
 export function colorToHex(color) {
     console.log('#' + color.toString(16));
     return '#' + paddy(color.toString(16), 6);
