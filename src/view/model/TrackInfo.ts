@@ -68,7 +68,7 @@ export class TrackInfo extends EventDispatcher {
     idx2(v?) {
         return prop(this, '_idx', v)
     }
-    
+
     layerIdx(v?) {
         return prop(this, "_layerIdx", v);
     }
@@ -98,7 +98,7 @@ export class TrackInfo extends EventDispatcher {
             this.emit(TrackInfoEvent.LOADED);
         }
     }
-    
+
     newImage(frameDataArr: Array<FrameData>) {
         var newFrame;
         var frameData: FrameData;
@@ -180,7 +180,20 @@ export class TrackInfo extends EventDispatcher {
     trackData(): TrackData {
         return this._trackData;
     }
-
+    setFrameHold(frameIdx, hold) {
+        let f = this.frameInfoArr[frameIdx - 1]
+        if (f) {
+            let dtHold = hold - f.getHold()
+            f.setHold(hold)
+            for (let i = frameIdx; i < this.frameInfoArr.length; i++) {
+                let f = this.frameInfoArr[i]
+                f.dtStart(dtHold)
+            }
+        console.log('setFrameHold',frameIdx,hold,this.frameInfoArr)
+            
+            this.emit(TrackInfoEvent.SET_FRAME_HOLD,this)
+        }
+    }
     getCurImg(frameIdx: number) {
         //todo clean
         return this.getFrameByCursor(frameIdx)

@@ -100,6 +100,7 @@ exports.TrackInfoEvent = {
     LOADED: "load all imgs",
     SEL_TRACK: "select track",
     PUSH_FRAME: "push frame",
+    SET_FRAME_HOLD: "set frame hold",
     SEL_FRAME: "select frame",
     DEL_FRAME: "delete frame",
     SET_ACT_TYPE: "set act type",
@@ -1125,6 +1126,19 @@ var TrackInfo = (function (_super) {
     TrackInfo.prototype.trackData = function () {
         return this._trackData;
     };
+    TrackInfo.prototype.setFrameHold = function (frameIdx, hold) {
+        var f = this.frameInfoArr[frameIdx - 1];
+        if (f) {
+            var dtHold = hold - f.getHold();
+            f.setHold(hold);
+            for (var i = frameIdx; i < this.frameInfoArr.length; i++) {
+                var f_1 = this.frameInfoArr[i];
+                f_1.dtStart(dtHold);
+            }
+            console.log('setFrameHold', frameIdx, hold, this.frameInfoArr);
+            this.emit(const_1.TrackInfoEvent.SET_FRAME_HOLD, this);
+        }
+    };
     TrackInfo.prototype.getCurImg = function (frameIdx) {
         return this.getFrameByCursor(frameIdx);
     };
@@ -1800,6 +1814,8 @@ exports.initTest = function () {
     AppInfo_1.appInfo.on(ProjectInfo_1.ProjectInfoEvent.NEW_PROJ, function () {
         AppInfo_1.appInfo.projectInfo.on(const_1.CompInfoEvent.NEW_COMP, function () {
             TweenEx_1.TweenEx.delayedCall(1000, function () {
+                AppInfo_1.appInfo.curComp().newTrack('/Users/ocean/Documents/图片/86fb778d5d73fda8d1d2243d9cba1aec.jpg');
+                AppInfo_1.appInfo.curComp().trackInfoArr[0].setFrameHold(2, 2);
             });
         });
     });
@@ -3278,25 +3294,26 @@ var Clip = (function (_super) {
         return _this;
     }
     Clip.prototype.update = function () {
-        this._textCtn.cacheAsBitmap = false;
-        this._textCtn.removeChildren();
-        var s = { fontSize: '10px', fill: '#919191' };
-        var fw = Animk_1.animk.projInfo.frameWidth();
-        var lastPos = 0;
-        for (var _i = 0, _a = this.trackInfo.frameInfoArr; _i < _a.length; _i++) {
-            var frameInfo = _a[_i];
-            var f = new PIXI.Text(frameInfo.idx() + '', s);
-            f.x = lastPos * fw + 1;
-            f.y = 2;
-            lastPos = frameInfo.idx() - 1 + frameInfo.getHold();
-            this._textCtn.addChild(f);
+        if (this.trackInfo) {
+            this._textCtn.cacheAsBitmap = false;
+            this._textCtn.removeChildren();
+            var s = { fontSize: '10px', fill: '#919191' };
+            var fw = Animk_1.animk.projInfo.frameWidth();
+            var lastPos = 0;
+            for (var _i = 0, _a = this.trackInfo.frameInfoArr; _i < _a.length; _i++) {
+                var frameInfo = _a[_i];
+                var f = new PIXI.Text(frameInfo.idx() + '', s);
+                f.x = lastPos * fw + 1;
+                f.y = 2;
+                lastPos = frameInfo.getStart() - 1 + frameInfo.getHold();
+                this._textCtn.addChild(f);
+            }
+            this._textCtn.cacheAsBitmap = true;
         }
-        this._textCtn.cacheAsBitmap = true;
     };
     Clip.prototype.resize = function () {
         this.bg.width = this.width;
         this.header.width = this.width;
-        this.update();
     };
     return Clip;
 }(PIXI.Container));
@@ -3454,6 +3471,9 @@ var Stacker = (function (_super) {
             _this.clip.addChild(bg);
             _this.clip.addChild(s);
             _this.clip.resize();
+        });
+        this.trackInfo.on(const_1.TrackInfoEvent.SET_FRAME_HOLD, function () {
+            _this.clip.update();
         });
     };
     Stacker.prototype.scroll = function (v) {

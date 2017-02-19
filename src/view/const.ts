@@ -33,6 +33,7 @@ export const TrackInfoEvent = {
     LOADED: "load all imgs",
     SEL_TRACK: "select track",
     PUSH_FRAME: "push frame",
+    SET_FRAME_HOLD: "set frame hold",
     SEL_FRAME: "select frame",
     DEL_FRAME: "delete frame",
     SET_ACT_TYPE: "set act type",

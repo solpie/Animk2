@@ -77,6 +77,9 @@ export class Stacker extends PIXI.Container {
             this.clip.addChild(s)
             this.clip.resize()
         })
+        this.trackInfo.on(TrackInfoEvent.SET_FRAME_HOLD,()=>{
+            this.clip.update()
+        })
     }
 
     scroll(v) {
