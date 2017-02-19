@@ -9,12 +9,12 @@ export class Clip extends PIXI.Container {
     header: PIXI.Graphics
     bg: PIXI.Graphics
     trackInfo: TrackInfo
-
-    // _clipInfo:PIXI.Graphics
+    _frameSp: Array<PIXI.Sprite>
     _textCtn: PIXI.Container
 
     constructor(trackInfo: TrackInfo) {
         super()
+        this._frameSp = []
         this.trackInfo = trackInfo
 
         this.bg = PIXI_RECT(0, 0, 0, 1, 55)
@@ -58,22 +58,22 @@ export class Clip extends PIXI.Container {
         this._textCtn = new PIXI.Container()
         this.addChild(this._textCtn)
     }
+
+    addFrame(sp) {
+        this._frameSp.push(sp)
+        this.addChild(sp)
+    }
+
     update() {
         if (this.trackInfo) {
-
             this._textCtn.cacheAsBitmap = false
             this._textCtn.removeChildren()
             let s = { fontSize: '10px', fill: '#919191' }
             let fw = animk.projInfo.frameWidth()
-
             let lastPos = 0
-            // this.trackInfo.setFrameHold(2, 2)
             for (let frameInfo of this.trackInfo.frameInfoArr) {
-
-
-                // if(frameInfo.idx()==2)
-                //  frameInfo.setHold(2)
                 let f = new PIXI.Text(frameInfo.idx() + '', s)
+                this._frameSp[frameInfo.idx() - 1].x = lastPos * fw
                 f.x = lastPos * fw + 1
                 f.y = 2
                 lastPos = frameInfo.getStart() - 1 + frameInfo.getHold()
@@ -86,8 +86,10 @@ export class Clip extends PIXI.Container {
 
     }
     resize() {
-        this.bg.width = this.width
-        this.header.width = this.width
+        let fw = animk.projInfo.frameWidth()
+
+        this.bg.width = this.trackInfo.numCount*fw
+        this.header.width = this.bg.width
 
     }
 }

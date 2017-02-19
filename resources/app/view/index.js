@@ -1139,6 +1139,18 @@ var TrackInfo = (function (_super) {
             this.emit(const_1.TrackInfoEvent.SET_FRAME_HOLD, this);
         }
     };
+    Object.defineProperty(TrackInfo.prototype, "numCount", {
+        get: function () {
+            var n = 0;
+            for (var _i = 0, _a = this.frameInfoArr; _i < _a.length; _i++) {
+                var f = _a[_i];
+                n += f.getHold();
+            }
+            return n;
+        },
+        enumerable: true,
+        configurable: true
+    });
     TrackInfo.prototype.getCurImg = function (frameIdx) {
         return this.getFrameByCursor(frameIdx);
     };
@@ -3254,6 +3266,7 @@ var Clip = (function (_super) {
     __extends(Clip, _super);
     function Clip(trackInfo) {
         var _this = _super.call(this) || this;
+        _this._frameSp = [];
         _this.trackInfo = trackInfo;
         _this.bg = PixiEx_1.PIXI_RECT(0, 0, 0, 1, 55);
         _this.addChild(_this.bg);
@@ -3293,6 +3306,10 @@ var Clip = (function (_super) {
         _this.addChild(_this._textCtn);
         return _this;
     }
+    Clip.prototype.addFrame = function (sp) {
+        this._frameSp.push(sp);
+        this.addChild(sp);
+    };
     Clip.prototype.update = function () {
         if (this.trackInfo) {
             this._textCtn.cacheAsBitmap = false;
@@ -3303,6 +3320,7 @@ var Clip = (function (_super) {
             for (var _i = 0, _a = this.trackInfo.frameInfoArr; _i < _a.length; _i++) {
                 var frameInfo = _a[_i];
                 var f = new PIXI.Text(frameInfo.idx() + '', s);
+                this._frameSp[frameInfo.idx() - 1].x = lastPos * fw;
                 f.x = lastPos * fw + 1;
                 f.y = 2;
                 lastPos = frameInfo.getStart() - 1 + frameInfo.getHold();
@@ -3312,8 +3330,9 @@ var Clip = (function (_super) {
         }
     };
     Clip.prototype.resize = function () {
-        this.bg.width = this.width;
-        this.header.width = this.width;
+        var fw = Animk_1.animk.projInfo.frameWidth();
+        this.bg.width = this.trackInfo.numCount * fw;
+        this.header.width = this.bg.width;
     };
     return Clip;
 }(PIXI.Container));
@@ -3469,11 +3488,12 @@ var Stacker = (function (_super) {
             bg.x = s.x;
             bg.y = s.y;
             _this.clip.addChild(bg);
-            _this.clip.addChild(s);
+            _this.clip.addFrame(s);
             _this.clip.resize();
         });
         this.trackInfo.on(const_1.TrackInfoEvent.SET_FRAME_HOLD, function () {
             _this.clip.update();
+            _this.clip.resize();
         });
     };
     Stacker.prototype.scroll = function (v) {

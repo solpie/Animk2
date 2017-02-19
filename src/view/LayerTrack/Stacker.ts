@@ -74,11 +74,19 @@ export class Stacker extends PIXI.Container {
             bg.x = s.x
             bg.y = s.y
             this.clip.addChild(bg)
-            this.clip.addChild(s)
+            this.clip.addFrame(s)
             this.clip.resize()
         })
         this.trackInfo.on(TrackInfoEvent.SET_FRAME_HOLD,()=>{
             this.clip.update()
+            this.clip.resize()
+            
+            // let fw = animk.projInfo.frameWidth()
+            //   let lastPos = 0
+            // for (let frameInfo of this.trackInfo.frameInfoArr) {
+            //     this.clipCtn.children[frameInfo.idx()-1].x = lastPos * fw 
+            //     lastPos = frameInfo.getStart() - 1 + frameInfo.getHold()
+            // }
         })
     }
 

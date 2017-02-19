@@ -58,6 +58,8 @@ export class TrackInfo extends EventDispatcher {
     _isSel: Boolean = false;
     removedFrameArr: Array<FrameInfo>;
     _layerIdx: number;
+
+    
     constructor(trackData?: TrackData) {
         super()
         trackData ? this._trackData = trackData : this._trackData = new TrackData;
@@ -193,6 +195,13 @@ export class TrackInfo extends EventDispatcher {
             
             this.emit(TrackInfoEvent.SET_FRAME_HOLD,this)
         }
+    }
+    get numCount(){
+        let n = 0
+        for(let f of this.frameInfoArr){
+            n+= f.getHold()
+        }
+        return n
     }
     getCurImg(frameIdx: number) {
         //todo clean
