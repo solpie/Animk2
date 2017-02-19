@@ -98,6 +98,7 @@ export class TrackInfo extends EventDispatcher {
             this.emit(TrackInfoEvent.LOADED);
         }
     }
+    
     newImage(frameDataArr: Array<FrameData>) {
         var newFrame;
         var frameData: FrameData;

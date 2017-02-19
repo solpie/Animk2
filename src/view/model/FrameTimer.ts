@@ -5,8 +5,8 @@ export class FrameTimer extends EventDispatcher {
 
     _timerId = null;
 
-    _framerate;
-
+    _framerate:number
+    
     constructor(framerate) {
         super();
         this.setFramerate(framerate);
@@ -31,6 +31,7 @@ export class FrameTimer extends EventDispatcher {
     setFramerate(framerate) {
         if (this._framerate != framerate) {
             this._framerate = framerate;
+            
             this.clearTimer();
             this.newTimer();
         }

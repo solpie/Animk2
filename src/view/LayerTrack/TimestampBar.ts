@@ -98,6 +98,7 @@ export class TimestampBar extends PIXI.Sprite {
     }
     resize(width, height) {
         // console.log('resize timestampBar', width);
+        this.textCtn.cacheAsBitmap = false
         this.textCtn.removeChildren()
 
         this.gMask.clear()
@@ -117,6 +118,7 @@ export class TimestampBar extends PIXI.Sprite {
             this.textCtn.addChild(textTick)
             frame++
         }
+        this.textCtn.cacheAsBitmap = true
     }
 
     scroll(v) {

@@ -38,6 +38,7 @@ export class FrameInfo extends EventDispatcher {
     getIdx() {
         return this._idx;
     }
+    
     idx(v?):number {
         if (v != undefined)
             this._idx = v

@@ -11,7 +11,7 @@ let renderer: any
 let compRender: any
 let main = () => {
     compRender = PIXI.autoDetectRenderer(ViewConst.STAGE_WIDTH, ViewConst.STAGE_HEIGHT,
-        { antialias: true, transparent: true, resolution: 1 });
+        { antialias: true, transparent: true, resolution: 1});
     compRender.stage = new PIXI.Container();
 
     renderer = PIXI.autoDetectRenderer(ViewConst.STAGE_WIDTH, ViewConst.STAGE_HEIGHT,
@@ -19,8 +19,6 @@ let main = () => {
 
     renderer.backgroundColor = 0x00000000;
     renderer.stage = new PIXI.Container();
-
-
 
     document.body.appendChild(renderer.view);
     document.body.appendChild(compRender.view);

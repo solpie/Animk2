@@ -8,7 +8,7 @@
     "app": "electron resources/app",
     "addon_t": "cd src\\addon\\psd&&node-gyp configure&&node-gyp rebuild&&node test.js",
     "addon": "cd src\\addon\\psd&&node-gyp configure&&node-gyp rebuild --target=1.4.14&&cd ../../../&&npm run app",
-    "server": "webpack --watch --progress --profile --colors --display-error-details --display-cached --config webpack.server.js",
+    "watch": "webpack --watch --progress --profile --colors --display-error-details --display-cached --config webpack.server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

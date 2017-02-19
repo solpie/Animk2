@@ -1,12 +1,18 @@
+import { ColorPicker } from '../components/Viewport/ColorPicker';
+import { Col } from '../model/Color';
 import { input, InputEvent } from '../../utils/Input';
 import { TrackInfo } from '../model/TrackInfo';
 import { PIXI_RECT, setupDrag } from '../../utils/PixiEx';
 import { animk } from '../Animk';
-import { TrackInfoEvent } from '../const';
+import { COLOR, TrackInfoEvent } from '../const';
 export class Clip extends PIXI.Container {
     header: PIXI.Graphics
     bg: PIXI.Graphics
     trackInfo: TrackInfo
+
+    // _clipInfo:PIXI.Graphics
+    _textCtn:PIXI.Container
+
     constructor(trackInfo: TrackInfo) {
         super()
         this.trackInfo = trackInfo
@@ -49,10 +55,34 @@ export class Clip extends PIXI.Container {
             let fw = animk.projInfo.frameWidth()
             this.x = start * fw
         })
+        this._textCtn = new PIXI.Container()
+        this.addChild(this._textCtn)
     }
+    update()
+    {
+        this._textCtn.cacheAsBitmap = false
+        this._textCtn.removeChildren()
+        let s = {fontSize:'10px',fill:'#919191'}
+        let fw = animk.projInfo.frameWidth()
 
+        let lastPos = 0
+        for(let frameInfo of this.trackInfo.frameInfoArr){
+            let f = new PIXI.Text(frameInfo.idx()+'',s)
+            f.x = lastPos*fw+1
+            f.y = 2
+            lastPos =frameInfo.idx()-1+frameInfo.getHold()
+            this._textCtn.addChild(f)
+        }
+
+        this._textCtn.cacheAsBitmap = true
+
+        // g.cacheAsBitmap = true
+        
+    }
     resize() {
         this.bg.width = this.width
         this.header.width = this.width
+
+        this.update()
     }
 }
