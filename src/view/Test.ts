@@ -11,7 +11,7 @@ import { TweenEx } from '../utils/TweenEx';
 import { appInfo, AppInfoEvent } from './model/AppInfo';
 const testPainter = () => {
 
-    
+
 }
 export const initTest = () => {
     testPainter()
@@ -57,8 +57,13 @@ export const initTest = () => {
         // });
         appInfo.projectInfo.on(CompInfoEvent.NEW_COMP, () => {
             TweenEx.delayedCall(1000, () => {
-                appInfo.curComp().newTrack('D:/lsj/rkb2017/军哥/cut3/jg020114.924.png')
-                // appInfo.curComp().newTrack('/Users/ocean/Documents/图片/86fb778d5d73fda8d1d2243d9cba1aec.jpg')
+                let os = require('process').platform
+                console.log(os)
+                if (os == 'darwin') {
+                    appInfo.curComp().newTrack('/Users/ocean/Documents/图片/86fb778d5d73fda8d1d2243d9cba1aec.jpg')
+                }
+                else
+                    appInfo.curComp().newTrack('D:/lsj/rkb2017/军哥/cut3/jg020114.924.png')
                 appInfo.curComp().trackInfoArr[0].setFrameHold(2,2)
                 // appInfo.curComp().newTrack('D:\lsj\rkb2017\军哥\reto\101.png')
             })
