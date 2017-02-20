@@ -106,7 +106,7 @@ export class TimestampBar extends PIXI.Sprite {
 
         this.gTick.clear()
         this.gTick.lineStyle(1, Col.tick)
-        let ts = { fill: Col.tickText, fontSize: '12px' }
+        let ts = { fill: Col.panelText, fontSize: '12px' }
         let fw = animk.projInfo.frameWidth()
         var frame = 0
         for (var i = 0; i < width; i += fw) {

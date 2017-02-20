@@ -3,7 +3,7 @@ export enum Col {
     panelBorder = 0x111111,
     cursor = 0x2d8ceb,
     tick = 0x919191,
-    tickText = 0x919191,
+    panelText = 0x919191,
     trackText = 0xa6a6a6,
 }
 export const newStyle = () => {

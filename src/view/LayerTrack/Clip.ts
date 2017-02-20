@@ -1,3 +1,4 @@
+import { colorToHex } from '../../utils/anmkp/AnpUtil';
 import { ColorPicker } from '../components/Viewport/ColorPicker';
 import { Col } from '../model/Color';
 import { input, InputEvent } from '../../utils/Input';
@@ -68,7 +69,8 @@ export class Clip extends PIXI.Container {
         if (this.trackInfo) {
             this._textCtn.cacheAsBitmap = false
             this._textCtn.removeChildren()
-            let s = { fontSize: '10px', fill: '#919191' }
+
+            let s = { fontSize: '10px', fill: colorToHex(Col.panelText) }
             let fw = animk.projInfo.frameWidth()
             let lastPos = 0
             for (let frameInfo of this.trackInfo.frameInfoArr) {
@@ -83,12 +85,11 @@ export class Clip extends PIXI.Container {
             this._textCtn.cacheAsBitmap = true
         }
         // g.cacheAsBitmap = true
-
     }
     resize() {
         let fw = animk.projInfo.frameWidth()
 
-        this.bg.width = this.trackInfo.numCount*fw
+        this.bg.width = this.trackInfo.numCount * fw
         this.header.width = this.bg.width
 
     }
