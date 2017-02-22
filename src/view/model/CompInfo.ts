@@ -122,8 +122,10 @@ export class CompInfo extends EventDispatcher {
         let tInfo = new TrackInfo()
         this.trackInfoArr.push(tInfo)
 
-        tInfo.on(TrackInfoEvent.SET_TRACK_START, () => {
+        tInfo.on(TrackInfoEvent.SET_TRACK_START, (t:TrackInfo) => {
             this.emit(CompInfoEvent.UPDATE_CURSOR, this.getCursor())
+            console.log('track end:',t)
+            this.updateMaxPos(t.end)
         })
         tInfo.on(TrackInfoEvent.SET_ENABLE, () => {
             this.emit(CompInfoEvent.UPDATE_CURSOR, this.getCursor())
@@ -238,7 +240,7 @@ export class CompInfo extends EventDispatcher {
 
         }
         else {
-            trackInfo.newImage(trackData.frames);
+            // trackInfo.newImage(trackData.frames);
         }
         //trackInfo.path(trackData.path);
         //trackInfo.start(trackData.start);

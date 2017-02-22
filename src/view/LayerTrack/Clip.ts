@@ -52,9 +52,9 @@ export class Clip extends PIXI.Container {
             lastX = null
         })
 
-        trackInfo.on(TrackInfoEvent.SET_TRACK_START, (start) => {
+        trackInfo.on(TrackInfoEvent.SET_TRACK_START, (t:TrackInfo) => {
             let fw = animk.projInfo.frameWidth()
-            this.x = start * fw
+            this.x = t.start() * fw
         })
         this._textCtn = new PIXI.Container()
         this.addChild(this._textCtn)

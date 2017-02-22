@@ -54,12 +54,11 @@ export class TrackInfo extends EventDispatcher {
     isActive: boolean;
     isSelected: boolean;
 
-    _hold: number = 1;
     _isSel: Boolean = false;
     removedFrameArr: Array<FrameInfo>;
     _layerIdx: number;
 
-    
+
     constructor(trackData?: TrackData) {
         super()
         trackData ? this._trackData = trackData : this._trackData = new TrackData;
@@ -88,6 +87,7 @@ export class TrackInfo extends EventDispatcher {
         frameInfo.setStart(this.frameInfoArr.length)
         this.emit(TrackInfoEvent.PUSH_FRAME, frameInfo)
     }
+
     _loadCount;
 
     onImgLoaded() {
@@ -101,32 +101,32 @@ export class TrackInfo extends EventDispatcher {
         }
     }
 
-    newImage(frameDataArr: Array<FrameData>) {
-        var newFrame;
-        var frameData: FrameData;
-        this._loadCount = frameDataArr.length;
-        var holdCount = frameDataArr.length;
-        for (var i = 0; i < frameDataArr.length; i++) {
-            frameData = frameDataArr[i];
-            newFrame = new FrameInfo(frameData.filename);
-            //todo delete img listener
-            newFrame.imageInfo.img.addEventListener("load", () => {
-                this.onImgLoaded();
-            });
-            if (frameData.start) {
-                newFrame.setStart(frameData.start);
-                newFrame.setHold(frameData.hold);
-                holdCount += (frameData.hold - 1);
-            }
-            else {
-                newFrame.setStart(i + 1);
-                newFrame.setHold(1);
-            }
-            newFrame.setIdx(this.frameInfoArr.length);
-            this.frameInfoArr.push(newFrame);
-        }
-        this._hold = holdCount;
-    }
+    // newImage(frameDataArr: Array<FrameData>) {
+    //     var newFrame;
+    //     var frameData: FrameData;
+    //     this._loadCount = frameDataArr.length;
+    //     var holdCount = frameDataArr.length;
+    //     for (var i = 0; i < frameDataArr.length; i++) {
+    //         frameData = frameDataArr[i];
+    //         newFrame = new FrameInfo(frameData.filename);
+    //         //todo delete img listener
+    //         newFrame.imageInfo.img.addEventListener("load", () => {
+    //             this.onImgLoaded();
+    //         });
+    //         if (frameData.start) {
+    //             newFrame.setStart(frameData.start);
+    //             newFrame.setHold(frameData.hold);
+    //             holdCount += (frameData.hold - 1);
+    //         }
+    //         else {
+    //             newFrame.setStart(i + 1);
+    //             newFrame.setHold(1);
+    //         }
+    //         newFrame.setIdx(this.frameInfoArr.length);
+    //         this.frameInfoArr.push(newFrame);
+    //     }
+    //     this._hold = holdCount;
+    // }
 
     loopType(v?) {
         if (v != undefined)
@@ -153,9 +153,18 @@ export class TrackInfo extends EventDispatcher {
     start(v?) {
         if (v != undefined) {
             this._trackData.start = v
-            this.emit(TrackInfoEvent.SET_TRACK_START, v)
+            this.emit(TrackInfoEvent.SET_TRACK_START, this)
         }
         return this._trackData.start
+    }
+
+    get end() {
+        let hold = 0
+        for (var i = 0; i < this.frameInfoArr.length; i++) {
+            var f: FrameInfo = this.frameInfoArr[i];
+            hold += f.getHold()
+        }
+        return this.start() + hold - 1
     }
 
     enable(v?) {
@@ -191,15 +200,15 @@ export class TrackInfo extends EventDispatcher {
                 let f = this.frameInfoArr[i]
                 f.dtStart(dtHold)
             }
-        console.log('setFrameHold',frameIdx,hold,this.frameInfoArr)
-            
-            this.emit(TrackInfoEvent.SET_FRAME_HOLD,this)
+            console.log('setFrameHold', frameIdx, hold, this.frameInfoArr)
+
+            this.emit(TrackInfoEvent.SET_FRAME_HOLD, this)
         }
     }
-    get numCount(){
+    get numCount() {
         let n = 0
-        for(let f of this.frameInfoArr){
-            n+= f.getHold()
+        for (let f of this.frameInfoArr) {
+            n += f.getHold()
         }
         return n
     }

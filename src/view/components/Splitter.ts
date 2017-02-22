@@ -34,7 +34,7 @@ export class Splitter extends PIXI.Container {
 
         let mid, uid;
         input.on(InputEvent.MOUSE_DOWN, (e) => {
-            let isInner = isIn(e, this)
+            let isInner = isIn(e, this._barBg)
             isPress = true
             console.log('press Splitter');
             if (isInner) {
