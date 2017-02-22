@@ -1,6 +1,6 @@
 import { IResize } from './IResize';
 import { input, InputEvent } from '../../utils/Input';
-import { PIXI_RECT, setupDrag } from '../../utils/PixiEx';
+import { isIn, PIXI_RECT, setupDrag } from '../../utils/PixiEx';
 import { TweenEx } from '../../utils/TweenEx';
 import { animk } from '../Animk';
 import { BaseEvent } from '../const';
@@ -31,46 +31,50 @@ export class Splitter extends PIXI.Container {
         var lastMousePosX = -1,
             lastMousePosY = -1
             , isPress
-        setupDrag(this.bar, (e) => {
+
+        let mid, uid;
+        input.on(InputEvent.MOUSE_DOWN, (e) => {
+            let isInner = isIn(e, this)
             isPress = true
             console.log('press Splitter');
-
-            TweenEx.delayedCall(200, () => {
-                if (isPress) {
-                    lastMousePosY = e.my
-                    lastMousePosX = e.mx
-                    this.bar.getChildAt(0).alpha = .6
-                }
-            })
-        }, (e) => {
-            if (this.dir == 'v') {
-                if (lastMousePosY > -1) {
-                    // this.bar.y += e.data.originalEvent.clientY - this.lastMousePosY
-                    this.setBarY(this.bar.y + e.my - lastMousePosY)
-                    lastMousePosY = e.my
-                    if (this.child2) {
-                        this.emit(BaseEvent.CHANGED, this)
+            if (isInner) {
+                TweenEx.delayedCall(200, () => {
+                    if (isPress) {
+                        lastMousePosY = e.my
+                        lastMousePosX = e.mx
+                        this.bar.getChildAt(0).alpha = .6
                     }
-                }
-            }
-            else if (this.dir == 'h') {
-                if (lastMousePosX > -1) {
-                    this.bar.x += e.my - lastMousePosX
-                    lastMousePosX = e.mx
-                }
-            }
-        }, (e) => {
-            onUp(e)
-        })
-        let onUp = (e) => {
-            isPress = false
-            lastMousePosX = -1
-            lastMousePosY = -1
-            this.bar.getChildAt(0).alpha = 1
-        }
+                })
 
-        input.on(InputEvent.MOUSE_UP, (e) => {
-            onUp(e)
+                mid = input.on(InputEvent.MOUSE_MOVE, (e) => {
+                    if (this.dir == 'v') {
+                        if (lastMousePosY > -1) {
+                            // this.bar.y += e.data.originalEvent.clientY - this.lastMousePosY
+                            this.setBarY(this.bar.y + e.my - lastMousePosY)
+                            lastMousePosY = e.my
+                            if (this.child2) {
+                                this.emit(BaseEvent.CHANGED, this)
+                            }
+                        }
+                    }
+                    else if (this.dir == 'h') {
+                        if (lastMousePosX > -1) {
+                            this.bar.x += e.my - lastMousePosX
+                            lastMousePosX = e.mx
+                        }
+                    }
+                })
+                uid = input.on(InputEvent.MOUSE_UP, (e) => {
+                    isPress = false
+                    lastMousePosX = -1
+                    lastMousePosY = -1
+                    this.bar.getChildAt(0).alpha = 1
+
+                    input.del(InputEvent.MOUSE_MOVE, mid)
+                    input.del(InputEvent.MOUSE_UP, uid)
+                })
+                return InputEvent.stopPropagation
+            }
         })
 
         this.addChild(this.bar)
@@ -89,7 +93,7 @@ export class Splitter extends PIXI.Container {
         this.child2Space = this.height - by - this.barSpace
         this.mask1.height = by
         if (this.child1) {
-            this.child1.resize(null,by)
+            this.child1.resize(null, by)
         }
         if (this.child2) {
             this.child2.y = by + this.barSpace
