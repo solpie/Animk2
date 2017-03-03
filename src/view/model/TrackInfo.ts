@@ -205,7 +205,8 @@ export class TrackInfo extends EventDispatcher {
             this.emit(TrackInfoEvent.SET_FRAME_HOLD, this)
         }
     }
-    get numCount() {
+    //length in frame
+    get lengthFrame() {
         let n = 0
         for (let f of this.frameInfoArr) {
             n += f.getHold()

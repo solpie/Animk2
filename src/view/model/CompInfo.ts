@@ -130,6 +130,9 @@ export class CompInfo extends EventDispatcher {
         tInfo.on(TrackInfoEvent.SET_ENABLE, () => {
             this.emit(CompInfoEvent.UPDATE_CURSOR, this.getCursor())
         })
+        tInfo.on(TrackInfoEvent.SET_FRAME_HOLD,(trackInfo:TrackInfo)=>{
+            this.updateMaxPos(trackInfo.lengthFrame)
+        })
 
         tInfo.name('track#' + this.trackInfoArr.length)
         cmd.emit(CompInfoEvent.NEW_TRACK, tInfo)

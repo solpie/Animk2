@@ -89,7 +89,7 @@ export class Clip extends PIXI.Container {
     resize() {
         let fw = animk.projInfo.frameWidth()
 
-        this.bg.width = this.trackInfo.numCount * fw
+        this.bg.width = this.trackInfo.lengthFrame * fw
         this.header.width = this.bg.width
 
     }
