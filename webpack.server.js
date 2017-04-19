@@ -12,7 +12,7 @@ module.exports = {
         filename: "[name]"
     },
     resolve: {
-        extensions: [ ".ts", ".tsx", ".js", '.html']
+        extensions: ["", ".ts", ".tsx", ".js", '.html']
     },
     devtool: 'source-map',
     module: {

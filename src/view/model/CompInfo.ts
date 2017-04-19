@@ -10,6 +10,7 @@ import { CompInfoEvent, FrameTimerEvent, TrackInfoEvent } from '../const';
 import { FrameTimer } from './FrameTimer';
 import { TrackData, TrackInfo, TrackType } from './TrackInfo';
 import { EventDispatcher } from '../../utils/EventDispatcher';
+const path = require('path')
 
 export class CompositionData {
     name: string;
@@ -118,33 +119,37 @@ export class CompInfo extends EventDispatcher {
     //         }
     //     });
     // }
+    newRetoTrack(trackPath,frameCount) {
+        let trkName = 'track#' + this.trackInfoArr.length
+        
+        let cachePath = path.join(trackPath, 'cache', trkName)
+        require('child_process').exec('mkdir ' + cachePath)
+    }
     newTrack(filename, callback?) {
         let tInfo = new TrackInfo()
         this.trackInfoArr.push(tInfo)
 
-        tInfo.on(TrackInfoEvent.SET_TRACK_START, (t:TrackInfo) => {
+        tInfo.on(TrackInfoEvent.SET_TRACK_START, (t: TrackInfo) => {
             this.emit(CompInfoEvent.UPDATE_CURSOR, this.getCursor())
-            console.log('track end:',t)
+            console.log('track end:', t)
             this.updateMaxPos(t.end)
         })
         tInfo.on(TrackInfoEvent.SET_ENABLE, () => {
             this.emit(CompInfoEvent.UPDATE_CURSOR, this.getCursor())
         })
-        tInfo.on(TrackInfoEvent.SET_FRAME_HOLD,(trackInfo:TrackInfo)=>{
+        tInfo.on(TrackInfoEvent.SET_FRAME_HOLD, (trackInfo: TrackInfo) => {
             this.updateMaxPos(trackInfo.lengthFrame)
         })
 
         tInfo.name('track#' + this.trackInfoArr.length)
         cmd.emit(CompInfoEvent.NEW_TRACK, tInfo)
 
-        const path = require('path')
         let basename = path.basename(filename)
         let dir = path.dirname(filename)
         console.log('basename', basename);
         let a = basename.split('.')
         const fs = require('fs')
         let fileArr = []
-
         var fileCount = 0
 
 
@@ -210,7 +215,7 @@ export class CompInfo extends EventDispatcher {
         console.log('maxPos', this._maxPos);
     }
 
-    makePsd(callback?,frame?) {
+    makePsd(callback?, frame?) {
         if (!frame)
             frame = this._cursorPos;
         let imgArr = []

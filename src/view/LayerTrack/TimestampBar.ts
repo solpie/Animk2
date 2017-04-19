@@ -1,4 +1,5 @@
-import { input , InputEvent} from '../../utils/Input';
+import { appInfo } from '../model/AppInfo';
+import { input, InputEvent } from '../../utils/Input';
 import { PIXI_MakeMatrixGraphics, PIXI_MOUSE_EVENT } from '../../utils/PixiEx';
 import { animk } from '../Animk';
 import { Button } from '../components/Button';
@@ -39,7 +40,7 @@ export class TimestampBar extends PIXI.Sprite {
             '   6. .6   ',
             '   19 91   ',
         ]
-       
+
         this.gCursor = new PIXI.Graphics()
         PIXI_MakeMatrixGraphics(m2, Col.cursor, this.gCursor, -6, 0)
 
@@ -71,10 +72,10 @@ export class TimestampBar extends PIXI.Sprite {
         this.gBg.x = -215
         this.addChild(this.gBg)
 
-        let newTrackBtn = new Button({ text: "new" })
-        newTrackBtn.x = -100
-        newTrackBtn.on(PIXI_MOUSE_EVENT.down, () => {
-            const {dialog} = require('electron').remote
+        let importTrackBtn = new Button({ text: "import" })
+        importTrackBtn.x = -100
+        importTrackBtn.on(PIXI_MOUSE_EVENT.down, () => {
+            const { dialog } = require('electron').remote
             let ret = dialog.showOpenDialog({
                 properties: ['openFile'], filters: [
                     { name: 'Images(png)', extensions: ['png'] },
@@ -84,7 +85,15 @@ export class TimestampBar extends PIXI.Sprite {
             if (ret && ret.length == 1)
                 animk.projInfo.curComp.newTrack(ret[0])
         })
+        this.addChild(importTrackBtn)
+
+        let newTrackBtn = new Button({ text: 'new' })
+        newTrackBtn.x = -190
+        newTrackBtn.on(PIXI_MOUSE_EVENT.down, () => {
+            animk.projInfo.curComp.newRetoTrack(appInfo.settingInfo.tmpPath(), 10)
+        })
         this.addChild(newTrackBtn)
+
         this.initEvent()
         this.resize(1600, this.height)
 
